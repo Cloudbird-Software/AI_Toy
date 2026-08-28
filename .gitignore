@@ -1,6 +1,5 @@
-# Python
-.venv/
-__pycache__/
+# Go 构建产物
+bin/
 
 # Node / pnpm
 node_modules/
