@@ -1,0 +1,61 @@
+name: release
+# 发布面（spec §5.5）：tag v* 触发。全资产 G0（任一红 exit 10 = 禁止发布）→ canary + packs → SBOM。
+# 注：[self-hosted, gpu] runner 尚未部署（spec §5.10-3）；repoctl sbom / packs 构建器待后续卡补齐——
+# 均按 spec 保留，就绪后自动生效。
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  g0-all: # 全资产 G0 门禁；任一红 exit 10
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: |
+          for a in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T12 T13 T14 T15 T16 T20; do
+            go run ./tools/gaterunner/cmd/gaterunner run --asset "$a" --level g0 --suite release --report "reports/gates/$a.json" || exit 10
+          done
+
+  canary: # canary 掉分 = exit 10
+    needs: g0-all
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/holdout/cmd/holdoutctl eval --suite canary
+
+  packs:
+    needs: g0-all
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go test ./packages/go/packs/... -race -count=1 -run TestBuildAndIsolate
+      - run: |
+          for p in assets-packs/*/; do
+            go run ./packages/go/packs/cmd/packs build "$p"
+          done
+
+  sbom:
+    needs: [g0-all, packs]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/repoctl/cmd/repoctl sbom --out dist/sbom.spdx

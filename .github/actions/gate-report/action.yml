@@ -1,0 +1,68 @@
+name: gate-report
+description: "门禁报告上传 + PR 评论渲染（spec §5.9）。gaterunner summary 渲染命令后续接入——当前直接读取 reports/gates/*.json 渲染摘要表；权限不足时降级写入 job summary。调用方 workflow 须授予 pull-requests: write 才能出 PR 评论。"
+runs:
+  using: composite
+  steps:
+    - name: 上传门禁报告 artifact
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: gate-reports
+        path: reports/gates/*.json
+        if-no-files-found: ignore
+    # PR 评论渲染：读 reports/gates/*.json 的 summary 块出摘要表（幂等：按 marker 更新既有评论）。
+    # TODO(gaterunner): 接入 `gaterunner summary` 命令后替换本脚本的 JSON 直读渲染（spec §5.9）。
+    - name: PR 评论渲染（gaterunner summary 后续接入）
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+      with:
+        script: |
+          const fs = require('fs');
+          const marker = '<!-- gate-report -->';
+          const dir = 'reports/gates';
+          let rows = '';
+          try {
+            const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
+            for (const f of files) {
+              try {
+                const rep = JSON.parse(fs.readFileSync(`${dir}/${f}`, 'utf8'));
+                const s = rep.summary || {};
+                const fails = (s.fail_ids || []).length;
+                rows += `| ${rep.asset || f} | ${s.g0 ?? '-'} | ${s.g1 ?? '-'} | ${s.g2 ?? '-'} | ${fails} |\n`;
+              } catch (e) {
+                core.warning(`跳过不可解析的报告 ${f}: ${e}`);
+              }
+            }
+          } catch (e) {
+            core.warning(`无门禁报告可渲染（${dir}: ${e}）`);
+          }
+          const body =
+            `${marker}\n## 门禁报告摘要\n\n` +
+            `| 资产 | G0 | G1 | G2 | 红/警告数 |\n|---|---|---|---|---|\n` +
+            (rows || `| — | — | — | — | — |\n`) +
+            `\n<sub>gate-report composite action 渲染；gaterunner summary 命令后续接入（spec §5.9）。</sub>`;
+          try {
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((c) => (c.body || '').includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+          } catch (err) {
+            core.warning(`PR 评论失败（调用方 workflow 须授予 pull-requests: write）——降级写入 job summary：${err}`);
+            await core.summary.addRaw(body).write();
+          }

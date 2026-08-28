@@ -1,0 +1,18 @@
+name: setup-go
+description: Go 工具链 + module 缓存（spec §5.9）：install Go 1.23 → 恢复 go module 缓存 → go mod download。调用方须先 checkout（本 action 不做 checkout）。
+runs:
+  using: composite
+  steps:
+    - name: Install Go 1.23
+      uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      with:
+        go-version: "1.23"
+    # 缓存恢复须前置于 go mod download 才生效（spec §5.9「恢复 go module 缓存」的落地面）
+    - name: 恢复 go module 缓存
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: ~/go/pkg/mod
+        key: go-${{ hashFiles('go.sum') }}
+    - name: go mod download
+      shell: bash
+      run: go mod download

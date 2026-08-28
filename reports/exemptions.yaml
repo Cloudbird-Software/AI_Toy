@@ -1,0 +1,5 @@
+# G1 豁免台账：原因+期限≤30天，自动过期；G0 无豁免。
+# 条目 schema（spec §9.3）：[{id, reason, owner, expires(≤30d, YYYY-MM-DD), linked_pr}]；
+# 消费方：repoctl exemption audit（过期项 exit 20）、gaterunner run --exemptions（G1 fail → exempt）。
+# 空台账 = `[]`（保持 YAML 文档非空，gaterunner 的严格解码器才不会报 EOF）。
+[]

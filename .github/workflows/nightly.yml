@@ -1,0 +1,114 @@
+name: nightly
+# 夜间全量门禁（spec §5.2）。G0 sweep + 合成 holdout + 黄金旅程 + 延迟 + 混沌 + 防泄漏 + 元覆盖 + D4 快照 → 汇总索引。
+# 注：[self-hosted, gpu] runner 尚未部署（spec §5.10-3）——对应 job 会排队等待，属预期；部署后自动开跑。
+on:
+  schedule:
+    - cron: "30 18 * * *" # UTC 18:30 = 北京 02:30
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  g0-sweep: # 16 资产 G0 全扫；任一红 exit 10（nightly 红 → 自动 issue「禁止发布」，标题含 commit）
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: |
+          for a in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T12 T13 T14 T15 T16 T20; do
+            go run ./tools/gaterunner/cmd/gaterunner run --asset "$a" --level g0 --suite nightly --report "reports/gates/$a.json" || exit 10
+          done
+
+  synth-holdout:
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/gaterunner/cmd/gaterunner run --suite nightly --dataset-track synth-holdout
+
+  golden-journeys:
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/journeys/cmd/journeys run --set golden --seeds 3 --out reports/nightly/journeys.json
+
+  latency:
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/budgets/cmd/budgets check --report reports/nightly/latency.json
+
+  chaos:
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go test ./tests/chaos/... -race -count=1
+
+  no-leak: # minhash 交叉 + 拓扑断言
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go test ./packages/go/data-flywheel/... -race -count=1 -run LeakAudit
+
+  meta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - name: 安装 just（版本+sha256 双锚定）
+        run: |
+          set -eu
+          JUST_VER="1.36.0"
+          JUST_SHA256="bc7c9f377944f8de9cd0418b11d2955adebfa25a488c0b5e3dd2d2c0e9d732da"
+          curl -sSfL "https://github.com/casey/just/releases/download/${JUST_VER}/just-${JUST_VER}-x86_64-unknown-linux-musl.tar.gz" -o /tmp/just.tgz
+          echo "${JUST_SHA256}  /tmp/just.tgz" | sha256sum -c -
+          tar -xzf /tmp/just.tgz -C /usr/local/bin just
+          just --version
+      - run: just coverage
+
+  d4-snapshot:
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./packages/go/router/cmd/cost_curve --snapshot reports/nightly/d4.json
+
+  report: # 汇总单页索引 + 失败摘要（repoctl nightly-index 子命令待后续卡补齐）
+    needs: [g0-sweep, synth-holdout, golden-journeys, latency, chaos, no-leak, meta, d4-snapshot]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/repoctl/cmd/repoctl nightly-index

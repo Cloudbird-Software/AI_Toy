@@ -1,0 +1,29 @@
+name: meta
+# main 合入后的元门禁自检（spec §5.6）：just verify = gaterunner verify-configs + just coverage
+# （repoctl coverage / agents-md check / forbidden-refs）。ubuntu-latest 即可跑——无 GPU 依赖。
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - name: 安装 just（版本+sha256 双锚定）
+        run: |
+          set -eu
+          JUST_VER="1.36.0"
+          JUST_SHA256="bc7c9f377944f8de9cd0418b11d2955adebfa25a488c0b5e3dd2d2c0e9d732da"
+          curl -sSfL "https://github.com/casey/just/releases/download/${JUST_VER}/just-${JUST_VER}-x86_64-unknown-linux-musl.tar.gz" -o /tmp/just.tgz
+          echo "${JUST_SHA256}  /tmp/just.tgz" | sha256sum -c -
+          tar -xzf /tmp/just.tgz -C /usr/local/bin just
+          just --version
+      - run: just verify # verify-configs + coverage（agents-md check + forbidden-refs）
