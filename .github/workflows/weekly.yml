@@ -1,0 +1,60 @@
+name: weekly
+# 周度评测面（spec §5.3）：真实 holdout（受控 sealed-eval）+ judge 重校 + 漂移 + ML 自审 + 数据审计。
+# 注：[self-hosted, gpu] runner 尚未部署（spec §5.10-3）；repoctl drift/ml-test-score/license-ledger
+# 子命令待后续卡补齐——均按 spec 保留，runner/子命令就绪后自动生效。
+on:
+  schedule:
+    - cron: "0 19 * * 0" # 北京周日 03:00
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  real-holdout: # 见 holdout-eval.yml（§5.4）
+    # spec §5.3 此处为 `secrets: inherit`；被调 workflow 不消费仓级 secret（holdout 凭据经
+    # environment: holdout 注入，§5.10-2），且 zizmor secrets-inherit 要求调用方显式点名——故省略。
+    uses: ./.github/workflows/holdout-eval.yml
+
+  judge-recal: # 周度 judge 重校准：κ 回落即 exit 20
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: |
+          for r in 7a 8a 9a 13a; do
+            go run ./tools/judge/cmd/toyjudge calibrate --rubric "$r" --gold "configs/judge/gold/$r.jsonl" || exit 20
+          done
+
+  drift-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/repoctl/cmd/repoctl drift --weeks 4 --out reports/nightly/drift.md
+
+  ml-self-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/repoctl/cmd/repoctl ml-test-score --checklist docs/runbooks/ml-test-score.yaml
+
+  data-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+      - run: go run ./tools/holdout/cmd/holdoutctl audit && go run ./tools/repoctl/cmd/repoctl license-ledger

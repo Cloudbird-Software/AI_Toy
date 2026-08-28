@@ -1,0 +1,27 @@
+name: holdout-eval
+# 受控真实 holdout 评测（spec §5.4，workflow_call 可复用）。sealed manifest 校验 → 只输出聚合指标
+# （k-匿名 n<5 切片抑制、剥除原始路径）→ 审计流水追加 → artifact 上传。
+# 注：[self-hosted, holdout] 专用 runner 尚未部署（spec §5.10-2/3，无外网出口、仅可达受控对象存储）——
+# job 会排队等待，属预期；Go 工具链由该 runner 预装（无外网出口，不走 actions/setup-go）。
+on:
+  workflow_call: {}
+
+permissions:
+  contents: read
+
+jobs:
+  sealed-eval:
+    runs-on: [self-hosted, holdout]
+    environment: holdout # GitHub Environment：仅 founder 批准触发（§5.10-2）
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: go run ./tools/holdout/cmd/holdoutctl verify-seal
+      - run: go run ./tools/holdout/cmd/holdoutctl eval --suite real --out reports/nightly/real-holdout.json # 仅聚合输出，n<5 切片抑制
+      - run: go run ./tools/holdout/cmd/holdoutctl audit
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: real-holdout
+          path: reports/nightly/real-holdout.json
