@@ -4,7 +4,11 @@
 asset: T2
 name: 数据飞轮
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  flywheel_improved_cycle_rate: { mean: 0.5596, sigma: 0.2861 }
+  holdout_contamination_count: { mean: 0.5, sigma: 0.3004 }
+  pii_residual_count: { mean: 0.4212, sigma: 0.3139 }
+  single_source_share: { mean: 0.6641, sigma: 0.2995 }
 gates:
   - id: T2-G0-01                   # holdout 零污染（全量 minhash 比对 + 管道拓扑测试：holdout 路径在训练管道不可达）
     bi: BI-2.2

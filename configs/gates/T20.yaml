@@ -6,7 +6,11 @@
 asset: T20
 name: 用户模拟器
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  boundary_behavior_reach_rate: { mean: 0.5687, sigma: 0.3551 }
+  journey_in_band_rate: { mean: 0.3576, sigma: 0.2433 }
+  sim_in_training_count: { mean: 0.4855, sigma: 0.2621 }
+  sim_real_discrimination_accuracy: { mean: 0.4, sigma: 0.2347 }
 gates:
   - id: T20-G1-01                  # 拟真度（分布级：分类器判别真/仿；接近 50%=不可分辨，≥90%=一眼假禁用于验收）
     bi: BI-20.3

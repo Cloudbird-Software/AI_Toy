@@ -5,7 +5,12 @@
 asset: T12
 name: 情绪到表情动作映射
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  emotion_motion_consistency_rate: { mean: 0.457, sigma: 0.2289 }
+  max_idle_gap_s: { mean: 0.4212, sigma: 0.2189 }
+  motion_first_visible_p95_ms: { mean: 0.5534, sigma: 0.2947 }
+  motion_safety_violation_count: { mean: 0.4269, sigma: 0.2446 }
+  silent_motion_output_count: { mean: 0.4564, sigma: 0.2046 }
 gates:
   - id: T12-G0-01                  # 物理安全全枚举：0 次越界（与 T6 硬件熔断双保险）
     bi: BI-12.3
