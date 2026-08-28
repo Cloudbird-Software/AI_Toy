@@ -1,0 +1,151 @@
+# Google ML Test Score 28 项清单（Breck et al., arxiv.org/abs/1708.02045）
+# 分类：Data / Model / ML Infra / Monitoring；weekly ml-self-audit 消费；得分只升不降
+# 条目计数：grep -c '^- id:' 本文件 → 必须 = 28
+
+# ---- Data (6) ----
+- id: D1
+  category: Data
+  name: 数据特征规格书存在并经评审
+  score: 0
+  evidence: ""
+- id: D2
+  category: Data
+  name: 各特征期望分布已量化并文档化
+  score: 0
+  evidence: ""
+- id: D3
+  category: Data
+  name: 上游依赖变更可自动触发告警
+  score: 0
+  evidence: ""
+- id: D4
+  category: Data
+  name: 训练数据与服务数据分布漂移可度量
+  score: 0
+  evidence: ""
+- id: D5
+  category: Data
+  name: 标签/真值数据质量审计机制到位
+  score: 0
+  evidence: ""
+- id: D6
+  category: Data
+  name: 训练/验证/测试集来源与切分规则已文档化且稳定
+  score: 0
+  evidence: ""
+
+# ---- Model (10) ----
+- id: M1
+  category: Model
+  name: 离线评估（validation）指标已自动化
+  score: 0
+  evidence: ""
+- id: M2
+  category: Model
+  name: 新旧模型可在同等条件下对比（A/B or shadow）
+  score: 0
+  evidence: ""
+- id: M3
+  category: Model
+  name: 模型超参训练过程可复现（版本化 + 种子）
+  score: 0
+  evidence: ""
+- id: M4
+  category: Model
+  name: 重要切片（slice）上的性能可分别报告
+  score: 0
+  evidence: ""
+- id: M5
+  category: Model
+  name: 模型规格书（用途/约束/边界）已文档化并评审
+  score: 0
+  evidence: ""
+- id: M6
+  category: Model
+  name: 训练时目标函数与业务目标一致性有评审记录
+  score: 0
+  evidence: ""
+- id: M7
+  category: Model
+  name: 公平性与偏见关键维度有测试
+  score: 0
+  evidence: ""
+- id: M8
+  category: Model
+  name: 模型可解释性报告（关键特征/反例）存在
+  score: 0
+  evidence: ""
+- id: M9
+  category: Model
+  name: 训练回归测试（corpus 不变性）通过
+  score: 0
+  evidence: ""
+- id: M10
+  category: Model
+  name: 模型资产版本化与回滚路径可用
+  score: 0
+  evidence: ""
+
+# ---- ML Infra (7) ----
+- id: I1
+  category: ML Infra
+  name: 训练流水线可复跑且全流程有监控
+  score: 0
+  evidence: ""
+- id: I2
+  category: ML Infra
+  name: 模型部署流水线自动化（CI/CD）
+  score: 0
+  evidence: ""
+- id: I3
+  category: ML Infra
+  name: 服务端模型推理 SLO/P95 延迟有监控与告警
+  score: 0
+  evidence: ""
+- id: I4
+  category: ML Infra
+  name: 金丝雀发布（canary）与回滚机制可用
+  score: 0
+  evidence: ""
+- id: I5
+  category: ML Infra
+  name: 实验平台支持同时多路流量对比
+  score: 0
+  evidence: ""
+- id: I6
+  category: ML Infra
+  name: 特征工程/服务推理代码共享或有一致性校验
+  score: 0
+  evidence: ""
+- id: I7
+  category: ML Infra
+  name: 资源利用率（GPU/CPU/内存）有监控与容量规划
+  score: 0
+  evidence: ""
+
+# ---- Monitoring (5) ----
+- id: Mo1
+  category: Monitoring
+  name: 线上预测分布漂移监控（PSI 等）
+  score: 0
+  evidence: ""
+- id: Mo2
+  category: Monitoring
+  name: 关键业务指标与模型预测相关性监控
+  score: 0
+  evidence: ""
+- id: Mo3
+  category: Monitoring
+  name: 数据新鲜度与 pipeline 延迟监控告警
+  score: 0
+  evidence: ""
+- id: Mo4
+  category: Monitoring
+  name: 模型性能长期趋势跟踪（只升不降的审计节点）
+  score: 0
+  evidence: ""
+- id: Mo5
+  category: Monitoring
+  name: 自动异常检测 + 值班升级（on-call escalation）通路
+  score: 0
+  evidence: ""
