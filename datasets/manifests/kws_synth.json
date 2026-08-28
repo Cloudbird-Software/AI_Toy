@@ -1,0 +1,13 @@
+{
+  "id": "kws_synth_v1",
+  "kind": "synth",
+  "producer": "tools/synthgen（生成器 kws-synth，待注册 datasets/synth/registry.jsonl）",
+  "license_or_consent": "CC0-1.0（全合成桩数据：不含真实人声与个人信息，无需知情同意）",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "n_items": 0,
+  "splits": {
+    "synth_train": 0.8,
+    "synth_holdout": 0.2
+  },
+  "created": "2026-08-28"
+}

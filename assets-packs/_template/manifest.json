@@ -1,0 +1,30 @@
+{
+  "pack_id": "_template",
+  "version": "0.1.0",
+  "persona_card": "persona/persona.yaml",
+  "voice_ref": "voice/voice_ref.wav",
+  "motion_config": "motion/motion_map.yaml",
+  "knowledge": [
+    "knowledge/README.md"
+  ],
+  "scripts": [
+    "scripts/README.md"
+  ],
+  "eval_set": {
+    "path": "eval/eval_set.yaml",
+    "min_pass": 0.85
+  },
+  "permissions": {
+    "memory_scopes": [
+      "session_state",
+      "child_preferences"
+    ],
+    "actions": [
+      "speak",
+      "light_glow",
+      "motion_gentle"
+    ],
+    "volume_max": 0.6
+  },
+  "signature": "PLACEHOLDER-UNSIGNED（模板示例值：包签名机制接入后替换；签名有效为 T16-G1-02 包完整性的一部分）"
+}

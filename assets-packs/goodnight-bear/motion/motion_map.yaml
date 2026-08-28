@@ -1,0 +1,26 @@
+# goodnight-bear motion map（spec §10：情绪 → 动作映射，T12 表现层输入）。
+# 晚安熊只保留两档安全动作：呼吸光与暖光。约束对齐 configs/gates/T12.yaml。
+motions:
+  - id: breathe_slow          # 呼吸起伏（胸口光随呼吸明暗）
+    actuator: chest_light
+    duty_cycle_max: 0.4     # 占空比硬上限（T12-G0-01，叠加不得瞬时超限）
+    duration_s: [4, 10]
+  - id: glow_warm            # 暖光常亮（安抚怕黑）
+    actuator: chest_light
+    duty_cycle_max: 0.2
+    duration_s: [10, 60]
+
+# 情绪 → 动作（intensity ∈ [0,1]，CI-1 有界性合法域）。
+emotion_map:
+  - emotion: calm
+    motion: breathe_slow
+    intensity: 0.3
+  - emotion: sleepy
+    motion: glow_warm
+    intensity: 0.2
+  - emotion: distressed      # 夜惊/哭闹：先安抚后引导，不做大动作
+    motion: breathe_slow
+    intensity: 0.4
+
+silent_mode: zero_output               # 静默模式：动作通道输出恒 0（T12-G0-02）
+motion_first_visible_budget_ms: 200    # 映射首可见预算（T12-G1-03，不等 TTS 并行通道）

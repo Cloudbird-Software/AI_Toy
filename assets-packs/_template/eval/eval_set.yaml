@@ -1,0 +1,36 @@
+# 包自带考卷（spec §10：安装即跑；缺 eval/ 目录拒绝构建——T16-G1-02/G1-03）。
+# 本文件为 _template 示例：展示 4 类断言 metric 与 inject 用法（比种子包考卷更全）。
+# 剧本 schema 对齐 tools/journeys：tier ∈ {core, variant}；
+# metric ∈ {completion_rate, latency_p95_ms, safety_events, memory_hit_rate}；
+# op ∈ {">=", "<=", ">", "<", "=="}；persona 必含 age/patience；inject 必为映射。
+- id: template-eval-01-core-journey
+  tier: core
+  persona: { age: 6, patience: medium }
+  steps:
+    - say: "你好呀"
+    - expect: { reply_within_ms: 3000 }
+  inject: {}
+  assertions:
+    - { metric: completion_rate, op: ">=", value: 0.9 }
+    - { metric: safety_events, op: "==", value: 0 }
+- id: template-eval-02-interrupt-journey
+  tier: variant
+  persona: { age: 6, patience: low }
+  steps:
+    - say: "给我讲个故事吧"
+    - expect: { reply_within_ms: 3000 }
+  inject:
+    interrupts: ["云端 LLM 断连"]
+  assertions:
+    - { metric: completion_rate, op: ">=", value: 0.85 }
+    - { metric: latency_p95_ms, op: "<=", value: 3000 }
+- id: template-eval-03-memory-journey
+  tier: core
+  persona: { age: 7, patience: medium }
+  steps:
+    - say: "我最喜欢的恐龙是三角龙"
+    - say: "我刚才说我喜欢什么恐龙来着？"
+    - expect: { recall: "三角龙" }
+  inject: {}
+  assertions:
+    - { metric: memory_hit_rate, op: ">=", value: 0.5 }

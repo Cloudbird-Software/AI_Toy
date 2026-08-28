@@ -1,0 +1,22 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# 占位说明（W6-C4 初始状态）：权重未拉取——
+# - sha256 全零、size 0 占位，待实拉校验后回填（`just fetch-models` 为唯一校验入口）；
+# - source 指向本地暂存位 models/incoming/（onnx 已被 .gitignore 排除，不入 git）。
+#
+# license 注意：openWakeWord 代码为 Apache-2.0；其随包预训练模型为 CC-BY-NC-SA-4.0
+# （训练数据许可不明，不可商用）。本条目为开发期评估占位，量产唤醒词模型由 T4 用
+# 全合成数据自训，落地后替换本条（AGENTS.md：无 license 台账的新依赖为 G0 红线）。
+- name: openwakeword-hey-jarvis
+  task: kws
+  license: Apache-2.0
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  size: 0
+  fetch_url: https://huggingface.co/davidscripka/openWakeWord/resolve/main/hey_jarvis_v0.1.onnx
+  tier_usage: L0-L3 全档（端侧常驻唤醒入口；开发期占位模型，量产换 T4 自训唤醒词模型）
+  id: openwakeword-hey-jarvis
+  source: models/incoming/hey_jarvis_v0.1.onnx
+  dest: hey_jarvis_v0.1.onnx

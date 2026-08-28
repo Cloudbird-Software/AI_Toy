@@ -1,0 +1,13 @@
+# goodnight-bear 睡前引导剧本（最小种子；字段对齐 tools/journeys 剧本契约）。
+# manifest.permissions 未声明的能力运行时默认拒绝（白名单制），本剧本只用已声明动作。
+id: gb-bedtime-flow
+tier: core
+persona: { age: 5, patience: medium }
+steps:
+  - say: "小熊，我要睡觉了"
+  - expect: { reply_within_ms: 3000, topic: bedtime_routine }
+  - say: "讲个小兔子的故事吧"
+  - expect: { story_length: short, close_phrase: "小熊也要睡了，明天见。" }
+inject: {}
+assertions:
+  - { metric: completion_rate, op: ">=", value: 0.9 }

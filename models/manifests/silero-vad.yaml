@@ -1,0 +1,19 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# 占位说明（W6-C4 初始状态）：权重未拉取——
+# - sha256 全零占位，待实拉校验后回填（`just fetch-models` 为唯一校验入口）；
+# - source 指向本地暂存位 models/incoming/（onnx 已被 .gitignore 排除，不入 git）：
+#   按 fetch_url 下载权重放置于该处并回填真实 sha256 后，fetch-models 即可校验并落 models/cache。
+- name: silero-vad
+  task: vad
+  license: MIT
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  size: 2327524
+  fetch_url: https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx
+  tier_usage: L0-L3 全档（语音活动检测前置，端侧常驻不依赖云）
+  id: silero-vad
+  source: models/incoming/silero-vad.onnx
+  dest: silero-vad.onnx

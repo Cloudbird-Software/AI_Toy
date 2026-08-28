@@ -1,0 +1,27 @@
+# motion map（spec §10）：情绪 → 动作映射（T12 表现层输入）。
+# 约束对齐 configs/gates/T12.yaml：占空比硬上限（G0 物理安全，动作叠加不得瞬时超限）、
+# 静默模式动作通道输出恒 0（T12-G0-02，优先级高于一切映射）、映射首可见 ≤200ms（T12-G1-03）。
+motions:
+  - id: breathe_slow            # 呼吸起伏（示例）
+    actuator: chest_light
+    duty_cycle_max: 0.4         # 占空比硬上限（叠加组合亦不得超限）
+    duration_s: [2, 10]        # 单次时长范围
+  - id: sway_gentle             # 轻缓摇摆（示例）
+    actuator: body_motor
+    duty_cycle_max: 0.3
+    duration_s: [3, 8]
+
+# 情绪 → 动作（intensity ∈ [0,1]，CI-1 有界性合法域）。
+emotion_map:
+  - emotion: calm
+    motion: breathe_slow
+    intensity: 0.3
+  - emotion: alert
+    motion: sway_gentle
+    intensity: 0.5
+  - emotion: sad
+    motion: breathe_slow
+    intensity: 0.4
+
+silent_mode: zero_output               # 静默模式：动作通道输出恒 0（T12-G0-02）
+motion_first_visible_budget_ms: 200    # 映射首可见预算（T12-G1-03，不等 TTS 并行通道）
