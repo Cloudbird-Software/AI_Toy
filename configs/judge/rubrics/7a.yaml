@@ -1,0 +1,13 @@
+# rubric-7a 情绪反应得体度（门禁 κ≥0.61，spec §11.9 T7）：三级量表
+# 基调错位 / 基调对强度失配 / 均恰当，每档锚定。
+id: 7a
+high_risk: false
+criteria:
+  - name: appropriateness
+    levels:
+      - level: 1
+        anchor: 基调错位——情绪基调与孩子当前状态相反（孩子兴奋却泼冷水、孩子难过却调侃）
+      - level: 2
+        anchor: 基调对但强度失配——方向正确但强度过冲或不足（孩子小失落却过度安慰）
+      - level: 3
+        anchor: 均恰当——基调与强度都贴合孩子当前情绪与语境
