@@ -1,5 +1,6 @@
 // calibrate —— 金标校准：per-criterion Cohen's κ 一律走 evalkit（spec §3.3，
-// 「不可自实现」），任一 κ < 0.61 未达自动化门禁（CLI 映射 exit 20）。
+// 「不可自实现」），任一 κ < 门禁阈值（§4.2 policy.kappa_gate.automation，由
+// 调用方从加载的 ModelConfig 传入）未达自动化门禁（CLI 映射 exit 20）。
 package toyjudge
 
 import (
@@ -12,9 +13,6 @@ import (
 
 	"github.com/Cloudbird-Software/AI_Toy/tools/evalkit/evalkit"
 )
-
-// KappaGateAutomation 是自动化门禁 κ 阈值（spec §4.2 kappa_gate.automation）。
-const KappaGateAutomation = 0.61
 
 // GoldRow 是金标 jsonl 的一行：同一 criterion 下人工分与 judge 分的配对评分。
 type GoldRow struct {
@@ -96,10 +94,10 @@ type CalibrateReport struct {
 }
 
 // Calibrate 逐 criterion 计算 judge 与人工金标的 Cohen's κ（evalkit.CohensKappa），
-// 任一 criterion κ < KappaGateAutomation 即 Pass=false。
-func Calibrate(rubric *Rubric, judge JudgeInfo, rows []GoldRow) CalibrateReport {
+// 任一 criterion κ < kappaGate 即 Pass=false；报告 KappaGate 字段记录实际使用的阈值。
+func Calibrate(rubric *Rubric, judge JudgeInfo, rows []GoldRow, kappaGate float64) CalibrateReport {
 	rep := CalibrateReport{Rubric: rubric.ID, RubricSHA256: rubric.SHA256,
-		KappaGate: KappaGateAutomation, Judge: judge,
+		KappaGate: kappaGate, Judge: judge,
 		Criteria: make([]CriterionKappa, 0, len(rubric.Criteria)), MinKappa: math.Inf(1)}
 	for _, c := range rubric.Criteria {
 		var human, model []int
@@ -113,6 +111,6 @@ func Calibrate(rubric *Rubric, judge JudgeInfo, rows []GoldRow) CalibrateReport 
 		rep.Criteria = append(rep.Criteria, CriterionKappa{Criterion: c.Name, Kappa: k, N: len(human)})
 		rep.MinKappa = math.Min(rep.MinKappa, k)
 	}
-	rep.Pass = rep.MinKappa >= KappaGateAutomation
+	rep.Pass = rep.MinKappa >= kappaGate
 	return rep
 }
