@@ -1,5 +1,6 @@
-// 契约测试（spec §3.3）：pairwise-swap AB/BA 不一致记 tie、报告含 rubric/model
-// 哈希、model.yaml 缺字段 exit 2、9a 双 judge、同族 judge exit 2、桩确定性。
+// 契约测试（spec §3.3/§4.2）：pairwise-swap AB/BA 不一致记 tie、报告含 rubric/model
+// 哈希、model.yaml（§4.2 schema）缺字段/locked=false exit 2、9a 双 judge、
+// 同族 judge exit 2、桩确定性。
 package toyjudge
 
 import (
@@ -55,34 +56,33 @@ criteria:
         anchor: 均恰当
 `
 
-const sameFamilyModelYAML = `judges:
-  - model: claude-sonnet-4-5
-    temperature: 0.0
-    prompt: 同族第一席
-  - model: claude-opus-4
-    temperature: 0.0
-    prompt: 同族第二席
+// sameFamilyModelYAML：高风险双席同族（§4.2 加载期即拒绝）。
+const sameFamilyModelYAML = `judge_default: { provider: anthropic, model: claude-sonnet-4-5, temperature: 0.0, locked: true }
+judges_high_risk: [claude-sonnet-4-5, claude-opus-4]
+policy:
+  pairwise_swap: true
+  tie_on_disagree: true
+  recalibrate: quarterly + on any rubric/judge change
+  kappa_gate: { automation: 0.61, ci_autonomous: 0.80 }
+gold_dir: configs/judge/gold/
 `
 
-// model.yaml 缺 model/temperature/prompt 任一字段 → exit 2（参数化 3）。
-func TestRunModelConfigMissingFieldExitsTwo(t *testing.T) {
-	for _, field := range []string{"model", "temperature", "prompt"} {
-		t.Run("missing-"+field, func(t *testing.T) {
-			broken := testModelYAML
-			switch field {
-			case "model":
-				broken = strings.Replace(broken, "  - model: claude-sonnet-4-5\n", "", 1)
-			case "temperature":
-				broken = strings.Replace(broken, "    temperature: 0.0\n", "", 1)
-			case "prompt":
-				broken = strings.Replace(broken, "    prompt: 测试桩 judge prompt\n", "", 1)
-			}
-			code, _, errMsg := runCLI(t, testRubricYAML, broken, 2)
+// model.yaml judge_default 缺必填字段或 locked=false → exit 2（参数化）。
+func TestRunModelConfigInvalidExitsTwo(t *testing.T) {
+	for _, tc := range []struct{ field, broken string }{
+		{"provider", strings.Replace(testModelYAML, "provider: anthropic, ", "", 1)},
+		{"model", strings.Replace(testModelYAML, "model: claude-sonnet-4-5, ", "", 1)},
+		{"temperature", strings.Replace(testModelYAML, ", temperature: 0.0", "", 1)},
+		{"locked", strings.Replace(testModelYAML, ", locked: true", "", 1)},
+		{"locked", strings.Replace(testModelYAML, "locked: true", "locked: false", 1)},
+	} {
+		t.Run("invalid-"+tc.field, func(t *testing.T) {
+			code, _, errMsg := runCLI(t, testRubricYAML, tc.broken, 2)
 			if code != ExitInput {
 				t.Fatalf("exit=%d want %d", code, ExitInput)
 			}
-			if !strings.Contains(errMsg, field) {
-				t.Errorf("stderr 应指出缺失字段 %s: %q", field, errMsg)
+			if !strings.Contains(errMsg, tc.field) {
+				t.Errorf("stderr 应指出问题字段 %s: %q", tc.field, errMsg)
 			}
 		})
 	}
@@ -94,7 +94,7 @@ func TestPairwiseSwapPositionBiasYieldsTie(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	judges := []JudgeInfo{JudgeConfig{Model: "stub-1", Temperature: 0, Prompt: "p"}.Info()}
+	judges := []JudgeInfo{JudgeConfig{Model: "stub-1", Temperature: 0}.Info(rubric)}
 	targets := []Target{{ID: "x", Content: []byte("内容甲")}, {ID: "y", Content: []byte("内容乙")}}
 	biased := func(call PairwiseCall) LevelPair { return LevelPair{First: 3, Second: 1} }
 	records := RunPairwiseSwap(rubric, "model-sha", judges, targets, biased)
@@ -204,7 +204,7 @@ func TestRunHighRiskDoubleJudgeEmitsTwoJudgeRecords(t *testing.T) {
 	}
 }
 
-// 高风险双 judge 同族 → exit 2。
+// 高风险双 judge 同族 → exit 2（§4.2 加载期即拒绝同族席位）。
 func TestRunSameFamilyDoubleJudgeExitsTwo(t *testing.T) {
 	code, _, errMsg := runCLI(t, highRiskRubricYAML, sameFamilyModelYAML, 2)
 	if code != ExitInput {
@@ -222,8 +222,8 @@ func TestConsensusDoubleJudgeDisagreementYieldsTie(t *testing.T) {
 		t.Fatal(err)
 	}
 	judges := []JudgeInfo{
-		JudgeConfig{Model: "j-one", Temperature: 0, Prompt: "p1"}.Info(),
-		JudgeConfig{Model: "j-two", Temperature: 0, Prompt: "p2"}.Info(),
+		JudgeConfig{Model: "j-one", Temperature: 0}.Info(rubric),
+		JudgeConfig{Model: "j-two", Temperature: 0}.Info(rubric),
 	}
 	targets := []Target{{ID: "x", Content: []byte("甲")}, {ID: "y", Content: []byte("乙")}}
 	fn := func(call PairwiseCall) LevelPair { // 位置无关：j-one 判 x 胜，j-two 判 y 胜
@@ -283,7 +283,11 @@ func TestRunInputValidation(t *testing.T) {
 
 // 属性：DeterministicJudge 同输入同分数；分数与伙伴/位置无关（默认桩无位置偏置）。
 func TestDeterministicJudgeProperties(t *testing.T) {
-	j := JudgeConfig{Model: "claude-sonnet-4-5", Temperature: 0, Prompt: "p"}.Info()
+	rubric, err := ParseRubric([]byte(testRubricYAML), "r1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	j := JudgeConfig{Model: "claude-sonnet-4-5", Temperature: 0}.Info(rubric)
 	x := Target{ID: "x", Content: []byte("同一段被评内容")}
 	ab := PairwiseCall{RubricID: "r1", Criterion: "tone", Judge: j,
 		First: x, Second: Target{ID: "y", Content: []byte("伙伴一")}}

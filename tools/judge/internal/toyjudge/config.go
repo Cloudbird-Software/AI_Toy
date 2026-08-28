@@ -1,4 +1,5 @@
-// config —— rubric 三级量表与 model.yaml judge 配置的加载与校验（spec §3.3）。
+// config —— rubric 三级量表与 model.yaml judge 配置（§4.2 schema）的加载与校验
+// （spec §3.3/§4.2）。
 package toyjudge
 
 import (
@@ -123,14 +124,16 @@ func LoadRubric(dir, id string) (*Rubric, error) {
 	return r, nil
 }
 
-// JudgeConfig 是 model.yaml 中一条 judge 配置（model/temperature/prompt 三字段锁定）。
+// JudgeConfig 是 model.yaml 的一个 judge 席位（§4.2）：provider/model/temperature
+// 锁定读取；prompt 不再来自 model.yaml（schema 无 prompt 字段），由 rubric 派生
+// （见 JudgeInfo）。
 type JudgeConfig struct {
+	Provider    string
 	Model       string
 	Temperature float64
-	Prompt      string
 }
 
-// JudgeInfo 是进报告的 judge 身份：model/temperature 三字段 + prompt 与配置的哈希
+// JudgeInfo 是进报告的 judge 身份：model/temperature + prompt 与配置的哈希
 // （prompt 文本不落报告，只落哈希，BAML-1）。
 type JudgeInfo struct {
 	Model        string  `json:"model"`
@@ -139,36 +142,90 @@ type JudgeInfo struct {
 	ConfigSHA256 string  `json:"config_sha256"`
 }
 
-// Info 返回带哈希的 judge 身份；config 哈希取三字段 canonical JSON 的 sha256。
-func (c JudgeConfig) Info() JudgeInfo {
+// judgePrompt 从 rubric 派生 judge prompt 文本（§4.2 schema 无 prompt 字段；
+// BAML-1 客户端接入前以 rubric id + criteria 序列化为替身，rubric 变更即 prompt 变更）。
+func judgePrompt(rubric *Rubric) string {
+	if rubric == nil {
+		return ""
+	}
+	data, _ := json.Marshal(struct {
+		ID       string      `json:"id"`
+		Criteria []Criterion `json:"criteria"`
+	}{rubric.ID, rubric.Criteria})
+	return string(data)
+}
+
+// Info 返回带哈希的 judge 身份；prompt 哈希取 rubric 派生文本的 sha256，
+// config 哈希取 provider/model/temperature/prompt canonical JSON 的 sha256。
+func (c JudgeConfig) Info(rubric *Rubric) JudgeInfo {
+	prompt := judgePrompt(rubric)
 	canonical, _ := json.Marshal(struct {
+		Provider    string  `json:"provider"`
 		Model       string  `json:"model"`
 		Temperature float64 `json:"temperature"`
 		Prompt      string  `json:"prompt"`
-	}{c.Model, c.Temperature, c.Prompt})
-	cfgSum, promptSum := sha256.Sum256(canonical), sha256.Sum256([]byte(c.Prompt))
+	}{c.Provider, c.Model, c.Temperature, prompt})
+	cfgSum, promptSum := sha256.Sum256(canonical), sha256.Sum256([]byte(prompt))
 	return JudgeInfo{Model: c.Model, Temperature: c.Temperature,
 		PromptSHA256: hex.EncodeToString(promptSum[:]), ConfigSHA256: hex.EncodeToString(cfgSum[:])}
 }
 
-// ModelConfig 是 configs/judge/model.yaml：judge 配置表 + 文件内容哈希。
-type ModelConfig struct {
-	Judges []JudgeConfig
-	SHA256 string
+// KappaGate 是 κ 门禁阈值（§4.2 policy.kappa_gate）：automation 供自动化门禁，
+// ci_autonomous 供 CI 自主合入门禁。
+type KappaGate struct {
+	Automation   float64
+	CIAutonomous float64
 }
 
-type judgeFile struct {
+// Policy 是评审策略（§4.2 policy）。
+type Policy struct {
+	PairwiseSwap  bool
+	TieOnDisagree bool
+	Recalibrate   string
+	KappaGate     KappaGate
+}
+
+// ModelConfig 是 configs/judge/model.yaml（§4.2 schema）：默认 judge、高风险双席、
+// 策略、金标目录 + 文件内容哈希。
+type ModelConfig struct {
+	JudgeDefault   JudgeConfig
+	JudgesHighRisk [2]string
+	Policy         Policy
+	GoldDir        string
+	SHA256         string
+}
+
+type judgeDefaultFile struct {
+	Provider    *string  `yaml:"provider"`
 	Model       *string  `yaml:"model"`
 	Temperature *float64 `yaml:"temperature"`
-	Prompt      *string  `yaml:"prompt"`
+	Locked      *bool    `yaml:"locked"`
+}
+
+type kappaGateFile struct {
+	Automation   *float64 `yaml:"automation"`
+	CIAutonomous *float64 `yaml:"ci_autonomous"`
+}
+
+type policyFile struct {
+	PairwiseSwap  *bool          `yaml:"pairwise_swap"`
+	TieOnDisagree *bool          `yaml:"tie_on_disagree"`
+	Recalibrate   string         `yaml:"recalibrate"`
+	KappaGate     *kappaGateFile `yaml:"kappa_gate"`
 }
 
 type modelFile struct {
-	Judges []judgeFile `yaml:"judges"`
+	JudgeDefault   *judgeDefaultFile `yaml:"judge_default"`
+	JudgesHighRisk []string          `yaml:"judges_high_risk"`
+	Policy         *policyFile       `yaml:"policy"`
+	GoldDir        *string           `yaml:"gold_dir"`
 }
 
-// LoadModelConfig 读取 model.yaml fixture：每条 judge 必须同时具备
-// model/temperature/prompt 三字段，缺任一即配置错误（CLI 映射 exit 2）。
+// LoadModelConfig 读取 model.yaml（§4.2 schema）：judge_default 的
+// provider/model/temperature/locked 四字段必填且 locked 须为 true（锁定纪律）；
+// judges_high_risk 恰 2 条且异族；policy.kappa_gate 两阈值必填且落在 (0,1]；
+// pairwise_swap/tie_on_disagree 须为 true（spec §3.3 强制行为，本卡唯一支持）；
+// gold_dir 非空。任一不满足即配置错误（CLI 映射 exit 2）。
 func LoadModelConfig(path string) (*ModelConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -178,20 +235,68 @@ func LoadModelConfig(path string) (*ModelConfig, error) {
 	if err := yaml.Unmarshal(data, &f); err != nil {
 		return nil, fmt.Errorf("model 配置 YAML 解析失败: %w", err)
 	}
-	if len(f.Judges) == 0 {
-		return nil, fmt.Errorf("model 配置至少需要一条 judge（judges 列表为空）")
+	if f.JudgeDefault == nil {
+		return nil, fmt.Errorf("model.yaml: judge_default 缺失（§4.2 schema）")
 	}
-	m := &ModelConfig{Judges: make([]JudgeConfig, len(f.Judges))}
-	for i, j := range f.Judges {
-		switch {
-		case j.Model == nil || strings.TrimSpace(*j.Model) == "":
-			return nil, fmt.Errorf("model.yaml judges[%d]: model 字段缺失", i)
-		case j.Temperature == nil:
-			return nil, fmt.Errorf("model.yaml judges[%d]: temperature 字段缺失", i)
-		case j.Prompt == nil || strings.TrimSpace(*j.Prompt) == "":
-			return nil, fmt.Errorf("model.yaml judges[%d]: prompt 字段缺失", i)
+	switch {
+	case f.JudgeDefault.Provider == nil || strings.TrimSpace(*f.JudgeDefault.Provider) == "":
+		return nil, fmt.Errorf("model.yaml judge_default: provider 字段缺失")
+	case f.JudgeDefault.Model == nil || strings.TrimSpace(*f.JudgeDefault.Model) == "":
+		return nil, fmt.Errorf("model.yaml judge_default: model 字段缺失")
+	case f.JudgeDefault.Temperature == nil:
+		return nil, fmt.Errorf("model.yaml judge_default: temperature 字段缺失")
+	case f.JudgeDefault.Locked == nil:
+		return nil, fmt.Errorf("model.yaml judge_default: locked 字段缺失")
+	}
+	if !*f.JudgeDefault.Locked {
+		return nil, fmt.Errorf("model.yaml judge_default: locked=false 违反锁定纪律（judge 配置须锁定）")
+	}
+	if len(f.JudgesHighRisk) != 2 {
+		return nil, fmt.Errorf("model.yaml judges_high_risk: 须恰 2 条（高风险双 judge），实际 %d 条", len(f.JudgesHighRisk))
+	}
+	for i, model := range f.JudgesHighRisk {
+		if strings.TrimSpace(model) == "" {
+			return nil, fmt.Errorf("model.yaml judges_high_risk[%d]: 模型名为空", i)
 		}
-		m.Judges[i] = JudgeConfig{Model: *j.Model, Temperature: *j.Temperature, Prompt: *j.Prompt}
+	}
+	if family := modelFamily(f.JudgesHighRisk[0]); family == modelFamily(f.JudgesHighRisk[1]) {
+		return nil, fmt.Errorf("model.yaml judges_high_risk 同族（%s 与 %s 均为 %s 族），须不同厂商",
+			f.JudgesHighRisk[0], f.JudgesHighRisk[1], family)
+	}
+	if f.Policy == nil || f.Policy.KappaGate == nil {
+		return nil, fmt.Errorf("model.yaml: policy.kappa_gate 缺失")
+	}
+	kg := f.Policy.KappaGate
+	switch {
+	case kg.Automation == nil:
+		return nil, fmt.Errorf("model.yaml policy.kappa_gate: automation 字段缺失")
+	case kg.CIAutonomous == nil:
+		return nil, fmt.Errorf("model.yaml policy.kappa_gate: ci_autonomous 字段缺失")
+	case *kg.Automation <= 0 || *kg.Automation > 1:
+		return nil, fmt.Errorf("model.yaml policy.kappa_gate.automation=%v 越界（须 (0,1]）", *kg.Automation)
+	case *kg.CIAutonomous <= 0 || *kg.CIAutonomous > 1:
+		return nil, fmt.Errorf("model.yaml policy.kappa_gate.ci_autonomous=%v 越界（须 (0,1]）", *kg.CIAutonomous)
+	}
+	switch {
+	case f.Policy.PairwiseSwap == nil:
+		return nil, fmt.Errorf("model.yaml policy: pairwise_swap 字段缺失")
+	case !*f.Policy.PairwiseSwap:
+		return nil, fmt.Errorf("model.yaml policy: pairwise_swap=false 与 spec §3.3 强制行为冲突（AB/BA 各评一次）")
+	case f.Policy.TieOnDisagree == nil:
+		return nil, fmt.Errorf("model.yaml policy: tie_on_disagree 字段缺失")
+	case !*f.Policy.TieOnDisagree:
+		return nil, fmt.Errorf("model.yaml policy: tie_on_disagree=false 与 spec §3.3 强制行为冲突（不一致记 tie）")
+	}
+	if f.GoldDir == nil || strings.TrimSpace(*f.GoldDir) == "" {
+		return nil, fmt.Errorf("model.yaml: gold_dir 字段缺失")
+	}
+	m := &ModelConfig{
+		JudgeDefault: JudgeConfig{Provider: *f.JudgeDefault.Provider,
+			Model: *f.JudgeDefault.Model, Temperature: *f.JudgeDefault.Temperature},
+		JudgesHighRisk: [2]string{f.JudgesHighRisk[0], f.JudgesHighRisk[1]},
+		Policy: Policy{PairwiseSwap: true, TieOnDisagree: true, Recalibrate: f.Policy.Recalibrate,
+			KappaGate: KappaGate{Automation: *kg.Automation, CIAutonomous: *kg.CIAutonomous}},
+		GoldDir: *f.GoldDir,
 	}
 	sum := sha256.Sum256(data)
 	m.SHA256 = hex.EncodeToString(sum[:])
@@ -210,20 +315,24 @@ func modelFamily(model string) string {
 	return strings.ToLower(model)
 }
 
-// SelectJudges 选定评审席位：常规 rubric 取首席；高风险 rubric（9a 类）取前两席
-// 且必须异族——「双 judge 不同厂商，同族 judge 拒绝」（spec §3.3/§11.12）。
-func (m *ModelConfig) SelectJudges(highRisk bool) ([]JudgeInfo, error) {
-	first := m.Judges[0].Info()
-	if !highRisk {
-		return []JudgeInfo{first}, nil
+// SelectJudges 选定评审席位（§4.2）：常规 rubric → judge_default 单席；
+// 高风险 rubric（9a 类）→ judges_high_risk 双席且必须异族——「双 judge 不同厂商，
+// 同族 judge 拒绝」（spec §3.3/§11.12）。§4.2 只给双席模型名，温度沿用
+// judge_default；prompt 哈希由 rubric 派生（见 JudgeInfo）。
+func (m *ModelConfig) SelectJudges(rubric *Rubric) ([]JudgeInfo, error) {
+	if rubric == nil {
+		return nil, fmt.Errorf("SelectJudges 需要 rubric（席位与 prompt 哈希均随 rubric 走）")
 	}
-	if len(m.Judges) < 2 {
-		return nil, fmt.Errorf("高风险 rubric 需要双 judge，model.yaml 只有 %d 条 judge 配置", len(m.Judges))
+	if !rubric.HighRisk {
+		return []JudgeInfo{m.JudgeDefault.Info(rubric)}, nil
 	}
-	second := m.Judges[1].Info()
-	if family := modelFamily(first.Model); family == modelFamily(second.Model) {
+	seats := make([]JudgeInfo, len(m.JudgesHighRisk))
+	for i, model := range m.JudgesHighRisk {
+		seats[i] = JudgeConfig{Model: model, Temperature: m.JudgeDefault.Temperature}.Info(rubric)
+	}
+	if family := modelFamily(seats[0].Model); family == modelFamily(seats[1].Model) {
 		return nil, fmt.Errorf("高风险双 judge 同族（%s 与 %s 均为 %s 族），须不同厂商",
-			first.Model, second.Model, family)
+			seats[0].Model, seats[1].Model, family)
 	}
-	return []JudgeInfo{first, second}, nil
+	return seats, nil
 }

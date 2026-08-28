@@ -65,14 +65,14 @@ func runCalibrateCmd(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail("%v", err)
 	}
-	rep := Calibrate(rubric, model.Judges[0].Info(), rows)
+	rep := Calibrate(rubric, model.JudgeDefault.Info(rubric), rows, model.Policy.KappaGate.Automation)
 	data, err := json.MarshalIndent(rep, "", "  ")
 	if err != nil {
 		return fail("%v", err)
 	}
 	fmt.Fprintln(stdout, string(data))
 	if !rep.Pass {
-		fmt.Fprintf(stderr, "calibrate: min κ=%.4f < %.2f，门禁未达\n", rep.MinKappa, KappaGateAutomation)
+		fmt.Fprintf(stderr, "calibrate: min κ=%.4f < %.2f，门禁未达\n", rep.MinKappa, rep.KappaGate)
 		return ExitKappaGate
 	}
 	return ExitOK
@@ -111,7 +111,7 @@ func runRunCmd(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail("%v", err)
 	}
-	judges, err := model.SelectJudges(rubric.HighRisk)
+	judges, err := model.SelectJudges(rubric)
 	if err != nil {
 		return fail("%v", err)
 	}
