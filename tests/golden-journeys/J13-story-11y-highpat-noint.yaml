@@ -1,0 +1,23 @@
+# J13 讲故事变体（J03 骨架）：11 岁 / 高耐心 / 无打断 / 无安全事件 / L2。
+# 端侧档基础叙事探针：L2（端侧小模型，offline_ok）下仍须完成基础叙事旅程。
+# 端侧档延迟预算随 T14 另行挂门禁（spec §10），暂按组合级 1500ms 云档线保守执行。
+id: J13
+tier: variant
+persona:
+  age: 11
+  patience: high
+  runtime_tier: L2
+steps:
+  - story_request
+  - pick_story_theme
+  - tell_story_beats
+  - micro_motion_idle_pause
+  - ask_favorite_part
+  - close_story
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

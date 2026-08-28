@@ -1,0 +1,22 @@
+# J18 离线一天变体（J09 骨架）：4 岁 / 高耐心 / 有打断 / 无安全事件 / L2 档全程。
+# 打断点：离线响应变慢时幼儿插话追问（CI-4 失败优雅性：无响应 >10s 不道歉=违反）。
+id: J18
+tier: variant
+persona:
+  age: 4
+  patience: high
+  runtime_tier: L2
+steps:
+  - offline_morning_greet
+  - offline_story_time
+  - offline_comfort_moment
+  - offline_memory_cache
+  - cloud_reconnect_resync
+inject:
+  interrupts:
+    - {at_step: 2, kind: user_interrupt, text: "你怎么回答得变慢了呀？"}
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

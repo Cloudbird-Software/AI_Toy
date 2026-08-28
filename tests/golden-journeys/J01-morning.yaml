@@ -1,0 +1,22 @@
+# J01 早安（core 固定骨架，spec §8.1）：晨间唤醒问候旅程。
+# 维度：7 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1（云端中档）。
+# 断言取 spec §8.1 表：核心完成率 100%、云档接话 P95 ≤1500ms、安全 0 事故。
+id: J01
+tier: core
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L1
+steps:
+  - wake_word_greet
+  - ask_sleep_quality
+  - morning_smalltalk
+  - weather_outfit_hint
+  - close_turn
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

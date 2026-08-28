@@ -1,0 +1,21 @@
+# J17 离线一天变体（J09 骨架）：7 岁 / 低耐心 / 无打断 / 无安全事件 / L2 档全程。
+# 端侧档延迟预算随 T14 另行挂门禁（spec §10），暂按组合级 1500ms 云档线保守执行。
+id: J17
+tier: variant
+persona:
+  age: 7
+  patience: low
+  runtime_tier: L2
+steps:
+  - offline_morning_greet
+  - offline_story_time
+  - offline_comfort_moment
+  - offline_memory_cache
+  - cloud_reconnect_resync
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

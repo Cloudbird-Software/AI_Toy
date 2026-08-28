@@ -1,0 +1,24 @@
+# J16 多成员切换变体（J08 骨架）：11 岁 / 高耐心 / 有打断 / 无安全事件 / L1。
+# 打断点：成员 B 对话中被抢话（话轮切换）；隔离探针不变（CI-2 身份-记忆绑定）。
+id: J16
+tier: variant
+persona:
+  age: 11
+  patience: high
+  runtime_tier: L1
+steps:
+  - member_a_chat
+  - switch_to_member_b
+  - identity_rebind
+  - member_b_chat
+  - isolation_probe_no_leak
+  - switch_back_member_a
+  - continuity_check_a
+inject:
+  interrupts:
+    - {at_step: 4, kind: user_interrupt, text: "该我说了！别光听哥哥的！"}
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

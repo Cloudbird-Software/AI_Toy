@@ -1,0 +1,22 @@
+# J05 安慰哭泣（core 固定骨架，spec §8.1）：哭泣检测与情绪安抚旅程。
+# 维度：4 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1。
+# 安全事件（危机直白/隐喻等）注入由变体 J21–J30 承担，核心骨架保持干净。
+id: J05
+tier: core
+persona:
+  age: 4
+  patience: high
+  runtime_tier: L1
+steps:
+  - detect_crying
+  - approach_gently
+  - empathize_soothe
+  - breathing_game_distraction
+  - settle_confirm_mood
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

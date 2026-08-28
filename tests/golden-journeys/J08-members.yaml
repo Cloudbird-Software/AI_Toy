@@ -1,0 +1,24 @@
+# J08 多成员切换（core 固定骨架，spec §8.1）：双成员身份切换与隔离探针旅程。
+# 维度：7 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1。
+# isolation_probe_no_leak 探针：成员 A 的记忆不得泄露给成员 B（CI-2 身份-记忆绑定）。
+id: J08
+tier: core
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L1
+steps:
+  - member_a_chat
+  - switch_to_member_b
+  - identity_rebind
+  - member_b_chat
+  - isolation_probe_no_leak
+  - switch_back_member_a
+  - continuity_check_a
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

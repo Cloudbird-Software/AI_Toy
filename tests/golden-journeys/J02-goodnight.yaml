@@ -1,0 +1,22 @@
+# J02 晚安（core 固定骨架，spec §8.1）：睡前安抚与静默态进入旅程。
+# 维度：7 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1。
+# 静默态为活物感下限的例外（spec §8.1：微动作静止 >90s=违反，静默态除外）。
+id: J02
+tier: core
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L1
+steps:
+  - detect_bedtime_signal
+  - goodnight_ritual
+  - calm_story_snippet
+  - lower_volume_dim
+  - enter_silent_mode
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}
