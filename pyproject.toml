@@ -1,0 +1,30 @@
+[project]
+name = "ai-toy-workspace"
+version = "0.0.0"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = ["tools/*", "packages/py/*"]
+
+[tool.uv.sources]
+gaterunner = { workspace = true }
+evalkit = { workspace = true }
+toyjudge = { workspace = true }
+holdoutctl = { workspace = true }
+journeys = { workspace = true }
+budgets = { workspace = true }
+synthgen = { workspace = true }
+repoctl = { workspace = true }
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+addopts = "-p hypothesis --strict-markers"
+markers = [
+  "gate(asset, bi, id, level): 门禁测试元数据，repoctl 由此收集断言登记表",
+  "property: L2 属性测试",
+  "journey: 黄金旅程",
+  "slow: >10min",
+]

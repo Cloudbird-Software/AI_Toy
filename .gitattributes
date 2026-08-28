@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+# 二进制文件（数据集音频 / 数据 / 模型权重）
+*.wav binary
+*.flac binary
+*.mpn binary
+*.bin binary
+*.parquet binary
+*.gguf binary
+*.onnx binary
+*.pt binary

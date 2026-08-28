@@ -1,0 +1,10 @@
+{
+  "name": "ai-toy",
+  "private": true,
+  "packageManager": "pnpm@9@latest",
+  "scripts": {
+    "lint": "biome check .",
+    "test": "pnpm -r --workspace-concurrency=4 test"
+  },
+  "devDependencies": { "@biomejs/biome": "^1" }
+}

@@ -1,0 +1,12 @@
+# 云档 L0 全链路延迟预算（ms）。总和 P95=1500 为组合级 G1 门禁（BI-3.1 的 900ms 为端点判定后接话链）
+total_p95_budget: 1500
+segments:
+  - { id: tail_silence, asset: T3,  p50: 450, p95: 600, note: 端点判定·尾静音等待 }
+  - { id: asr_uplink,   asset: T3,  p50: 100, p95: 150, note: ASR 定稿与上行 }
+  - { id: cloud_llm,    asset: T15, p50: 300, p95: 450, note: 云 LLM 首句，含路由≤30ms 与 RTT }
+  - { id: tts_first,    asset: T13, p50: 200, p95: 280, note: TTS 首包（BI-13.2 ≤300ms） }
+  - { id: transport,    asset: T14, p50: 20,  p95: 20,  note: 通路与播放启动 }
+rules:
+  - 预算变更 = 组合级设计变更：PR 必须写明划拨来源与业务依据
+  - 只认 P95/P99；首包与整句两列分报
+  - 劣化 >2σ 且无划拨说明 → 组合级 G1 红，进「延迟负债表」
