@@ -1,0 +1,28 @@
+# Python
+.venv/
+__pycache__/
+
+# Node / pnpm
+node_modules/
+dist/
+
+# Rust
+target/
+
+# 数据集：synth 大文件不入 git（manifest 追踪）
+datasets/synth/**/*.{wav,flac,mpn,bin,parquet}
+
+# holdout 隔离：数据不入 git，仅保留 sealed-manifest.json
+datasets/holdout/*
+!datasets/holdout/sealed-manifest.json
+
+# 模型权重不入 git（manifest + 校验和追踪）
+models/**/*.gguf
+models/**/*.onnx
+models/**/pt
+
+# 临时报告
+reports/tmp/
+
+# 环境变量 / 密钥
+.env*

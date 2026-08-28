@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = ["packages/native/edge-runtime"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"

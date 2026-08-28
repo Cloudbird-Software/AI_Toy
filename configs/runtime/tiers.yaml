@@ -1,0 +1,8 @@
+# 端云四档（T14 降级 FSM 的档位定义，全仓唯一定义点）
+L0: { name: 云端全能力, net: required, safety: full_cloud, tts: cloud_stream, llm: cloud_flagship }
+L1: { name: 云端中档, net: required, safety: full_cloud, tts: cloud_stream, llm: cloud_mid }
+L2: { name: 端侧小模型, net: offline_ok, safety: edge_guard_plus_floor, tts: piper, llm: edge_1_3b }
+L3: { name: 受限剧本, net: offline_ok, safety: floor_only, tts: piper_cached, llm: scripted_retrieval }
+invariants:
+  capability_nesting: L0 ⊇ L1 ⊇ L2 ⊇ L3   # 单调嵌套
+  safety_strictest: 组合安全配置 = 各组件最严格者
