@@ -1,0 +1,67 @@
+# T3 话轮管理（VAD+话轮终点预测+打断）门禁阈值
+# 来源：spec §4.1 GEN（schema 固定）→ §11.5 资产卡（阈值/样本量逐条照抄，不得四舍五入/放宽）
+# 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；noise_band 由 gaterunner calibrate 实测后回填
+asset: T3
+name: 话轮管理
+updated: "2026-08-28"
+noise_band: {}                     # gaterunner calibrate 实测后回填
+gates:
+  - id: T3-G1-01                   # 误截断率：孩子仍在说话被判定说完
+    bi: BI-3.1
+    level: G1
+    metric: miscut_rate
+    op: "<="
+    threshold: 0.08
+    src: noise_band                # 噪声带法，基线=静音 VAD 参照
+    rule: pass_rate
+    min_evidence: { n: 300 }       # 3–6/7–9/10–12 岁各 ≥30 段，共 ≥300 停顿点，双人标注取一致子集
+    suite: [ci, nightly]
+  - id: T3-G1-02                   # 接话延迟：话轮结束→TTS 首包（P50/P95 分报，固定硬件 ×3 取中位）
+    bi: BI-3.1
+    level: G1
+    metric: response_first_packet_p95_ms
+    op: "<="
+    threshold: 900
+    src: product                   # 预算见 configs/budgets/latency.yaml（900ms 为端点判定后接话链）
+    rule: metric
+    suite: [ci, nightly]
+  - id: T3-G0-01                   # 打断响应：孩子开口→TTS 停止（一次「不理睬」=失败样本；响应 ≤300ms 见资产卡）
+    bi: BI-3.2
+    level: G0
+    metric: interrupt_detect_rate
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: metric                   # 卡样本量 50<59（≥95% 纪律下限）→ 点估计口径，样本量对齐后升 pass_rate
+    min_evidence: { n: 50 }        # 回放对话注入 50 次人工打断（不同音量/距离）
+    suite: [ci, nightly, release]
+  - id: T3-G1-03                   # 打断后上下文保持（后续追问引用被打断内容）
+    bi: BI-3.2
+    level: G1
+    metric: context_retention_rate
+    op: ">="
+    threshold: 0.9
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 50 }        # 50 个打断场景
+    suite: [ci, nightly]
+  - id: T3-G1-04                   # 中停顿容忍（1.5–3s 思考停顿）：同 T3-G1-01 线，不许单独放宽
+    bi: BI-3.3
+    level: G1
+    metric: midpause_miscut_rate
+    op: "<="
+    threshold: 0.08
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 100 }       # ≥100 停顿样本
+    suite: [ci, nightly]
+  - id: T3-G0-02                   # 全静音/纯噪声永不触发接话（0 次触发）
+    bi: BI-3.1
+    level: G0
+    metric: silence_noise_trigger_per_hour
+    op: "<="
+    threshold: 0.5
+    src: product
+    rule: zero_event               # 泊松 3/N：6h 零事件 → 可宣称 ≤0.5/h（与 T4 共用音景库）
+    min_evidence: { hours: 6 }     # 负样本流 ≥6h
+    suite: [ci, nightly, release]

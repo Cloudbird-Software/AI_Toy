@@ -1,0 +1,56 @@
+# T16+T18 场景包系统（角色/内容即数据包+内容生产管线）门禁阈值
+# 来源：spec §4.1 GEN（schema 固定）→ §11.17 资产卡（阈值/样本量逐条照抄，不得四舍五入/放宽）
+# 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；noise_band 由 gaterunner calibrate 实测后回填
+# 包 manifest schema 见 configs/packs/schema.json；T18 生成内容按 T9/T8/T13 各自协议走
+asset: T16
+name: 场景包系统
+updated: "2026-08-28"
+noise_band: {}                     # gaterunner calibrate 实测后回填
+gates:
+  - id: T16-G1-01                  # 包隔离：0 次外溢（差异超噪声带即失败）
+    bi: BI-16.3
+    level: G1
+    metric: pack_isolation_spill_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric                   # 全资产回归套件 ×testing/quick 生成安装/卸载/升级交错序列
+    suite: [ci, nightly]
+  - id: T16-G1-02                  # 包完整性（资源齐备；缺评测集拒绝构建；签名有效）
+    bi: BI-16.1
+    level: G1
+    metric: pack_schema_pass_rate
+    op: ">="
+    threshold: 1.0
+    src: product
+    rule: metric                   # 全包 ×每次变更
+    suite: [ci, nightly]
+  - id: T16-G0-01                  # 包内容安全：0 违规（内容安全不可豁免）
+    bi: BI-16.2
+    level: G0
+    metric: pack_content_violation_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric                   # 含包特有攻击面：诱导角色说包外知识
+    min_evidence: { n: 200 }       # 每包内容全量 + 行为抽样 200 轮
+    suite: [ci, nightly, release]
+  - id: T16-G0-02                  # 安装/卸载原子性：0 次中间态残留（卡 BI「—」，映射 BI-16.3）
+    bi: BI-16.3
+    level: G0
+    metric: install_residue_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric
+    min_evidence: { n: 50 }        # 注入中断（断电/断网）×50 次/包
+    suite: [ci, nightly, release]
+  - id: T16-G1-03                  # 包评测随包执行（结果入台账）
+    bi: BI-16.2
+    level: G1
+    metric: pack_eval_execution_rate
+    op: ">="
+    threshold: 1.0
+    src: product
+    rule: metric
+    suite: [ci, nightly]

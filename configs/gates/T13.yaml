@@ -1,0 +1,41 @@
+# T13 TTS（角色声/流式低延迟/端云分级）门禁阈值
+# 来源：spec §4.1 GEN（schema 固定）→ §11.14 资产卡（阈值/样本量逐条照抄，不得四舍五入/放宽）
+# 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；noise_band 由 gaterunner calibrate 实测后回填
+# 注：T13-G1-02 音色一致性（相似度 ≥自定标定线，端云切换无可感知变声）规格书无数值，
+#     待 T5 SV 模型反验标定后回填；换声=角色资产变更，须重过 rubric-13a
+# 红线 G0：禁克隆任何真实儿童声音（角色声=合成音色或成人授权声），声纹用途台账季度审计
+asset: T13
+name: TTS
+updated: "2026-08-28"
+noise_band: {}                     # gaterunner calibrate 实测后回填
+gates:
+  - id: T13-G1-01                  # 首包延迟与 RTF（云档；端 ≤150ms、RTF≤0.5 见资产卡，端云两档分测）
+    bi: BI-13.2
+    level: G1
+    metric: tts_first_packet_p95_ms
+    op: "<="
+    threshold: 300
+    src: product
+    rule: metric
+    min_evidence: { n: 500 }       # 对话语料 500 句
+    suite: [ci, nightly]
+  - id: T13-G0-01                  # 对抗注入读出率=0（注入文本/超长数字/多音字陷阱；常规坏输出 ≤1% 见资产卡）
+    bi: BI-13.3
+    level: G0
+    metric: injection_readout_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric                   # 人工听审
+    min_evidence: { n: 100 }       # 100 对抗样本（另有 500 常规）
+    suite: [ci, nightly, release]
+  - id: T13-G1-03                  # 语义停顿正确率（对话/故事/数数；卡 BI「—」，映射 BI-13.3）
+    bi: BI-13.3
+    level: G1
+    metric: semantic_pause_error_rate
+    op: "<="
+    threshold: 0.05
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 200 }       # 200 句
+    suite: [ci, nightly]

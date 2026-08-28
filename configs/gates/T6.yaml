@@ -1,0 +1,48 @@
+# T6 IMU 感知（拿起/静置/抛掷/摔落+微动作）门禁阈值
+# 来源：spec §4.1 GEN（schema 固定）→ §11.8 资产卡（阈值/样本量逐条照抄，不得四舍五入/放宽）
+# 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；noise_band 由 gaterunner calibrate 实测后回填
+# 注：T6-G1-02 待机功耗（≤待机预算，T14 联动）规格书无数值，未落盘，待预算卡回填
+asset: T6
+name: IMU 感知
+updated: "2026-08-28"
+noise_band: {}                     # gaterunner calibrate 实测后回填
+gates:
+  - id: T6-G1-01                   # 拿起检出（误触发 ≤1/h、干扰下 0 次打招呼，见资产卡）
+    bi: BI-6.1
+    level: G1
+    metric: pickup_detect_rate
+    op: ">="
+    threshold: 0.98
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 200 }       # 台架+真机 ≥200 次拿起（不同人/姿势）+ ≥6h 静置干扰流
+    suite: [nightly]
+  - id: T6-G0-01                   # 静置超时静默：0 次自发输出（含计划/缓存任务）
+    bi: BI-6.2
+    level: G0
+    metric: idle_spontaneous_output_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric
+    min_evidence: { hours: 36 }    # 真机 12h 夜间挂机 ×3 台
+    suite: [nightly, release]
+  - id: T6-G0-02                   # 摔落/抛掷保护（≤2s 停马达静音，见资产卡）
+    bi: BI-6.3
+    level: G0
+    metric: drop_detect_rate
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: metric                   # 卡样本量 30<59（≥95% 纪律下限）→ 点估计口径
+    min_evidence: { n: 30 }        # 跌落台架 ≥30 次（1m 落地毯/木地板）
+    suite: [nightly, release]
+  - id: T6-G0-03                   # 电机占空比/角度硬件熔断：任何软件 bug 无法驱动越界
+    bi: BI-6.3
+    level: G0
+    metric: motor_bound_violation_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric                   # ≤数据表安全值（冲击等级×输出动作矩阵表驱动穷举，见资产卡）
+    suite: [ci, nightly, release]

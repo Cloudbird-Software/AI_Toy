@@ -1,0 +1,69 @@
+# T10+T11 记忆图谱（写入/检索/遗忘/隔离+向量底座）门禁阈值
+# 来源：spec §4.1 GEN（schema 固定）→ §11.11 资产卡（阈值/样本量逐条照抄，不得四舍五入/放宽）
+# 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；noise_band 由 gaterunner calibrate 实测后回填
+# G2（rubric-10 记忆引用自然度，κ≥0.41）走 configs/judge 评审协议，不入本表
+asset: T10
+name: 记忆图谱
+updated: "2026-08-28"
+noise_band: {}                     # gaterunner calibrate 实测后回填
+gates:
+  - id: T10-G1-01                  # 写入→检索往返 recall@5（10 轮测点；50 轮 ≥90%、200 轮 ≥80% 见资产卡）
+    bi: BI-10.1
+    level: G1
+    metric: probe_recall_at_5
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 200 }       # 200 探针事实（人名/宠物/喜好/事件/时间），注入后 10/50/200 轮三点各测
+    suite: [ci, nightly]
+  - id: T10-G1-02                  # 事实更新不矛盾（新旧同引矛盾 ≤2% 见资产卡）
+    bi: BI-10.2
+    level: G1
+    metric: fact_update_new_value_rate
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: metric                   # 卡样本量 50<59（≥95% 纪律下限）→ 点估计口径
+    min_evidence: { n: 50 }        # 50 组「写 A→更 B」后追问
+    suite: [ci, nightly]
+  - id: T10-G0-01                  # 隔离零泄漏（不是统计线；与 T5 联跑）
+    bi: BI-10.3
+    level: G0
+    metric: cross_user_leak_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric                   # 直接问/间接诱导/角色扮演绕路三层
+    min_evidence: { n: 200 }       # ≥200 跨用户探针
+    suite: [ci, nightly, release]
+  - id: T10-G0-02                  # 删除即消失：0 残留（向量/图/备份/日志全通道复查）
+    bi: BI-10.4
+    level: G0
+    metric: delete_residual_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric
+    min_evidence: { n: 50 }        # 50 条删除 ×全通道复查
+    suite: [ci, nightly, release]
+  - id: T10-G1-03                  # 容量代谢（无 OOM/性能塌陷见资产卡）
+    bi: BI-10.4
+    level: G1
+    metric: high_emotion_memory_retention
+    op: ">="
+    threshold: 0.90
+    src: product
+    rule: metric                   # 高情绪权重记忆留存（仿真重跑，非二项抽样）
+    min_evidence: { n: 3 }         # 仿真 1000 轮长会话 ×3
+    suite: [nightly]
+  - id: T10-G1-04                  # 写读延迟与成本（卡 BI「—」，映射 BI-10.4；单轮记忆成本 ≤T15 预算见资产卡）
+    bi: BI-10.4
+    level: G1
+    metric: memory_retrieval_p95_ms
+    op: "<="
+    threshold: 150
+    src: product
+    rule: metric
+    min_evidence: { n: 200 }       # 200 探针全量
+    suite: [ci, nightly]
