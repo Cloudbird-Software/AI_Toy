@@ -4,9 +4,9 @@ ai-toy 是 AI 潮玩 monorepo：以「角色即资产」为内核——角色是
 
 | 命令 | 说明 |
 | --- | --- |
-| `just bootstrap` | 安装全部依赖（uv sync + pnpm install + cargo fetch） |
-| `just lint` | ruff + basedpyright + biome + clippy |
-| `just test` | pytest（非 slow）+ pnpm test |
+| `just bootstrap` | 安装全部依赖（go mod download + pnpm install + cargo fetch） |
+| `just lint` | gofmt 零 diff + go vet + errcheck + pnpm lint + clippy |
+| `just test` | go test -race（非 slow）+ pnpm test |
 | `just gate <ASSET> [LEVEL]` | 运行资产门禁，报告落 reports/gates/ |
 | `just journeys` | 黄金旅程回归（golden 集 ×3 seeds） |
 | `just budgets` | 延迟预算检查，报告落 reports/nightly/ |
