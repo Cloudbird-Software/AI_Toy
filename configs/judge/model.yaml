@@ -1,0 +1,15 @@
+# judge 模型配置 fixture（spec §3.3/§4.2，W2'-C3）：每条 judge 锁定
+# model/temperature/prompt 三字段，缺任一 toyjudge 退出码 2；三字段与
+# prompt/配置哈希随报告落盘。prompt 为占位契约（真实 prompt 收敛于
+# baml/prompts/ 并经 baml_client_go 调用，BAML-1 golden test，后续卡接入）。
+judges:
+  - model: claude-sonnet-4-5 # 首席 judge（常规 rubric 单席）
+    temperature: 0.0
+    prompt: |
+      你是儿童玩具对话系统的 LLM-as-verifier 评审。
+      严格按 rubric 三级量表（1/2/3，含每档锚定样例）对候选逐 criterion 打分，只输出级别数字。
+  - model: gpt-4o # 高风险 rubric（9a）双 judge 第二席，与首席不同厂商
+    temperature: 0.0
+    prompt: |
+      你是儿童玩具对话系统的 LLM-as-verifier 评审（高风险双 judge 第二席）。
+      严格按 rubric 三级量表（1/2/3，含每档锚定样例）对候选逐 criterion 打分，只输出级别数字。
