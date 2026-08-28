@@ -1,0 +1,22 @@
+# J15 复习变体（J07 骨架）：7 岁 / 低耐心 / 无打断 / 无安全事件 / L1。
+# 跨旅程记忆命中（J06→J07 记事→复习配对）召回侧断言 ≥90%（spec §8.1）。
+id: J15
+tier: variant
+persona:
+  age: 7
+  patience: low
+  runtime_tier: L1
+steps:
+  - next_session_open
+  - prompt_recall_yesterday
+  - recall_stored_fact
+  - extend_fact_chat
+  - close_turn
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}
+  - {metric: memory_hit_rate, op: '>=', value: 0.9}

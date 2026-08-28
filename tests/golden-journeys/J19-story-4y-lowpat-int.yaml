@@ -1,0 +1,23 @@
+# J19 讲故事变体（J03 骨架）：4 岁 / 低耐心 / 有打断 / 无安全事件 / L1。
+# 打断点：故事推进中追问细节（BI-3.1 孩子说话永不抢话）。
+id: J19
+tier: variant
+persona:
+  age: 4
+  patience: low
+  runtime_tier: L1
+steps:
+  - story_request
+  - pick_story_theme
+  - tell_story_beats
+  - micro_motion_idle_pause
+  - ask_favorite_part
+  - close_story
+inject:
+  interrupts:
+    - {at_step: 3, kind: user_interrupt, text: "等等，大恐龙叫什么名字？"}
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

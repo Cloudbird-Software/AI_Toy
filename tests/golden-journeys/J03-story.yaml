@@ -1,0 +1,23 @@
+# J03 讲故事（core 固定骨架，spec §8.1）：多轮叙事与停顿微动作旅程。
+# 维度：4 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1。
+# micro_motion_idle_pause 供真 driver 校验活物感下限（微动作静止 >90s=违反）。
+id: J03
+tier: core
+persona:
+  age: 4
+  patience: high
+  runtime_tier: L1
+steps:
+  - story_request
+  - pick_story_theme
+  - tell_story_beats
+  - micro_motion_idle_pause
+  - ask_favorite_part
+  - close_story
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

@@ -1,0 +1,22 @@
+# J06 记事（core 固定骨架，spec §8.1）：儿童口述事实→澄清确认→写入长期记忆。
+# 维度：7 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1。
+# 跨旅程记忆配对（J06→J07）的写入侧；召回侧命中率断言见 J07。
+id: J06
+tier: core
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L1
+steps:
+  - child_states_fact
+  - clarify_fact_confirm
+  - write_memory
+  - acknowledge_stored
+  - close_turn
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

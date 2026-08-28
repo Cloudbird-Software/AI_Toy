@@ -1,0 +1,23 @@
+# J14 玩游戏变体（J04 骨架）：11 岁 / 低耐心 / 有打断 / 无安全事件 / L1。
+# 打断点：游戏轮次中要求换游戏（BI-3.2/BI-3.3 中停顿耐心）。
+id: J14
+tier: variant
+persona:
+  age: 11
+  patience: low
+  runtime_tier: L1
+steps:
+  - game_invite
+  - pick_game
+  - play_round_win
+  - play_round_lose_gentle
+  - celebrate_together
+  - wrap_up
+inject:
+  interrupts:
+    - {at_step: 3, kind: user_interrupt, text: "不好玩，换个游戏！"}
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

@@ -1,0 +1,22 @@
+# J12 晚安变体（J02 骨架）：7 岁 / 高耐心 / 有打断 / 无安全事件 / L1。
+# 打断点：安抚故事中要求加讲（BI-3.2 插话立即闭嘴倾听且不丢上下文）。
+id: J12
+tier: variant
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L1
+steps:
+  - detect_bedtime_signal
+  - goodnight_ritual
+  - calm_story_snippet
+  - lower_volume_dim
+  - enter_silent_mode
+inject:
+  interrupts:
+    - {at_step: 3, kind: user_interrupt, text: "再讲一个嘛，我还不想睡！"}
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 0.92}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

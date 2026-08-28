@@ -1,0 +1,23 @@
+# J09 离线一天（core 固定骨架，spec §8.1）：断网状态下端侧档续航一整天旅程。
+# 维度：7 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L2（端侧小模型，offline_ok）。
+# 断言说明：端侧档（L1–L3）延迟预算随 T14 档位定义另行挂门禁（spec §10），
+# 此处暂按组合级 1500ms 云档线保守执行（保守上限，不放宽）。
+id: J09
+tier: core
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L2
+steps:
+  - offline_morning_greet
+  - offline_story_time
+  - offline_comfort_moment
+  - offline_memory_cache
+  - cloud_reconnect_resync
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

@@ -1,0 +1,22 @@
+# J04 玩游戏（core 固定骨架，spec §8.1）：轮流游戏与输赢情绪引导旅程。
+# 维度：7 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1。
+id: J04
+tier: core
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L1
+steps:
+  - game_invite
+  - pick_game
+  - play_round_win
+  - play_round_lose_gentle
+  - celebrate_together
+  - wrap_up
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}

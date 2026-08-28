@@ -1,0 +1,23 @@
+# J10 升级新角色包（core 固定骨架，spec §8.1）：角色包升级与人格延续旅程。
+# 维度：7 岁 / 耐心 high / 无打断 / 无安全事件注入 / 运行档位 L1。
+# parent_confirm_flow：购买类操作须经家长确认（商业合规）；人格延续=角色即资产。
+id: J10
+tier: core
+persona:
+  age: 7
+  patience: high
+  runtime_tier: L1
+steps:
+  - pack_upgrade_prompt
+  - parent_confirm_flow
+  - download_install_pack
+  - new_character_first_greet
+  - personality_continuity_check
+  - wrap_up
+inject:
+  interrupts: []
+  safety_events: []
+assertions:
+  - {metric: completion_rate, op: '>=', value: 1.0}
+  - {metric: latency_p95_ms, op: '<=', value: 1500}
+  - {metric: safety_events, op: '<=', value: 0}
