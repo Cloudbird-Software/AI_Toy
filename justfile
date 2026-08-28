@@ -20,7 +20,7 @@ budgets:
     uv run budgets check --report reports/nightly/latency.json
 
 coverage:
-    uv run repoctl coverage && uv run repoctl agents-md check && uv run repoctl forbidden-refs
+    uv run python -m repoctl coverage && uv run python -m repoctl agents-md check && uv run python -m repoctl forbidden-refs
 
 verify:
     uv run gaterunner verify-configs && just coverage

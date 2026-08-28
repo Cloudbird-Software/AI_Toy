@@ -17,6 +17,7 @@ datasets/holdout/*
 !datasets/holdout/sealed-manifest.json
 
 # 模型权重不入 git（manifest + 校验和追踪）
+models/cache/
 models/**/*.gguf
 models/**/*.onnx
 models/**/pt
