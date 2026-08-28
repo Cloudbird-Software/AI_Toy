@@ -26,3 +26,6 @@ reports/tmp/
 
 # 环境变量 / 密钥
 .env*
+
+# agent worktrees（并行卡隔离）
+.wt/
