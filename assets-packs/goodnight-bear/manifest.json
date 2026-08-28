@@ -1,0 +1,32 @@
+{
+  "pack_id": "goodnight-bear",
+  "version": "0.1.0",
+  "persona_card": "persona/persona.yaml",
+  "voice_ref": "voice/voice_ref.wav",
+  "motion_config": "motion/motion_map.yaml",
+  "knowledge": [
+    "knowledge/bedtime_routine.md"
+  ],
+  "scripts": [
+    "scripts/bedtime_flow.yaml"
+  ],
+  "eval_set": {
+    "path": "eval/eval_set.yaml",
+    "min_pass": 0.85
+  },
+  "permissions": {
+    "memory_scopes": [
+      "bedtime_routine",
+      "child_preferences",
+      "session_state"
+    ],
+    "actions": [
+      "speak",
+      "glow_warm_light",
+      "breathe_motion",
+      "play_lullaby"
+    ],
+    "volume_max": 0.5
+  },
+  "signature": "PLACEHOLDER-UNSIGNED（种子包占位：包签名机制接入前以明文占位，见 spec §4.3 与 T16-G1-02）"
+}
