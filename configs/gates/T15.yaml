@@ -5,7 +5,11 @@
 asset: T15
 name: 路由与缓存
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  adversarial_cache_hit_count: { mean: 0.5848, sigma: 0.2788 }
+  cache_hit_rate: { mean: 0.3276, sigma: 0.2521 }
+  routing_accuracy: { mean: 0.6288, sigma: 0.2724 }
+  routing_decision_p95_ms: { mean: 0.5059, sigma: 0.2436 }
 gates:
   - id: T15-G0-01                  # 缓存误命中（对抗口径=0；自然流 ≤0.5%、安全类 query 永不缓存命中见资产卡）
     bi: BI-15.3

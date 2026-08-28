@@ -5,7 +5,13 @@
 asset: T10
 name: 记忆图谱
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  cross_user_leak_count: { mean: 0.5268, sigma: 0.2642 }
+  delete_residual_count: { mean: 0.4213, sigma: 0.2817 }
+  fact_update_new_value_rate: { mean: 0.5173, sigma: 0.3562 }
+  high_emotion_memory_retention: { mean: 0.614, sigma: 0.1497 }
+  memory_retrieval_p95_ms: { mean: 0.5058, sigma: 0.3349 }
+  probe_recall_at_5: { mean: 0.4596, sigma: 0.2498 }
 gates:
   - id: T10-G1-01                  # 写入→检索往返 recall@5（10 轮测点；50 轮 ≥90%、200 轮 ≥80% 见资产卡）
     bi: BI-10.1

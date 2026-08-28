@@ -4,7 +4,13 @@
 asset: T3
 name: 话轮管理
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  context_retention_rate: { mean: 0.5259, sigma: 0.3135 }
+  interrupt_detect_rate: { mean: 0.4226, sigma: 0.3062 }
+  midpause_miscut_rate: { mean: 0.4129, sigma: 0.2853 }
+  miscut_rate: { mean: 0.4209, sigma: 0.3378 }
+  response_first_packet_p95_ms: { mean: 0.2491, sigma: 0.2327 }
+  silence_noise_trigger_per_hour: { mean: 0.6154, sigma: 0.282 }
 gates:
   - id: T3-G1-01                   # 误截断率：孩子仍在说话被判定说完
     bi: BI-3.1

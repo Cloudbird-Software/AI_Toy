@@ -5,7 +5,12 @@
 asset: T7
 name: 情绪引擎
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  emotion_boundary_violation_count: { mean: 0.4362, sigma: 0.3025 }
+  emotion_direction_accuracy: { mean: 0.3506, sigma: 0.2563 }
+  emotion_jump_per_turn: { mean: 0.6128, sigma: 0.3255 }
+  emotion_recovery_time_min: { mean: 0.5858, sigma: 0.2714 }
+  emotion_response_latency_p95_ms: { mean: 0.4363, sigma: 0.2988 }
 gates:
   - id: T7-G1-01                   # 情绪方向正确性（机会 ~50%，二项 p<0.01）
     bi: BI-7.1

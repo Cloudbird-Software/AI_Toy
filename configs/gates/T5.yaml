@@ -4,7 +4,12 @@
 asset: T5
 name: 声纹与家庭成员识别
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  cross_session_reident_rate: { mean: 0.3915, sigma: 0.2585 }
+  enroll3_eer_degradation: { mean: 0.5778, sigma: 0.3049 }
+  family_eer: { mean: 0.4237, sigma: 0.2931 }
+  identity_switch_leak_count: { mean: 0.3757, sigma: 0.2942 }
+  stranger_reject_rate: { mean: 0.4976, sigma: 0.3436 }
 gates:
   - id: T5-G1-01                   # 家庭内区分 EER（2–6 人含 ≥1 儿童；兄弟姐妹对单列）
     bi: BI-5.1

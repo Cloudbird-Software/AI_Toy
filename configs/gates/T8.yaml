@@ -5,7 +5,12 @@
 asset: T8
 name: 人格编译器
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  compile_same_hash_rate: { mean: 0.4477, sigma: 0.3434 }
+  persona_break_rate: { mean: 0.603, sigma: 0.3317 }
+  persona_classify_accuracy: { mean: 0.538, sigma: 0.3007 }
+  persona_safety_breach_count: { mean: 0.4388, sigma: 0.3111 }
+  survey_dimension_deviation_5pt: { mean: 0.5935, sigma: 0.321 }
 gates:
   - id: T8-G1-01                   # 编译确定性：100% 同哈希；无卡变更零 diff
     bi: BI-8.1

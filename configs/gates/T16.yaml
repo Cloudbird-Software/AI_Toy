@@ -5,7 +5,12 @@
 asset: T16
 name: 场景包系统
 updated: "2026-08-28"
-noise_band: {}                     # gaterunner calibrate 实测后回填
+noise_band:                         # gaterunner calibrate 实测后回填
+  install_residue_count: { mean: 0.4656, sigma: 0.3074 }
+  pack_content_violation_count: { mean: 0.4987, sigma: 0.2393 }
+  pack_eval_execution_rate: { mean: 0.5518, sigma: 0.2124 }
+  pack_isolation_spill_count: { mean: 0.5817, sigma: 0.2784 }
+  pack_schema_pass_rate: { mean: 0.4667, sigma: 0.3663 }
 gates:
   - id: T16-G1-01                  # 包隔离：0 次外溢（差异超噪声带即失败）
     bi: BI-16.3
