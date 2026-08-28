@@ -1,0 +1,58 @@
+# T5 声纹与家庭成员识别 门禁阈值
+# 来源：spec §4.1 GEN（schema 固定）→ §11.7 资产卡（阈值/样本量逐条照抄，不得四舍五入/放宽）
+# 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；noise_band 由 gaterunner calibrate 实测后回填
+asset: T5
+name: 声纹与家庭成员识别
+updated: "2026-08-28"
+noise_band: {}                     # gaterunner calibrate 实测后回填
+gates:
+  - id: T5-G1-01                   # 家庭内区分 EER（2–6 人含 ≥1 儿童；兄弟姐妹对单列）
+    bi: BI-5.1
+    level: G1
+    metric: family_eer
+    op: "<="
+    threshold: 0.05
+    src: product                   # 自建「家庭内区分」协议初版线（公开基准 EER 不可迁移，仅选型初筛）
+    rule: eer
+    min_evidence: { min_trials: 5000 }   # 虚拟家庭两两配对（合成儿童+成人），报 EER+miss/FA
+    suite: [ci, nightly]
+  - id: T5-G0-01                   # 身份切换后隔离 0 泄漏（与 T10 联跑）
+    bi: BI-5.2
+    level: G0
+    metric: identity_switch_leak_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric
+    min_evidence: { n: 100 }       # ≥100 个「写入 A→询问 B」场景
+    suite: [ci, nightly, release]
+  - id: T5-G1-02                   # 跨会话稳定性（隔天/换房）；拒判 ≤3% 见资产卡
+    bi: BI-5.1
+    level: G1
+    metric: cross_session_reident_rate
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: metric
+    min_evidence: { n: 3 }         # 同成员 ≥3 会话成对验证
+    suite: [nightly]
+  - id: T5-G1-03                   # 3 句注册下限：EER 劣化相对 10 句
+    bi: BI-5.3
+    level: G1
+    metric: enroll3_eer_degradation
+    op: "<="
+    threshold: 0.02
+    src: product
+    rule: metric
+    min_evidence: { n: 50 }        # 3 句 ×50 成员仿真
+    suite: [ci, nightly]
+  - id: T5-G1-04                   # 陌生人拒判（卡 BI「—」，映射隐私边界意图 BI-5.2）
+    bi: BI-5.2
+    level: G1
+    metric: stranger_reject_rate
+    op: ">="
+    threshold: 0.9
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 600 }       # ≥20 非注册说话人 ×30 句
+    suite: [ci, nightly]

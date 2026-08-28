@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "场景包 manifest（configs/packs/schema.json，spec §4.3）",
+  "description": "场景包 manifest JSON Schema。CI 规则：schema 校验失败或缺 eval_set → 拒绝构建；permissions 未声明的能力运行时默认拒绝（白名单制）。",
+  "type": "object",
+  "required": [
+    "pack_id",
+    "version",
+    "persona_card",
+    "voice_ref",
+    "motion_config",
+    "knowledge",
+    "scripts",
+    "eval_set",
+    "permissions",
+    "signature"
+  ],
+  "properties": {
+    "pack_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "persona_card": {
+      "type": "string"
+    },
+    "voice_ref": {
+      "type": "string"
+    },
+    "motion_config": {
+      "type": "string"
+    },
+    "knowledge": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "scripts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "eval_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "min_pass"],
+      "properties": {
+        "path": { "type": "string" },
+        "min_pass": { "type": "number" }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memory_scopes", "actions", "volume_max"],
+      "properties": {
+        "memory_scopes": { "type": "array", "items": { "type": "string" } },
+        "actions": { "type": "array", "items": { "type": "string" } },
+        "volume_max": { "type": "number" }
+      }
+    },
+    "signature": {
+      "type": "string"
+    }
+  }
+}

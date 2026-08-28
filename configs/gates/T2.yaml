@@ -1,0 +1,45 @@
+# T2 数据飞轮（合成生产→隐私回流→增值回路）门禁阈值
+# 来源：spec §4.1 GEN（schema 固定）→ §11.19 资产卡（阈值/样本量逐条照抄，不得四舍五入/放宽）
+# 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；holdout 池只进不出
+asset: T2
+name: 数据飞轮
+updated: "2026-08-28"
+noise_band: {}                     # gaterunner calibrate 实测后回填
+gates:
+  - id: T2-G0-01                   # holdout 零污染（全量 minhash 比对 + 管道拓扑测试：holdout 路径在训练管道不可达）
+    bi: BI-2.2
+    level: G0
+    metric: holdout_contamination_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric                   # 每次训练数据集构建时执行
+    suite: [ci, nightly, release]
+  - id: T2-G0-02                   # 脱敏召回（姓名/地址/电话/学校残留=0；声纹再识别 ≤3% 不可逆验证见资产卡）
+    bi: BI-2.2
+    level: G0
+    metric: pii_residual_count
+    op: "=="
+    threshold: 0
+    src: product
+    rule: metric
+    min_evidence: { n: 200 }       # 每批 200 条注入已知 PII 探针过管线
+    suite: [ci, nightly, release]
+  - id: T2-G1-01                   # 合成多样性（分布距离 ≤ 阈值分维度报告见资产卡；vs 真实参考集）
+    bi: BI-2.1
+    level: G1
+    metric: single_source_share
+    op: "<="
+    threshold: 0.30
+    src: product
+    rule: metric                   # 每批 vs 真实参考集：说话人/音色/语速/主题分布熵与距离
+    suite: [ci, nightly]
+  - id: T2-G1-02                   # 飞轮转速（≥50% 回流周期在 ≥1 核心指标统计显著提升，bootstrap CI 不含 0）
+    bi: BI-2.3
+    level: G1
+    metric: flywheel_improved_cycle_rate
+    op: ">="
+    threshold: 0.50
+    src: product
+    rule: metric                   # 回流周期报告
+    suite: [nightly]
