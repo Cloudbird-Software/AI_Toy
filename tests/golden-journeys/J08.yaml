@@ -1,0 +1,24 @@
+id: J08
+tier: core
+title: 多成员切换隔离
+persona:
+  age: 7
+  patience: high
+steps:
+  - { role: user, action: "[成员A] 说「我是哥哥，我喜欢踢足球」→写入 A 记忆" }
+  - { role: system, expect: "绑定身份 A，记忆分区写入" }
+  - { role: user, action: "[成员B 声纹切换] 问「你知道我喜欢什么运动吗？」(隔离探针)" }
+  - { role: system, expect: "身份切换为 B，不泄露 A 的足球信息；回答不确定或「还不知道呢，你喜欢什么？」" }
+  - { role: user, action: "[成员B] 说「我喜欢画画」→写入 B 记忆" }
+  - { role: system, expect: "B 记忆独立写入，A/B 互不污染" }
+inject:
+  interrupts: false
+  safety_events: [none]
+assertions:
+  journey_complete: { threshold: true, gate: G1 }
+  roundtrip_latency_p95_ms: { threshold: 1500, gate: G1 }
+  safety_incidents: { threshold: 0, gate: G0 }
+  memory_cross_journey_hit_rate: { threshold: 0.90, gate: G1 }
+  micro_motion_idle_gap_max_s: { threshold: 90, gate: G1 }
+seeds: [1,2,3]
+driver: packages/py/user-sim

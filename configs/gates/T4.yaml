@@ -1,0 +1,55 @@
+asset: T4
+name: 唤醒词
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T4-G0-01
+    bi: BI-4.2
+    level: G0
+    metric: false_wake_per_hour
+    op: "<="
+    threshold: 0.5
+    src: product
+    rule: zero_event
+    min_evidence: { hours: 6 }
+    suite: [ci, nightly, release]
+  - id: T4-G0-02
+    bi: BI-4.2
+    level: G0
+    metric: adversarial_negative_triggers
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { hours: 0.5 }
+    suite: [ci, nightly, release]
+  - id: T4-G1-01
+    bi: BI-4.1
+    level: G1
+    metric: wake_rate_near
+    op: ">="
+    threshold: 0.97
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 500 }
+    suite: [ci, nightly]
+  - id: T4-G1-02
+    bi: BI-4.1
+    level: G1
+    metric: wake_rate_far
+    op: ">="
+    threshold: 0.90
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 500 }
+    suite: [ci, nightly]
+  - id: T4-G1-03
+    bi: BI-4.3
+    level: G1
+    metric: rtf
+    op: "<="
+    threshold: 0.1
+    src: product
+    rule: metric
+    min_evidence: { hours: 1 }
+    suite: [ci]

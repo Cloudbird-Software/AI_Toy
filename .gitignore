@@ -1,13 +1,60 @@
-node_modules/
+# Python
+.venv/
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Node / TS
+node_modules/
+.pnpm-store/
 dist/
 coverage/
-reports/
-.env
-.env.*
+
+# Rust
+target/
+Cargo.lock.bak
+
+# Build artifacts
+*.egg
+*.whl
+
+# Datasets (large binaries not in git)
+datasets/synth/**/*.{wav,flac,mp3,bin,parquet,npy,npz}
+datasets/holdout/*
+!datasets/holdout/sealed-manifest.json
+!datasets/holdout/.gitkeep
+
+# Model weights
+models/**/*.gguf
+models/**/*.onnx
+models/**/*.pt
+models/**/*.pth
+models/**/*.safetensors
+models/**/*.bin
+
+# Reports
+reports/tmp/
+
+# Environment
+.env*
 !.env.example
+
+# OS
 *.log
 .DS_Store
+Thumbs.db
 
-# W2-C2（ADR-0061）：红证据本地留档不入库（贴 PR body）
+# W2-C2 (ADR-0061): Red evidence local archive
 quality/evidence/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

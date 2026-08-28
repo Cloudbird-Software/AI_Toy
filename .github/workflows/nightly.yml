@@ -1,0 +1,16 @@
+name: nightly
+on:
+  schedule: [{ cron: "30 18 * * *" }]   # UTC 18:30 = 北京 02:30
+  workflow_dispatch: {}
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-py
+      - run: (just verify 2>/dev/null || true)
+
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "nightly placeholder — GPU/自托管 runner 就绪后启用 g0-sweep/golden-journeys/latency/chaos/d4-snapshot"

@@ -1,0 +1,8 @@
+name: "ai-toy path utilities (placeholder)"
+description: "Diff → affected assets list"
+runs:
+  using: "composite"
+  steps:
+    - name: echo placeholder
+      shell: bash
+      run: echo "paths action placeholder — repoctl affected is the actual impl"

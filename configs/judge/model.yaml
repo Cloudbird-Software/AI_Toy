@@ -1,0 +1,8 @@
+judge_default: { provider: anthropic, model: claude-sonnet-4-5, temperature: 0.0, locked: true }
+judges_high_risk: [claude-sonnet-4-5, gpt-4o]      # 9a 等双 judge，不同厂商
+policy:
+  pairwise_swap: true
+  tie_on_disagree: true
+  recalibrate: quarterly + on any rubric/judge change
+  kappa_gate: { automation: 0.61, ci_autonomous: 0.80 }
+gold_dir: configs/judge/gold/      # 每 rubric 一 jsonl，每类错误 ≥15 例

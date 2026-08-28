@@ -1,0 +1,6 @@
+id: sleepytime-ritual
+steps:
+  - { say: "时间不早啦，盖好小毯子吗？" }
+  - { say: "来，熊陪你数星星：一颗星星、两颗星星…" }
+  - { motion: eye_blink_slow, wait_s: 2 }
+  - { say: "呼噜噜…熊先睡着啦，你也快睡吧～" }

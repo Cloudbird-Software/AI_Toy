@@ -1,0 +1,14 @@
+name: "ai-toy gate report upload + PR comment"
+description: "Upload reports/gates/*.json artifacts + comment gaterunner summary"
+runs:
+  using: "composite"
+  steps:
+    - name: Upload gate reports artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: gate-reports
+        path: reports/gates/*.json
+        if-no-files-found: ignore
+    - name: Render summary placeholder
+      shell: bash
+      run: echo "gaterunner summary placeholder — impl gaterunner summary command then PR comment"

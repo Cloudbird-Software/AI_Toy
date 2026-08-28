@@ -1,0 +1,45 @@
+asset: T15
+name: 路由与缓存
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T15-G0-01
+    bi: BI-15.3
+    level: G0
+    metric: cache_adversarial_mismatch
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 200 }
+    suite: [ci, nightly, release]
+  - id: T15-G1-01
+    bi: BI-15.1
+    level: G1
+    metric: routing_correctness
+    op: ">="
+    threshold: 0.92
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 500 }
+    suite: [ci, nightly]
+  - id: T15-G1-02
+    bi: BI-15.2
+    level: G1
+    metric: cache_hit_ratio
+    op: ">="
+    threshold: 0.30
+    src: benchmark
+    rule: pass_rate
+    min_evidence: { n: 10000 }
+    suite: [ci, nightly]
+  - id: T15-G1-03
+    bi: BI-15.1
+    level: G1
+    metric: routing_decision_p95_ms
+    op: "<="
+    threshold: 30
+    src: product
+    rule: metric
+    min_evidence: { n: 500 }
+    suite: [ci, nightly]

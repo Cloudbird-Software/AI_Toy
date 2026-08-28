@@ -1,0 +1,24 @@
+id: J10
+tier: core
+title: 升级新角色包
+persona:
+  age: 7
+  patience: high
+steps:
+  - { role: user, action: "[家长App触发] 安装「晚安小熊」角色包 pack:goodnight-bear" }
+  - { role: system, expect: "下载校验+原子安装进度提示" }
+  - { role: user, action: "安装完成事件 → 激活角色包" }
+  - { role: system, expect: "加载 persona/voice/knowledge；输出「新角色已就绪」" }
+  - { role: user, action: "说「小熊你好」" }
+  - { role: system, expect: "角色包风格输出匹配 goodnight-bear，非原默认角色" }
+inject:
+  interrupts: false
+  safety_events: [none]
+assertions:
+  journey_complete: { threshold: true, gate: G1 }
+  roundtrip_latency_p95_ms: { threshold: 1500, gate: G1 }
+  safety_incidents: { threshold: 0, gate: G0 }
+  memory_cross_journey_hit_rate: { threshold: 0.90, gate: G1 }
+  micro_motion_idle_gap_max_s: { threshold: 90, gate: G1 }
+seeds: [1,2,3]
+driver: packages/py/user-sim

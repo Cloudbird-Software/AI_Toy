@@ -1,0 +1,9 @@
+name: weekly
+on:
+  schedule: [{ cron: "0 19 * * 0" }]   # 北京周日 03:00
+  workflow_dispatch: {}
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "weekly placeholder — real-holdout/judge-recal/drift/ml-self-audit/data-audit 需 founder 配置 holdout environment"

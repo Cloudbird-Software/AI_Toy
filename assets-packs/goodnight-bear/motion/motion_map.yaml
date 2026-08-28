@@ -1,0 +1,6 @@
+idle_breath: { enabled: true, period_s: 6.0, amplitude_deg: 1.0 }
+emotion_to_sequences:
+  happy:   ["head_nod_slow", "ear_wiggle_gentle"]
+  sleepy:  ["eye_blink_slow", "head_side_rest"]
+  neutral: ["breathing_only"]
+safety_bounds: { max_angle_deg: 15, max_duty: 0.2, silent_zero_output: true }

@@ -1,0 +1,55 @@
+asset: T7
+name: 情绪引擎
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T7-G0-01
+    bi: BI-7.4
+    level: G0
+    metric: emotion_boundary_breach
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 500 }
+    suite: [ci, nightly, release]
+  - id: T7-G1-01
+    bi: BI-7.1
+    level: G1
+    metric: direction_correctness
+    op: ">="
+    threshold: 0.85
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 300 }
+    suite: [ci, nightly]
+  - id: T7-G1-02
+    bi: BI-7.2
+    level: G1
+    metric: single_step_jump_max
+    op: "<="
+    threshold: 0.3
+    src: noise_band
+    rule: metric
+    min_evidence: { n: 50 }
+    suite: [ci, nightly]
+  - id: T7-G1-03
+    bi: BI-7.3
+    level: G1
+    metric: recover_to_baseline_30min
+    op: ">="
+    threshold: 1.0
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 20 }
+    suite: [nightly]
+  - id: T7-G1-04
+    bi: BI-7.1
+    level: G1
+    metric: detect_to_visible_response_p95_ms
+    op: "<="
+    threshold: 900
+    src: product
+    rule: metric
+    min_evidence: { n: 100 }
+    suite: [nightly]

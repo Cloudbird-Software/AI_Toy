@@ -1,0 +1,8 @@
+# 人格卡模板：拷贝后替换 PLACEHOLDER
+character_name: PLACEHOLDER
+big5: { openness: 0.5, conscientiousness: 0.5, extraversion: 0.5, agreeableness: 0.5, neuroticism: 0.3 }
+catchphrases: []        # 口癖列表（字符串）
+anchor_sentences: []    # 锚定例句（3–10 条）
+topic_likes: []         # 喜欢的话题
+topic_dislikes: []      # 不喜欢的话题
+forbidden_topics: []    # 禁忌（T9 地板层之外的角色特定禁忌）

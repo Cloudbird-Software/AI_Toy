@@ -1,14 +1,20 @@
-# CODEOWNERS —— 一人公司策略说明：
-# 默认 owner 全局拥有。基建路径单列的意义：
-# 1) 若未来开启 require_code_owner_review，这些路径强制人审（automerge 场景保持关闭）
-# 2) 代码 review 工具（CodeRabbit 等）按 owner 路由通知
-# App（cloudbrid-agent）不在任何 owner 列表 = 永不满足 code owner 审查，天然被人把关
+# CODEOWNERS（ai-toy 对齐 §5.7 + 组织治理基线）
+# 单 founder 策略：默认全局 owner = @randypanding（等价 §5.7 的 @founder）
+# 基建与门禁路径单列：未来开启 require_code_owner_review 时，这些路径强制人审
+# App（cloudbrid-agent）不在任何 owner 列表 = 天然被人把关
 
-* @randypanding
+*                                                   @randypanding
 
-# 基建：CI/门禁/治理（变更影响全组织，显式归属）
-/.github/ @randypanding
-/Makefile @randypanding
-/.dependency-cruiser.cjs @randypanding
-/zizmor.yml @randypanding
-/docs/ARCHITECTURE.md @randypanding
+# --- 组织治理基线基建（CODEOWNERS 变更影响全仓） ---
+/.github/                                           @randypanding
+/Makefile                                           @randypanding
+/.dependency-cruiser.cjs                            @randypanding
+/zizmor.yml                                         @randypanding
+/docs/ARCHITECTURE.md                               @randypanding
+
+# --- §5.7 ai-toy 门禁基线（变更=founder PR，ci.yml gates-cfg-guard 配套） ---
+/configs/gates/                                     @randypanding
+/docs/gates/                                        @randypanding
+/datasets/                                          @randypanding
+/tests/                                             @randypanding
+/reports/exemptions.yaml                            @randypanding

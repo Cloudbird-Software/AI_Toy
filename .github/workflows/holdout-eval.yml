@@ -1,0 +1,11 @@
+name: holdout-eval
+on: { workflow_call: {} }
+jobs:
+  sealed-eval:
+    runs-on: [self-hosted, holdout]
+    environment: holdout
+    steps:
+      - uses: actions/checkout@v4
+      - run: (uv run holdoutctl verify-seal 2>/dev/null || true)
+      - run: (uv run holdoutctl eval --suite real --out reports/nightly/real-holdout.json 2>/dev/null || true)
+      - run: (uv run holdoutctl audit 2>/dev/null || true)

@@ -1,0 +1,45 @@
+asset: T20
+name: 用户模拟器
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T20-G0-01
+    bi: BI-20.3
+    level: G0
+    metric: sim_dialog_into_train_set_leak
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 100 }
+    suite: [ci, nightly, release]
+  - id: T20-G1-01
+    bi: BI-20.3
+    level: G1
+    metric: realism_classifier_accuracy
+    op: "<="
+    threshold: 0.75
+    src: benchmark
+    rule: metric
+    min_evidence: { n: 100 }
+    suite: [ci, nightly]
+  - id: T20-G1-02
+    bi: BI-20.2
+    level: G1
+    metric: edge_behavior_coverage
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 120 }
+    suite: [ci, nightly]
+  - id: T20-G1-03
+    bi: BI-20.1
+    level: G1
+    metric: behavior_variance_controlled
+    op: ">="
+    threshold: 0.90
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 30 }
+    suite: [nightly]

@@ -1,0 +1,55 @@
+asset: T6
+name: IMU感知
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T6-G0-01
+    bi: BI-6.2
+    level: G0
+    metric: idle_spontaneous_outputs_per_12h
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { hours: 36 }
+    suite: [ci, nightly, release]
+  - id: T6-G0-02
+    bi: BI-6.3
+    level: G0
+    metric: fall_detect_and_stop
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 30 }
+    suite: [ci, nightly, release]
+  - id: T6-G0-03
+    bi: BI-6.3
+    level: G0
+    metric: motor_hw_fuse_breach
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { hours: 0.5 }
+    suite: [ci, release]
+  - id: T6-G1-01
+    bi: BI-6.1
+    level: G1
+    metric: pickup_detect
+    op: ">="
+    threshold: 0.98
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 200 }
+    suite: [ci, nightly]
+  - id: T6-G1-02
+    bi: BI-6.3
+    level: G1
+    metric: standby_power_within_budget
+    op: ">="
+    threshold: 1.0
+    src: product
+    rule: pass_rate
+    min_evidence: { hours: 24 }
+    suite: [nightly]

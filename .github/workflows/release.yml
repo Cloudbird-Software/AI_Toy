@@ -1,0 +1,7 @@
+name: release
+on: { push: { tags: ["v*"] } }
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "release placeholder — g0-all/canary/packs/sbom 流程待全资产达 M1 后启用"

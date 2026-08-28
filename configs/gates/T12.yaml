@@ -1,0 +1,55 @@
+asset: T12
+name: 情绪动作映射
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T12-G0-01
+    bi: BI-12.3
+    level: G0
+    metric: physical_safety_bound_breach
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 1000 }
+    suite: [ci, nightly, release]
+  - id: T12-G0-02
+    bi: BI-12.3
+    level: G0
+    metric: silent_mode_force_zero
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 100 }
+    suite: [ci, release]
+  - id: T12-G1-01
+    bi: BI-12.2
+    level: G1
+    metric: max_idle_gap_sec
+    op: "<="
+    threshold: 90
+    src: product
+    rule: metric
+    min_evidence: { hours: 72 }
+    suite: [nightly]
+  - id: T12-G1-02
+    bi: BI-12.1
+    level: G1
+    metric: emotion_motion_consistency
+    op: ">="
+    threshold: 0.90
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 300 }
+    suite: [ci, nightly]
+  - id: T12-G1-03
+    bi: BI-12.1
+    level: G1
+    metric: state_to_first_action_p95_ms
+    op: "<="
+    threshold: 200
+    src: product
+    rule: metric
+    min_evidence: { n: 100 }
+    suite: [ci, nightly]

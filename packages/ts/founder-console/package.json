@@ -1,0 +1,16 @@
+{
+  "name": "@ai-toy/founder-console",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "biome check .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10",
+    "@biomejs/biome": "^1.9.4"
+  }
+}

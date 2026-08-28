@@ -1,0 +1,16 @@
+[project]
+name = "evalkit"
+version = "0.0.1"
+description = "ai-toy tool: evalkit"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+evalkit = "evalkit.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evalkit"]

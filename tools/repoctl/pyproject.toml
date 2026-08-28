@@ -1,0 +1,16 @@
+[project]
+name = "repoctl"
+version = "0.0.1"
+description = "ai-toy tool: repoctl"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+repoctl = "repoctl.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/repoctl"]

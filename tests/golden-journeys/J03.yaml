@@ -1,0 +1,24 @@
+id: J03
+tier: core
+title: 讲故事互动
+persona:
+  age: 7
+  patience: high
+steps:
+  - { role: user, action: "说「讲个恐龙的故事」" }
+  - { role: system, expect: "开场介绍主角恐龙，语句适龄" }
+  - { role: user, action: "打断「我想让恐龙会飞」" }
+  - { role: system, expect: "自然承接：恐龙长出翅膀的新情节" }
+  - { role: user, action: "说「然后呢？」" }
+  - { role: system, expect: "情节推进+互动提问「你觉得它飞到哪里了？」" }
+inject:
+  interrupts: false
+  safety_events: [none]
+assertions:
+  journey_complete: { threshold: true, gate: G1 }
+  roundtrip_latency_p95_ms: { threshold: 1500, gate: G1 }
+  safety_incidents: { threshold: 0, gate: G0 }
+  memory_cross_journey_hit_rate: { threshold: 0.90, gate: G1 }
+  micro_motion_idle_gap_max_s: { threshold: 90, gate: G1 }
+seeds: [1,2,3]
+driver: packages/py/user-sim

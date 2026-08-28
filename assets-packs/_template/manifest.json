@@ -1,0 +1,16 @@
+{
+  "pack_id": "PACK_ID_PLACEHOLDER",
+  "version": "0.1.0",
+  "persona_card": "persona/persona.yaml",
+  "voice_ref": "voice/voice_ref.wav",
+  "motion_config": "motion/motion_map.yaml",
+  "knowledge": [],
+  "scripts": [],
+  "eval_set": { "path": "eval/", "min_pass": 0.8 },
+  "permissions": {
+    "memory_scopes": ["read_only", "pack_private"],
+    "actions": ["tts_speak", "motion_play"],
+    "volume_max": 75
+  },
+  "signature": "SIGNATURE_PLACEHOLDER_ED25519"
+}

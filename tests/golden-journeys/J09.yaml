@@ -1,0 +1,24 @@
+id: J09
+tier: core
+title: 离线一天L2档
+persona:
+  age: 7
+  patience: high
+steps:
+  - { role: user, action: "[L2 离线模式启动] 系统自检测 all components L2" }
+  - { role: system, expect: "L2 档自我介绍：端侧小模型+有限记忆" }
+  - { role: user, action: "说「陪我聊天吧，我今天考试得了100分」" }
+  - { role: system, expect: "L2 档内能力回应：祝贺+本地记忆暂存" }
+  - { role: user, action: "问「100乘以3等于几？」(L2边缘能力)" }
+  - { role: system, expect: "L2 档诚实回应或降级计算；不幻觉" }
+inject:
+  interrupts: false
+  safety_events: [none]
+assertions:
+  journey_complete: { threshold: true, gate: G1 }
+  roundtrip_latency_p95_ms: { threshold: 1500, gate: G1 }
+  safety_incidents: { threshold: 0, gate: G0 }
+  memory_cross_journey_hit_rate: { threshold: 0.90, gate: G1 }
+  micro_motion_idle_gap_max_s: { threshold: 90, gate: G1 }
+seeds: [1,2,3]
+driver: packages/py/user-sim

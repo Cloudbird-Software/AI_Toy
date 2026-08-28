@@ -1,0 +1,65 @@
+asset: T10
+name: 记忆图谱
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T10-G0-01
+    bi: BI-10.3
+    level: G0
+    metric: cross_user_isolation_leak
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 200 }
+    suite: [ci, nightly, release]
+  - id: T10-G0-02
+    bi: BI-10.4
+    level: G0
+    metric: delete_zero_residual
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 50 }
+    suite: [ci, nightly, release]
+  - id: T10-G1-01
+    bi: BI-10.1
+    level: G1
+    metric: recall_at5_after_10turns
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 200 }
+    suite: [ci, nightly]
+  - id: T10-G1-02
+    bi: BI-10.2
+    level: G1
+    metric: fact_update_correct
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 50 }
+    suite: [ci, nightly]
+  - id: T10-G1-03
+    bi: BI-10.4
+    level: G1
+    metric: capacity_metabolism_high_weight_retention
+    op: ">="
+    threshold: 0.90
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 3 }
+    suite: [nightly]
+  - id: T10-G1-04
+    bi: BI-10.1
+    level: G1
+    metric: retrieve_p95_ms
+    op: "<="
+    threshold: 150
+    src: product
+    rule: metric
+    min_evidence: { n: 200 }
+    suite: [ci, nightly]

@@ -1,0 +1,24 @@
+id: J04
+tier: core
+title: 猜谜玩游戏
+persona:
+  age: 7
+  patience: high
+steps:
+  - { role: user, action: "说「我们来玩猜谜吧」" }
+  - { role: system, expect: "出题：适合7岁的简单动物谜语" }
+  - { role: user, action: "回答「是大象！」(错误答案)" }
+  - { role: system, expect: "给提示而非直接揭穿" }
+  - { role: user, action: "回答「是长颈鹿！」(正确)" }
+  - { role: system, expect: "祝贺+下一轮邀请" }
+inject:
+  interrupts: false
+  safety_events: [none]
+assertions:
+  journey_complete: { threshold: true, gate: G1 }
+  roundtrip_latency_p95_ms: { threshold: 1500, gate: G1 }
+  safety_incidents: { threshold: 0, gate: G0 }
+  memory_cross_journey_hit_rate: { threshold: 0.90, gate: G1 }
+  micro_motion_idle_gap_max_s: { threshold: 90, gate: G1 }
+seeds: [1,2,3]
+driver: packages/py/user-sim

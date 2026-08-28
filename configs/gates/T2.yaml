@@ -1,0 +1,45 @@
+asset: T2
+name: 数据飞轮
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T2-G0-01
+    bi: BI-2.2
+    level: G0
+    metric: holdout_train_contamination
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 10000 }
+    suite: [ci, nightly, release]
+  - id: T2-G0-02
+    bi: BI-2.2
+    level: G0
+    metric: pii_residual
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 200 }
+    suite: [ci, nightly, release]
+  - id: T2-G1-01
+    bi: BI-2.1
+    level: G1
+    metric: diversity_dist_gap
+    op: "<="
+    threshold: 0.2
+    src: benchmark
+    rule: metric
+    min_evidence: { n: 1000 }
+    suite: [ci, nightly]
+  - id: T2-G1-02
+    bi: BI-2.3
+    level: G1
+    metric: flywheel_lift_cycles_ratio
+    op: ">="
+    threshold: 0.5
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 10 }
+    suite: [nightly]

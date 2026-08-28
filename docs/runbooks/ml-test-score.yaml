@@ -1,0 +1,32 @@
+# Google ML Test Score 28 项清单（weekly ml-self-audit 消费，得分只升不降）
+# 每项：id, 维度, 描述, 当前得分(0-2, 2=满足), 证据
+scores:
+  - { id: ML1,  category: 数据,  desc: 训练数据版本化, score: 0, evidence: "待 synthgen 管线上线" }
+  - { id: ML2,  category: 数据,  desc: 训练数据元数据完善, score: 0, evidence: "" }
+  - { id: ML3,  category: 数据,  desc: 特征合法性校验, score: 0, evidence: "" }
+  - { id: ML4,  category: 数据,  desc: 特征两两相关性监控, score: 0, evidence: "" }
+  - { id: ML5,  category: 数据,  desc: 特征成本收益分析, score: 0, evidence: "" }
+  - { id: ML6,  category: 模型,  desc: 模型规格版本化, score: 0, evidence: "待 models/manifests 完善" }
+  - { id: ML7,  category: 模型,  desc: 超参数离线调试验证, score: 0, evidence: "" }
+  - { id: ML8,  category: 模型,  desc: 离线评估矩阵, score: 0, evidence: "" }
+  - { id: ML9,  category: 监控,  desc: 数据分布漂移监控, score: 0, evidence: "待 weekly drift-report" }
+  - { id: ML10, category: 监控,  desc: 预测分布漂移监控, score: 0, evidence: "" }
+  - { id: ML11, category: 监控,  desc: 生产延迟监控, score: 0, evidence: "" }
+  - { id: ML12, category: 监控,  desc: 召回/精确率或等价线上监控, score: 0, evidence: "" }
+  - { id: ML13, category: 监控,  desc: 模型质量 BI Dashboard, score: 0, evidence: "" }
+  - { id: ML14, category: 监控,  desc: 预测与训练分布比较, score: 0, evidence: "" }
+  - { id: ML15, category: 监控,  desc: 模型训练/服务/交互排名追踪, score: 0, evidence: "" }
+  - { id: ML16, category: 实验,  desc: A/B 实验金丝雀, score: 0, evidence: "" }
+  - { id: ML17, category: 实验,  desc: 决策与效果因果推断, score: 0, evidence: "" }
+  - { id: ML18, category: ML运维, desc: 发布前 holdout 评测, score: 0, evidence: "待 holdout environment" }
+  - { id: ML19, category: ML运维, desc: 影子模式影子评估, score: 0, evidence: "" }
+  - { id: ML20, category: ML运维, desc: 训练/服务一致性单元测试, score: 0, evidence: "" }
+  - { id: ML21, category: ML运维, desc: 训练流水线集成测试, score: 0, evidence: "" }
+  - { id: ML22, category: ML运维, desc: 模型公平性审查, score: 0, evidence: "T4/T5 儿童公平性门为基础" }
+  - { id: ML23, category: ML运维, desc: 模型性能退化报警, score: 0, evidence: "" }
+  - { id: ML24, category: ML运维, desc: 依赖/依赖来源审查, score: 0, evidence: "新依赖须 founder 批准" }
+  - { id: ML25, category: ML运维, desc: 安全/合规审查, score: 0, evidence: "T9 G0 密集 + COPPA/GDPR-K" }
+  - { id: ML26, category: ML运维, desc: 真实标注 vs 预测相关性, score: 0, evidence: "" }
+  - { id: ML27, category: ML运维, desc: 上游模型变更评估, score: 0, evidence: "" }
+  - { id: ML28, category: ML运维, desc: 训练与推理复现实验, score: 0, evidence: "" }
+policy: { ratchet: true, audit: weekly.yml ml-self-audit, only_increase: true }

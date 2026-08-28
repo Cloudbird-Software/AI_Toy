@@ -1,0 +1,55 @@
+asset: T13
+name: TTS角色声
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T13-G0-01
+    bi: BI-13.3
+    level: G0
+    metric: adversarial_injection_readout
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 100 }
+    suite: [ci, nightly, release]
+  - id: T13-G1-01
+    bi: BI-13.2
+    level: G1
+    metric: cloud_first_packet_p95_ms
+    op: "<="
+    threshold: 300
+    src: product
+    rule: metric
+    min_evidence: { n: 500 }
+    suite: [ci, nightly]
+  - id: T13-G1-02
+    bi: BI-13.1
+    level: G1
+    metric: voice_embedding_consistency
+    op: ">="
+    threshold: 0.90
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 100 }
+    suite: [ci, nightly]
+  - id: T13-G1-03
+    bi: BI-13.3
+    level: G1
+    metric: bad_output_rate
+    op: "<="
+    threshold: 0.01
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 500 }
+    suite: [ci, nightly]
+  - id: T13-G1-04
+    bi: BI-13.3
+    level: G1
+    metric: semantic_pause_error_rate
+    op: "<="
+    threshold: 0.05
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 200 }
+    suite: [nightly]

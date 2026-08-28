@@ -1,0 +1,4 @@
+# 包自带评测集（安装即跑；缺此文件=拒绝构建）
+pack_id: PACK_ID_PLACEHOLDER
+min_pass_ratio: 0.8
+cases: []   # {input, expected_assert, threshold, level}

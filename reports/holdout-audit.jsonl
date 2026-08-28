@@ -1,0 +1,2 @@
+# Format (append-only): {"ts":"ISO8601","actor":"...","suite":"...","summary_hash":"..."}
+# 禁改写。由 holdoutctl audit 追加写。

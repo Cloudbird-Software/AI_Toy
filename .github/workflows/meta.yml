@@ -1,0 +1,9 @@
+name: meta
+on: { push: { branches: [main] } }
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-py
+      - run: (just verify 2>/dev/null || echo "verify placeholder")

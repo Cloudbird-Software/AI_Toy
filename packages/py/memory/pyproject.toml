@@ -1,0 +1,16 @@
+[project]
+name = "toy-memory"
+version = "0.0.1"
+description = "ai-toy package: memory (T10+T11 记忆图谱)"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis", "evalkit", "gaterunner"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/memory"]

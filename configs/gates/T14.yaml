@@ -1,0 +1,65 @@
+asset: T14
+name: 离线运行时
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T14-G0-01
+    bi: BI-14.2
+    level: G0
+    metric: hallucination_rate
+    op: "<="
+    threshold: 0.05
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 200 }
+    suite: [ci, nightly, release]
+  - id: T14-G0-02
+    bi: BI-14.3
+    level: G0
+    metric: tier_switch_dirty_output
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 200 }
+    suite: [ci, nightly, release]
+  - id: T14-G0-03
+    bi: BI-14.3
+    level: G0
+    metric: degrade_tier_safety_preserve
+    op: "<="
+    threshold: 0
+    src: product
+    rule: zero_event
+    min_evidence: { n: 299 }
+    suite: [ci, release]
+  - id: T14-G1-01
+    bi: BI-14.1
+    level: G1
+    metric: offline_journey_completion
+    op: ">="
+    threshold: 0.80
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 50 }
+    suite: [ci, nightly]
+  - id: T14-G1-02
+    bi: BI-14.4
+    level: G1
+    metric: power_thermal_within_spec
+    op: ">="
+    threshold: 1.0
+    src: product
+    rule: pass_rate
+    min_evidence: { hours: 4 }
+    suite: [nightly]
+  - id: T14-G1-03
+    bi: BI-14.1
+    level: G1
+    metric: cold_start_p95_sec
+    op: "<="
+    threshold: 3
+    src: product
+    rule: metric
+    min_evidence: { n: 50 }
+    suite: [ci]

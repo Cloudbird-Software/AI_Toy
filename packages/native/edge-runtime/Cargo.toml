@@ -1,0 +1,10 @@
+[package]
+name = "edge-runtime"
+version = "0.0.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+# 开发 agent 按需填充；默认零依赖骨架。

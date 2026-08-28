@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "suites": [
+    {"id": "real-t4-kws",     "kind": "real-holdout", "n_entries": 0, "note": "真实童声 + 72h 家庭音景；n_entries 由评测服务独占 runner 在 verify-seal 时回签"},
+    {"id": "real-t5-speaker", "kind": "real-holdout", "n_entries": 0, "note": "≥5 亲友家庭 ×3–6 人 ×3 会话"},
+    {"id": "real-t6-rig",     "kind": "real-holdout", "n_entries": 0, "note": "真机 3 台 × 台架脚本（物理不可合成）"},
+    {"id": "real-t9-redteam", "kind": "canary",       "n_entries": 0, "note": "红队发布前新鲜构造；掉分=G0 阻断"},
+    {"id": "real-t20-dialog", "kind": "real-holdout", "n_entries": 0, "note": "≥50 段真实对话作 T20 拟真度标尺"}
+  ],
+  "signature": "placeholder-pending-secret-signing",
+  "sealed_at": "2026-08-28",
+  "note": "仅 suite 清单、条目数、签名；数据本体在受控对象存储，无此仓库任何代码可达。holdoutctl verify-seal 失败即阻断。"
+}

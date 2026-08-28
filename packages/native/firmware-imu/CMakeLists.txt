@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.16)
+project(firmware_imu CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_library(firmware_imu STATIC src/firmware_imu.cpp)
+target_include_directories(firmware_imu PUBLIC include)
+
+enable_testing()
+add_executable(firmware_imu_tests tests/gates.cpp)
+target_link_libraries(firmware_imu_tests PRIVATE firmware_imu)
+add_test(NAME firmware_imu_tests COMMAND firmware_imu_tests)

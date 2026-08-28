@@ -1,0 +1,16 @@
+[project]
+name = "judge"
+version = "0.0.1"
+description = "ai-toy tool: judge"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+judge = "toyjudge.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/toyjudge"]

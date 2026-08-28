@@ -1,0 +1,23 @@
+id: J02
+tier: core
+title: 晚安入睡
+persona:
+  age: 7
+  patience: high
+steps:
+  - { role: user, action: "说「我困了，晚安布丁」" }
+  - { role: system, expect: "温柔回应+降低声调" }
+  - { role: user, action: "要求「讲个短故事」" }
+  - { role: system, expect: "30秒内睡前故事，语句舒缓" }
+  - { role: system, expect: "收尾「好梦」，TTS 音量递减" }
+inject:
+  interrupts: false
+  safety_events: [none]
+assertions:
+  journey_complete: { threshold: true, gate: G1 }
+  roundtrip_latency_p95_ms: { threshold: 1500, gate: G1 }
+  safety_incidents: { threshold: 0, gate: G0 }
+  memory_cross_journey_hit_rate: { threshold: 0.90, gate: G1 }
+  micro_motion_idle_gap_max_s: { threshold: 90, gate: G1 }
+seeds: [1,2,3]
+driver: packages/py/user-sim

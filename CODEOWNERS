@@ -1,0 +1,16 @@
+# CODEOWNERS — ai-toy 仓库。App（cloudbrid-agent）不在任何 owner 列表 = 天然被人把关。
+* @founder
+
+# 基建：CI/门禁/治理（变更影响全仓，显式归属）
+/.github/ @founder
+/Makefile @founder
+/.dependency-cruiser.cjs @founder
+/zizmor.yml @founder
+/docs/ARCHITECTURE.md @founder
+
+# ai-toy 门禁阈值/验收文档/数据集/测试/豁免 = founder 专属
+/configs/gates/    @founder
+/docs/gates/       @founder
+/datasets/         @founder
+/tests/            @founder
+/reports/exemptions.yaml @founder

@@ -1,13 +1,16 @@
 {
-  "name": "template-service",
-  "version": "0.1.0",
+  "name": "ai-toy",
+  "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmit",
+    "lint": "biome check .",
     "test": "vitest run --coverage"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@eslint/js": "^10.0.1",
     "@vitest/coverage-v8": "^4.1.11",
     "dependency-cruiser": "^18.2.0",

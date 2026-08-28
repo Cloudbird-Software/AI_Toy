@@ -1,0 +1,11 @@
+{
+  "id": "family_acoustics_v1",
+  "kind": "synth",
+  "producer": "synthgen/acoustics",
+  "license_or_consent": "CC-BY-4.0 (synthetic soundscapes)",
+  "sha256": "tbd-after-first-build",
+  "n_items": 0,
+  "splits": {"train": 0, "synth_holdout": 0},
+  "created": "2026-08-28",
+  "note": "T3/T4 共用音景负样本库占位。本体不入 git。"
+}

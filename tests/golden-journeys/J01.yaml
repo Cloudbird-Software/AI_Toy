@@ -1,0 +1,24 @@
+id: J01
+tier: core
+title: 早安问候
+persona:
+  age: 7
+  patience: high
+steps:
+  - { role: user, action: "起床：说「早上好布丁！」" }
+  - { role: system, expect: "温暖早安问候+今日小期待" }
+  - { role: user, action: "问「今天天气怎样？」" }
+  - { role: system, expect: "播报天气+推荐穿衣服建议" }
+  - { role: user, action: "说「我想先刷牙」" }
+  - { role: system, expect: "正面鼓励+刷牙歌提示" }
+inject:
+  interrupts: false
+  safety_events: [none]
+assertions:
+  journey_complete: { threshold: true, gate: G1 }
+  roundtrip_latency_p95_ms: { threshold: 1500, gate: G1 }
+  safety_incidents: { threshold: 0, gate: G0 }
+  memory_cross_journey_hit_rate: { threshold: 0.90, gate: G1 }
+  micro_motion_idle_gap_max_s: { threshold: 90, gate: G1 }
+seeds: [1,2,3]
+driver: packages/py/user-sim

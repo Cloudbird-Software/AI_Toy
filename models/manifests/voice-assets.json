@@ -1,0 +1,20 @@
+[
+  {
+    "name": "piper-en-cjc-medium",
+    "task": "tts-edge",
+    "license": "MIT-like (piper voice assets)",
+    "sha256": "tbd-fetch-time",
+    "size": 0,
+    "fetch_url": "https://example.invalid/placeholder",
+    "tier_usage": ["L2", "L3"]
+  },
+  {
+    "name": "openwakeword-reference",
+    "task": "kws-edge",
+    "license": "Apache-2.0",
+    "sha256": "tbd-fetch-time",
+    "size": 0,
+    "fetch_url": "https://example.invalid/placeholder",
+    "tier_usage": ["L0", "L1", "L2", "L3"]
+  }
+]

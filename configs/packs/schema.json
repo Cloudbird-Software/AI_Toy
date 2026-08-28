@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-toy.local/schemas/pack-manifest.v1.json",
+  "title": "AI Toy Scene Pack Manifest",
+  "type": "object",
+  "required": [
+    "pack_id",
+    "version",
+    "persona_card",
+    "voice_ref",
+    "motion_config",
+    "knowledge",
+    "scripts",
+    "eval_set",
+    "permissions",
+    "signature"
+  ],
+  "properties": {
+    "pack_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
+      "description": "URL-safe, globally unique. Same pack_id across versions."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+      "description": "SemVer 2.0.0"
+    },
+    "persona_card": {
+      "type": "string",
+      "description": "Relative path to persona/persona.yaml"
+    },
+    "voice_ref": {
+      "type": "string",
+      "description": "Relative path to voice reference file or registered voice id"
+    },
+    "motion_config": {
+      "type": "string",
+      "description": "Relative path to motion/motion_map.yaml"
+    },
+    "knowledge": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 0,
+      "description": "Relative paths to knowledge .md files"
+    },
+    "scripts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Relative paths to script .yaml files"
+    },
+    "eval_set": {
+      "type": "object",
+      "required": ["path", "min_pass"],
+      "properties": {
+        "path": { "type": "string", "description": "Relative path to eval/ directory" },
+        "min_pass": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum pass ratio (e.g. 0.8)"
+        }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "required": ["memory_scopes", "actions", "volume_max"],
+      "properties": {
+        "memory_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["read_only", "pack_private", "user_shared", "global_limited"]
+          },
+          "uniqueItems": true
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["tts_speak", "motion_play", "notification_send", "memory_write_pack", "memory_write_shared", "network_fetch_whitelist"]
+          },
+          "uniqueItems": true,
+          "description": "Whitelist: unlisted actions are denied at runtime"
+        },
+        "volume_max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Playback volume cap (percent)"
+        }
+      }
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 signature over canonical JSON of all other fields. CI validates against trusted pack-signing keys."
+    }
+  },
+  "additionalProperties": false
+}

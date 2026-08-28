@@ -1,0 +1,65 @@
+asset: T3
+name: 话轮管理
+updated: "2026-08-28"
+noise_band: {}
+gates:
+  - id: T3-G0-01
+    bi: BI-3.2
+    level: G0
+    metric: bargein_detect_and_stop
+    op: ">="
+    threshold: 0.95
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 50 }
+    suite: [ci, nightly, release]
+  - id: T3-G0-02
+    bi: BI-3.2
+    level: G0
+    metric: silence_false_trigger_per_hour
+    op: "<="
+    threshold: 0.0
+    src: product
+    rule: zero_event
+    min_evidence: { hours: 6 }
+    suite: [ci, nightly, release]
+  - id: T3-G1-01
+    bi: BI-3.1
+    level: G1
+    metric: false_truncation_rate
+    op: "<="
+    threshold: 0.08
+    src: noise_band
+    rule: pass_rate
+    min_evidence: { n: 300 }
+    suite: [ci, nightly]
+  - id: T3-G1-02
+    bi: BI-3.1
+    level: G1
+    metric: turn_end_to_tts_first_p95_ms
+    op: "<="
+    threshold: 900
+    src: product
+    rule: metric
+    min_evidence: { n: 100 }
+    suite: [ci, nightly]
+  - id: T3-G1-03
+    bi: BI-3.2
+    level: G1
+    metric: bargein_context_retention
+    op: ">="
+    threshold: 0.90
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 50 }
+    suite: [nightly]
+  - id: T3-G1-04
+    bi: BI-3.3
+    level: G1
+    metric: midpause_tolerance_false_truncation
+    op: "<="
+    threshold: 0.08
+    src: product
+    rule: pass_rate
+    min_evidence: { n: 100 }
+    suite: [nightly]

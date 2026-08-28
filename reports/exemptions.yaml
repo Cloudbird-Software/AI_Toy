@@ -1,0 +1,5 @@
+# G1 豁免台账（G0 无豁免）。格式：每条必须含 reason / owner / expires（≤30 天）/ linked_pr。
+# repoctl exemption audit：过期项 → exit 20。
+# 示例：
+# - { id: T4-G1-03, reason: "RTF 预算收紧需 2 周调参", owner: "@founder", expires: "2026-09-15", linked_pr: "#12" }
+exemptions: []

@@ -1,0 +1,16 @@
+[project]
+name = "synthgen"
+version = "0.0.1"
+description = "ai-toy tool: synthgen"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+synthgen = "synthgen.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/synthgen"]
