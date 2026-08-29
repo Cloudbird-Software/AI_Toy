@@ -1,0 +1,86 @@
+{
+  "asset": "T12",
+  "suite": "nightly",
+  "commit": "02491cafb9b17c06ba87e845b4e4c6c8130e51c9",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T07:08:32Z",
+  "results": [
+    {
+      "id": "T12-G0-01",
+      "bi": "BI-12.3",
+      "level": "G0",
+      "metric": "motion_safety_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT12G001SafetyBox$ ./packages/go/motion-map"
+    },
+    {
+      "id": "T12-G1-01",
+      "bi": "BI-12.2",
+      "level": "G1",
+      "metric": "max_idle_gap_s",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 90,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT12G101IdleContinuity$ ./packages/go/motion-map"
+    },
+    {
+      "id": "T12-G1-02",
+      "bi": "BI-12.1",
+      "level": "G1",
+      "metric": "emotion_motion_consistency_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.9,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT12G102EmotionMotionConsistency$ ./packages/go/motion-map"
+    },
+    {
+      "id": "T12-G1-03",
+      "bi": "BI-12.1",
+      "level": "G1",
+      "metric": "motion_first_visible_p95_ms",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 200,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT12G103FirstVisibleLatency$ ./packages/go/motion-map"
+    },
+    {
+      "id": "T12-G0-02",
+      "bi": "BI-12.3",
+      "level": "G0",
+      "metric": "silent_motion_output_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT12G002SilentMotionZero$ ./packages/go/motion-map"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T12-G1-01"
+    ]
+  },
+  "exemptions_applied": []
+}
