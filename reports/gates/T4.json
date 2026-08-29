@@ -1,10 +1,10 @@
 {
   "asset": "T4",
   "suite": "ci",
-  "commit": "f83093fc2ea4ce6c15c68c4b666faf3db518b016",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-28T18:40:52Z",
+  "timestamp": "2026-08-29T00:26:57Z",
   "results": [
     {
       "id": "T4-G0-01",
@@ -31,45 +31,6 @@
       "verdict": "pass",
       "statistical_rule": "metric_point",
       "evidence": "go test ./tools/gaterunner/internal/gaterunner -run ^TestG0AdvNegative$ -count=1"
-    },
-    {
-      "id": "T4-G1-01",
-      "bi": "BI-4.1",
-      "level": "G1",
-      "metric": "wake_rate_near",
-      "observed": 1,
-      "evidence_hours": 0,
-      "upper95": 1,
-      "threshold": 0.97,
-      "verdict": "pass",
-      "statistical_rule": "wilson_upper95",
-      "evidence": "just gate T4"
-    },
-    {
-      "id": "T4-G1-02",
-      "bi": "BI-4.1",
-      "level": "G1",
-      "metric": "child_adult_wake_rate_gap",
-      "observed": 0.045,
-      "evidence_hours": 0,
-      "upper95": 0.045,
-      "threshold": 0.05,
-      "verdict": "pass",
-      "statistical_rule": "metric_point",
-      "evidence": "just gate T4"
-    },
-    {
-      "id": "T4-G1-03",
-      "bi": "BI-4.3",
-      "level": "G1",
-      "metric": "rtf",
-      "observed": 0.09,
-      "evidence_hours": 0,
-      "upper95": 0.09,
-      "threshold": 0.1,
-      "verdict": "pass",
-      "statistical_rule": "metric_point",
-      "evidence": "just gate T4"
     }
   ],
   "summary": {
