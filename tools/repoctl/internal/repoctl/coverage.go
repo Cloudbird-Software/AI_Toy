@@ -1,6 +1,9 @@
-// coverage —— 登记表 × 验收文档 BI 三重核对（spec §3.8）：reports/gates/*.json
-// （gaterunner 登记表落盘形态）× docs/gates/assets/*.md 的 BI 集合（正则 BI-\d+\.\d+）
-// → 每 BI ≥1 断言、每资产 ≥1 G0、无孤儿断言；任一缺失 exit 20。
+// coverage —— 登记表 × 验收文档 BI 核对（spec §3.8，IR #64 阶段化执法，ADR-0002）：
+// 登记表 = reports/gates/*.json 中 verdict ∈ {pass, fail, exempt} 的条目
+// （not_implemented/warn 不算已落地断言）× docs/gates/assets/*.md 的 BI 集合
+// （正则 BI-\d+\.\d+）→ 资产登记 ≥1 条 → 强制全 BI 覆盖 + ≥1 G0 + 无孤儿断言
+// （任一缺失 exit 20）；登记 0 条 → DEBT 行（stdout，不 FAIL，exit 0——实现未
+// 开始的资产先欠账、首条断言落地即进入全执法）。
 package repoctl
 
 import (
@@ -17,16 +20,24 @@ import (
 
 // covEntry 登记表一行（gaterunner run 报告 Result 的核对子集；asset 条目级优先、文件级兜底）。
 type covEntry struct {
-	ID    string `json:"id"`
-	BI    string `json:"bi"`
-	Level string `json:"level"`
-	Asset string `json:"asset"`
+	ID      string `json:"id"`
+	BI      string `json:"bi"`
+	Level   string `json:"level"`
+	Asset   string `json:"asset"`
+	Verdict string `json:"verdict"`
 }
 
 var biRe = regexp.MustCompile(`BI-\d+\.\d+`)
 
+// countedVerdict 报告形态条目是否计入登记表：pass/fail/exempt（与 verdict 缺席的
+// 旧式条目）算已落地；not_implemented/warn 不算（未实现/趋势警告非断言事实）。
+func countedVerdict(v string) bool {
+	return v == "" || v == "pass" || v == "fail" || v == "exempt"
+}
+
 // loadCovRegistry 读 gatesDir 下全部 *.json：顶层列表，或 {asset, results|assertions}
-// 两种对象形态（后者即 gaterunner run 报告 schema）。目录缺席 = 空登记表（非错误）。
+// 两种对象形态（后者即 gaterunner run 报告 schema，按 verdict 过滤）。目录缺席 =
+// 空登记表（非错误）。
 func loadCovRegistry(gatesDir string) ([]covEntry, error) {
 	files, _ := filepath.Glob(filepath.Join(gatesDir, "*.json"))
 	sort.Strings(files)
@@ -50,6 +61,9 @@ func loadCovRegistry(gatesDir string) ([]covEntry, error) {
 			return nil, fmt.Errorf("%s 不可解析: %w", path, err)
 		}
 		for _, e := range append(doc.Results, doc.Assertions...) {
+			if !countedVerdict(e.Verdict) {
+				continue
+			}
 			if e.Asset == "" {
 				e.Asset = doc.Asset
 			}
@@ -83,15 +97,17 @@ func loadDocBIs(docsDir string) (map[string][]string, error) {
 	return docs, nil
 }
 
-// CheckCoverage 三重核对，返回失败清单（排序去重）与（资产数、断言数）。
-func CheckCoverage(root string) (fails []string, nAssets, nEntries int, err error) {
+// CheckCoverage 核对（阶段化执法，ADR-0002）：有登记的资产强制全 BI 覆盖 + ≥1 G0 +
+// 无孤儿断言（失败清单排序去重）；0 登记资产进 DEBT 清单（不 FAIL）。返回
+// （失败清单、DEBT 清单、资产数、断言数）。
+func CheckCoverage(root string) (fails, debts []string, nAssets, nEntries int, err error) {
 	docs, err := loadDocBIs(filepath.Join(root, "docs", "gates", "assets"))
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, nil, 0, 0, err
 	}
 	all, err := loadCovRegistry(filepath.Join(root, "reports", "gates"))
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, nil, 0, 0, err
 	}
 	entries := []covEntry{}
 	for _, e := range all { // 无 asset 的登记行无从核对，跳过（对齐 Python 契约）
@@ -116,6 +132,10 @@ func CheckCoverage(root string) (fails []string, nAssets, nEntries int, err erro
 				hasG0 = true
 			}
 		}
+		if len(own) == 0 { // 阶段化执法：0 断言 = DEBT（实现未开始，不 FAIL）
+			debts = append(debts, asset+": 实现未开始（0 断言）")
+			continue
+		}
 		for _, bi := range docs[asset] {
 			if !slices.ContainsFunc(own, func(e covEntry) bool { return e.BI == bi }) {
 				fails = append(fails, fmt.Sprintf("%s: BI %s 无任何断言", asset, bi))
@@ -137,7 +157,7 @@ func CheckCoverage(root string) (fails []string, nAssets, nEntries int, err erro
 			dedup = append(dedup, f)
 		}
 	}
-	return dedup, len(docs), len(entries), nil
+	return dedup, debts, len(docs), len(entries), nil
 }
 
 func cliCoverage(args []string, stdout, stderr io.Writer) int {
@@ -146,15 +166,22 @@ func cliCoverage(args []string, stdout, stderr io.Writer) int {
 	if fs.Parse(args) != nil {
 		return ExitInput
 	}
-	fails, nAssets, nEntries, err := CheckCoverage(*root)
+	fails, debts, nAssets, nEntries, err := CheckCoverage(*root)
 	if err != nil {
 		fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
+	for _, d := range debts {
+		fmt.Fprintln(stdout, "coverage DEBT: "+d)
+	}
 	for _, f := range fails {
 		fmt.Fprintln(stderr, "coverage FAIL: "+f)
 	}
-	fmt.Fprintf(stdout, "coverage: %d 资产 / %d 断言\n", nAssets, nEntries)
+	summary := fmt.Sprintf("coverage: %d 资产 / %d 断言", nAssets, nEntries)
+	if len(debts) > 0 { // 全齐时不出现 DEBT 字样；有欠账才显式计数
+		summary += fmt.Sprintf("（%d DEBT）", len(debts))
+	}
+	fmt.Fprintln(stdout, summary)
 	if len(fails) > 0 {
 		return ExitViolation
 	}

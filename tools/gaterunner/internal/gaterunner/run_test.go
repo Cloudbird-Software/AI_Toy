@@ -1,14 +1,14 @@
-// run 契约测试（spec §3.1）：退出码矩阵（全绿 0 / G0 红 10 / G1 红 20 / 仅 G2 30 /
-// 配置错 2 / G1 豁免 0）、报告 schema 字段（对照规格 JSON 块）、统计判定真实走
-// evalkit（zero_event observed=0 evidence_hours=6 → upper95≈0.499）。
-// 红绿由 (commit,id) 种子决定（确定性桩），测试以 sha 搜索定位各退出码场景。
+// run 契约测试（spec §3.1，IR #64 真实调度）：ExecuteRun 以 ScanMarks 登记表为真源——
+// 门禁 id 命中注册测试 → 实跑 `go test -count=1 -run ^Test$ pkg`（退出码=verdict、
+// evidence=实际命令）；未命中 → not_implemented（不算 pass 也不算 fail，exit 0 且
+// not_impl 计数显式单列）。退出码矩阵（全绿 0 / G0 红 10 / G1 红 20 / 仅 G2 30 /
+// 配置错 2 / G1 豁免 0）。fixture 一律用虚构资产 TX（与真实资产 T1–T20 不冲突——
+// 本文件字面量被 ScanMarks 扫到也只登记 TX 行，不冒充真实断言）。
 package gaterunner
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,32 +16,58 @@ import (
 	"time"
 )
 
-const runYAML = `asset: T4
-name: 唤醒词（测试）
-updated: "2026-08-28"
+// gateFixMod fixture 模块声明（TempDir 内实跑 go test 的前提，无外部依赖可离线编译）。
+const gateFixMod = "module gatefix\n\ngo 1.23\n"
+
+// gatesFixGo 注册测试 fixture：本地占位 gaterunner 使调用文本与 ScanMarks 源码扫描
+// 正则一致（fixture 模块无法 import 本 internal 包）；TestTXGate* 有绿有红以覆盖
+// 退出码矩阵（红=测试 fixture 故意失败，与被测门禁语义无关）。
+const gatesFixGo = `package kws
+
+import "testing"
+
+// stubGate 占位登记器：Mark 调用文本须与 gaterunner.ScanMarks 扫描正则一致。
+type stubGate struct{}
+
+func (stubGate) Mark(t testing.TB, asset, bi, id, level string) {}
+
+var gaterunner = stubGate{}
+
+func TestTXGateGreen(t *testing.T) {
+	gaterunner.Mark(t, "TX", "BI-X.1", "TX-G0-01", "G0")
+}
+
+func TestTXGateRed(t *testing.T) {
+	gaterunner.Mark(t, "TX", "BI-X.1", "TX-G0-02", "G0")
+	t.Fatal("契约 fixture：故意红灯")
+}
+
+func TestTXGateG1Red(t *testing.T) {
+	gaterunner.Mark(t, "TX", "BI-X.2", "TX-G1-01", "G1")
+	t.Fatal("契约 fixture：故意红灯")
+}
+
+func TestTXGateG2Red(t *testing.T) {
+	gaterunner.Mark(t, "TX", "BI-X.3", "TX-G2-01", "G2")
+	t.Fatal("契约 fixture：故意红灯")
+}
+`
+
+// runYAML 虚构资产 TX 门禁配置：TX-G1-02 无注册测试（not_implemented 路径专用）。
+const runYAML = `asset: TX
+name: 虚构资产（fixture）
+updated: "2026-08-29"
 noise_band: {}
 gates:
-  - {id: T4-G0-01, bi: BI-4.2, level: G0, metric: false_wake_per_hour, op: "<=", threshold: 0.5, src: product, rule: zero_event, min_evidence: {hours: 6}, suite: [ci]}
-  - {id: T4-G1-01, bi: BI-4.1, level: G1, metric: wake_rate_near, op: ">=", threshold: 0.97, src: noise_band, rule: pass_rate, min_evidence: {n: 500}, suite: [ci]}
-  - {id: T4-G2-01, bi: BI-4.3, level: G2, metric: warm_rubric, op: ">=", threshold: 2.5, src: product, rule: metric, suite: [ci]}
+  - {id: TX-G0-01, bi: BI-X.1, level: G0, metric: false_wake_per_hour, op: "<=", threshold: 0.5, src: product, rule: zero_event, min_evidence: {hours: 6}, suite: [ci]}
+  - {id: TX-G0-02, bi: BI-X.1, level: G0, metric: adversarial_trigger_count, op: "==", threshold: 0, src: product, rule: metric, suite: [ci]}
+  - {id: TX-G1-01, bi: BI-X.2, level: G1, metric: wake_rate_near, op: ">=", threshold: 0.97, src: noise_band, rule: pass_rate, min_evidence: {n: 500}, suite: [ci]}
+  - {id: TX-G1-02, bi: BI-X.2, level: G1, metric: child_adult_wake_rate_gap, op: "<=", threshold: 0.05, src: product, rule: metric, suite: [ci]}
+  - {id: TX-G2-01, bi: BI-X.3, level: G2, metric: warm_rubric, op: ">=", threshold: 2.5, src: product, rule: metric, suite: [ci]}
 `
 
-const gatesTestGo = `package kws_test
-
-import (
-	"testing"
-
-	"github.com/Cloudbird-Software/AI_Toy/tools/gaterunner/internal/gaterunner"
-)
-
-func TestG0FalseWake(t *testing.T) {
-	gaterunner.Mark(t, "T4", "BI-4.2", "T4-G0-01", "G0")
-}
-
-func TestG0AdvNegative(t *testing.T) {
-	gaterunner.Mark(t, "T4", "BI-4.2", "T4-G0-02", "G0")
-}
-`
+// txDoc 虚构资产卡（mapBI 的 docs 命中形态——Contains 校验，BI 编号仅 fixture 用）。
+const txDoc = "# TX 虚构资产（fixture）\n\nBI-X.1 / BI-X.2 / BI-X.3\n"
 
 func writeFile(t *testing.T, path, content string) {
 	t.Helper()
@@ -53,25 +79,40 @@ func writeFile(t *testing.T, path, content string) {
 	}
 }
 
-// newRunFixture 构造单资产 fixture：configs/gates/T4.yaml + pkg/gates_test.go 注册标记。
+// newRunFixture 构造可实跑模块 fixture：go.mod + configs/gates/TX.yaml + 资产卡 +
+// pkg/gates_test.go 注册标记（4 注册 + 1 未注册）。
 func newRunFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	writeFile(t, filepath.Join(root, "configs", "gates", "T4.yaml"), runYAML)
-	writeFile(t, filepath.Join(root, "pkg", "gates_test.go"), gatesTestGo)
+	writeFile(t, filepath.Join(root, "go.mod"), gateFixMod)
+	writeFile(t, filepath.Join(root, "configs", "gates", "TX.yaml"), runYAML)
+	writeFile(t, filepath.Join(root, "docs", "gates", "assets", "TX.md"), txDoc)
+	writeFile(t, filepath.Join(root, "pkg", "gates_test.go"), gatesFixGo)
+	return root
+}
+
+// newNoMarkFixture 构造零注册 fixture（模块+配置+资产卡，无任何 Mark 注册）——
+// 全部门禁 not_implemented 的诚实缺省形态。
+func newNoMarkFixture(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "go.mod"), gateFixMod)
+	writeFile(t, filepath.Join(root, "configs", "gates", "TX.yaml"), runYAML)
+	writeFile(t, filepath.Join(root, "docs", "gates", "assets", "TX.md"), txDoc)
 	return root
 }
 
 func ptr[F any](v F) *F { return &v }
 
 // runGate 执行 `gaterunner run`（--report 落文件），返回退出码/stdout/stderr。
-func runGate(t *testing.T, root, sha string, extra ...string) (int, string, string) {
+// extra 追加 flag（如 "--level", "g1"），后值覆盖缺省 level=all。
+func runGate(t *testing.T, root string, extra ...string) (int, string, string) {
 	t.Helper()
-	args := []string{"run", "--asset", "T4", "--level", "all", "--suite", "ci",
+	args := []string{"run", "--asset", "TX", "--level", "all", "--suite", "ci",
 		"--root", root, "--config-dir", filepath.Join(root, "configs", "gates"),
-		"--docs-dir", t.TempDir(),
+		"--docs-dir", filepath.Join(root, "docs", "gates", "assets"),
 		"--exemptions", filepath.Join(root, "reports", "exemptions.yaml"),
-		"--commit", sha, "--report", filepath.Join(root, "reports", "gates", "T4.json")}
+		"--commit", "test0001", "--report", filepath.Join(root, "reports", "gates", "TX.json")}
 	var stdout, stderr bytes.Buffer
 	code := Main(append(args, extra...), &stdout, &stderr)
 	return code, stdout.String(), stderr.String()
@@ -99,99 +140,157 @@ func summaryOf(t *testing.T, rep map[string]any) map[string]any {
 	return s
 }
 
-// findExit 在确定性 sha 序列中搜索指定退出码（g2Pass=true 时额外要求 g2 绿，
-// 供豁免用例复用同 sha）。
-func findExit(t *testing.T, root string, want int, g2Pass bool) (string, map[string]any) {
+func resultByID(t *testing.T, rep map[string]any) map[string]map[string]any {
 	t.Helper()
-	for i := 1; i <= 400; i++ {
-		sha := fmt.Sprintf("test%04d", i)
-		code, _, _ := runGate(t, root, sha)
-		if code != want {
-			continue
-		}
-		rep := readReport(t, filepath.Join(root, "reports", "gates", "T4.json"))
-		if !g2Pass || summaryOf(t, rep)["g2"] == "pass" {
-			return sha, rep
-		}
+	byID := map[string]map[string]any{}
+	for _, r := range rep["results"].([]any) {
+		m := r.(map[string]any)
+		byID[m["id"].(string)] = m
 	}
-	t.Fatalf("400 个 sha 内未找到 exit=%d（g2Pass=%v）", want, g2Pass)
-	return "", nil
+	return byID
 }
 
-// 1. 退出码矩阵（spec §3.1）。
-func TestRunExitCodeMatrix(t *testing.T) {
+// 1. 退出码矩阵（spec §3.1，真实调度）：G0 注册测试红 → 10；G1 红 → 20；G2 红
+// （warn）→ 30；注册测试绿 → pass；未注册 → not_implemented（不贡献红）。
+func TestRunRealDispatchExitMatrix(t *testing.T) {
 	root := newRunFixture(t)
 
-	findExit(t, root, ExitOK, false)
-	findExit(t, root, ExitG0, false)
-
-	_, rep := findExit(t, root, ExitG1, true)
-	if s := summaryOf(t, rep); s["g1"] != "fail" || s["g0"] != "pass" {
-		t.Fatalf("G1 红场景 summary=%v", s)
+	code, _, errOut := runGate(t, root)
+	if code != ExitG0 {
+		t.Fatalf("level all（含 G0 红）: exit=%d stderr=%s", code, errOut)
 	}
-
-	_, rep = findExit(t, root, ExitG2, false)
+	rep := readReport(t, filepath.Join(root, "reports", "gates", "TX.json"))
 	s := summaryOf(t, rep)
-	if s["g2"] != "warn" || s["g0"] != "pass" || s["g1"] != "pass" {
-		t.Fatalf("仅 G2 场景 summary=%v", s)
+	if s["g0"] != "fail" || s["g1"] != "fail" || s["g2"] != "warn" {
+		t.Fatalf("level all summary=%v", s)
 	}
-	if ids := s["fail_ids"].([]any); len(ids) != 1 || ids[0] != "T4-G2-01" {
+	ids := s["fail_ids"].([]any)
+	if len(ids) != 3 { // TX-G0-02、TX-G1-01 红 + TX-G2-01 warn 均入 fail_ids
 		t.Fatalf("fail_ids=%v", ids)
+	}
+	byID := resultByID(t, rep)
+	if r := byID["TX-G0-01"]; r["verdict"] != "pass" ||
+		r["evidence"] != "go test -count=1 -run ^TestTXGateGreen$ ./pkg" {
+		t.Fatalf("TX-G0-01（注册测试实跑绿）: %v", r)
+	}
+	if r := byID["TX-G0-02"]; r["verdict"] != "fail" ||
+		r["evidence"] != "go test -count=1 -run ^TestTXGateRed$ ./pkg" {
+		t.Fatalf("TX-G0-02（注册测试实跑红）: %v", r)
+	}
+	if r := byID["TX-G1-02"]; r["verdict"] != "not_implemented" || r["evidence"] != "" {
+		t.Fatalf("TX-G1-02（未注册）: %v", r)
+	}
+	if ids := s["not_impl_ids"].([]any); len(ids) != 1 || ids[0] != "TX-G1-02" {
+		t.Fatalf("not_impl_ids=%v", ids)
+	}
+
+	if code, _, _ := runGate(t, root, "--level", "g1"); code != ExitG1 {
+		t.Fatalf("level g1（G1 红）: exit=%d, want %d", code, ExitG1)
+	}
+	if code, _, _ := runGate(t, root, "--level", "g2"); code != ExitG2 {
+		t.Fatalf("level g2（仅 G2 warn）: exit=%d, want %d", code, ExitG2)
 	}
 
 	// 配置错（缺 G0 门禁，纪律 1）→ 2。
 	badRoot := t.TempDir()
-	writeFile(t, filepath.Join(badRoot, "configs", "gates", "T4.yaml"),
-		strings.Replace(runYAML, "  - {id: T4-G0-01, bi: BI-4.2, level: G0, metric: false_wake_per_hour, op: \"<=\", threshold: 0.5, src: product, rule: zero_event, min_evidence: {hours: 6}, suite: [ci]}\n", "", 1))
-	writeFile(t, filepath.Join(badRoot, "pkg", "gates_test.go"), gatesTestGo)
+	writeFile(t, filepath.Join(badRoot, "go.mod"), gateFixMod)
+	writeFile(t, filepath.Join(badRoot, "configs", "gates", "TX.yaml"), `asset: TX
+name: 虚构（缺 G0）
+updated: "2026-08-29"
+noise_band: {}
+gates:
+  - {id: TX-G1-01, bi: BI-X.2, level: G1, metric: m, op: ">=", threshold: 0.9, src: product, rule: metric, suite: [ci]}
+`)
+	writeFile(t, filepath.Join(badRoot, "docs", "gates", "assets", "TX.md"), txDoc)
+	writeFile(t, filepath.Join(badRoot, "pkg", "gates_test.go"), gatesFixGo)
 	code, _, errMsg := runGate(t, badRoot, "test0001")
 	if code != ExitConfig || !strings.Contains(errMsg, "G0") {
 		t.Fatalf("配置错: exit=%d stderr=%q", code, errMsg)
 	}
 }
 
-// 2. G1 豁免：reports/exemptions.yaml 未过期 → exit 0 + exemptions_applied；过期 → 20。
+// 2. G1 豁免：reports/exemptions.yaml 未过期 → exit 0 + exemptions_applied（与
+// not_implemented 并存：g1=pass、not_impl 单列）；过期 → 20。
 func TestRunG1ExemptionWaivesAndExpires(t *testing.T) {
 	root := newRunFixture(t)
-	sha, _ := findExit(t, root, ExitG1, true) // G0 绿、G1 红、G2 绿
 
 	exPath := filepath.Join(root, "reports", "exemptions.yaml")
-	writeFile(t, exPath, "- {id: T4-G1-01, reason: \"上游数据集回归，等 v4\", owner: founder, expires: \"2099-01-01\", linked_pr: \"#31\"}\n")
-	code, _, _ := runGate(t, root, sha)
+	writeFile(t, exPath, "- {id: TX-G1-01, reason: \"上游数据集回归，等 v4\", owner: founder, expires: \"2099-01-01\", linked_pr: \"#64\"}\n")
+	code, _, errOut := runGate(t, root, "--level", "g1")
 	if code != ExitOK {
-		t.Fatalf("有效豁免后 exit=%d, want 0", code)
+		t.Fatalf("有效豁免后 exit=%d, want 0（stderr=%q）", code, errOut)
 	}
-	rep := readReport(t, filepath.Join(root, "reports", "gates", "T4.json"))
+	rep := readReport(t, filepath.Join(root, "reports", "gates", "TX.json"))
 	s := summaryOf(t, rep)
 	if s["g1"] != "pass" || len(s["fail_ids"].([]any)) != 0 {
 		t.Fatalf("豁免后 summary=%v", s)
 	}
-	if ex := rep["exemptions_applied"].([]any); len(ex) != 1 || ex[0] != "T4-G1-01@2099-01-01" {
+	if ex := rep["exemptions_applied"].([]any); len(ex) != 1 || ex[0] != "TX-G1-01@2099-01-01" {
 		t.Fatalf("exemptions_applied=%v", ex)
 	}
-	for _, r := range rep["results"].([]any) {
-		if r.(map[string]any)["id"] == "T4-G1-01" && r.(map[string]any)["verdict"] != "exempt" {
-			t.Fatalf("豁免断言 verdict=%v", r)
-		}
+	if r := resultByID(t, rep)["TX-G1-01"]; r["verdict"] != "exempt" {
+		t.Fatalf("豁免断言 verdict=%v", r["verdict"])
+	}
+	// 混合形态：同 level 内 pass（豁免）与 not_implemented 并列、计数显式可见。
+	if !strings.Contains(errOut, "g1=pass") ||
+		!strings.Contains(errOut, "not_implemented: 1 门禁（实现未开始，不计 pass）") {
+		t.Fatalf("混合输出缺 not_impl 显式计数: %q", errOut)
 	}
 
-	writeFile(t, exPath, "- {id: T4-G1-01, reason: \"已过期\", owner: founder, expires: \"2000-01-01\", linked_pr: \"#31\"}\n")
-	if code, _, _ := runGate(t, root, sha); code != ExitG1 {
+	writeFile(t, exPath, "- {id: TX-G1-01, reason: \"已过期\", owner: founder, expires: \"2000-01-01\", linked_pr: \"#64\"}\n")
+	if code, _, _ := runGate(t, root, "--level", "g1"); code != ExitG1 {
 		t.Fatalf("过期豁免 exit=%d, want 20", code)
 	}
 }
 
-// 3. 报告 schema：字段齐全、类型正确（对照规格 §3.1 JSON 块）。
+// 3. 未实现语义（诚实缺省）：登记表 0 命中 → 全部 not_implemented、exit 0、
+// 无 pass 声明、not_impl 计数与逐条 id 显式输出。
+func TestRunNotImplemented(t *testing.T) {
+	root := newNoMarkFixture(t)
+
+	code, out, errOut := runGate(t, root)
+	if code != ExitOK {
+		t.Fatalf("0 注册 exit=%d, want 0（stderr=%q）", code, errOut)
+	}
+	if out != "" {
+		t.Fatalf("--report 落文件时 stdout 须为空: %q", out)
+	}
+	rep := readReport(t, filepath.Join(root, "reports", "gates", "TX.json"))
+	if len(rep["results"].([]any)) != 5 {
+		t.Fatalf("results 长度=%d", len(rep["results"].([]any)))
+	}
+	for _, r := range resultByID(t, rep) {
+		if r["verdict"] != "not_implemented" || r["evidence"] != "" {
+			t.Fatalf("未实现门禁须 verdict=not_implemented 且 evidence 空: %v", r)
+		}
+	}
+	s := summaryOf(t, rep)
+	if s["g0"] != "not_implemented" || s["g1"] != "not_implemented" || s["g2"] != "not_implemented" {
+		t.Fatalf("全未实现 summary=%v（不得声称 pass）", s)
+	}
+	if ids := s["not_impl_ids"].([]any); len(ids) != 5 {
+		t.Fatalf("not_impl_ids=%v", ids)
+	}
+	if !strings.Contains(errOut, "not_implemented: 5 门禁（实现未开始，不计 pass）") {
+		t.Fatalf("缺 not_impl 计数行: %q", errOut)
+	}
+	if !strings.Contains(errOut, "未实现: TX-G0-01") {
+		t.Fatalf("缺逐条未实现行: %q", errOut)
+	}
+	if strings.Contains(errOut, "=pass") {
+		t.Fatalf("0 注册时不得出现 pass 声明: %q", errOut)
+	}
+}
+
+// 4. 报告 schema：字段齐全、类型正确（对照规格 §3.1 JSON 块 + IR #64 新增
+// not_impl_ids）。
 func TestRunReportSchema(t *testing.T) {
 	root := newRunFixture(t)
-	sha, _ := findExit(t, root, ExitOK, false)
-
-	stdoutPath := filepath.Join(root, "reports", "gates", "T4.json")
-	code, out, errMsg := runGate(t, root, sha)
-	if code != ExitOK || out != "" {
+	code, out, errMsg := runGate(t, root)
+	if code != ExitG0 || out != "" {
 		t.Fatalf("exit=%d stdout=%q stderr=%q", code, out, errMsg)
 	}
-	rep := readReport(t, stdoutPath)
+	rep := readReport(t, filepath.Join(root, "reports", "gates", "TX.json"))
 
 	for _, k := range []string{"asset", "suite", "commit", "dataset_versions", "judge_model",
 		"timestamp", "results", "summary", "exemptions_applied"} {
@@ -199,7 +298,7 @@ func TestRunReportSchema(t *testing.T) {
 			t.Errorf("报告缺字段 %q: %v", k, rep)
 		}
 	}
-	if rep["asset"] != "T4" || rep["suite"] != "ci" || rep["commit"] != sha {
+	if rep["asset"] != "TX" || rep["suite"] != "ci" || rep["commit"] != "test0001" {
 		t.Errorf("asset/suite/commit = %v/%v/%v", rep["asset"], rep["suite"], rep["commit"])
 	}
 	if _, err := time.Parse(time.RFC3339, rep["timestamp"].(string)); err != nil {
@@ -213,7 +312,7 @@ func TestRunReportSchema(t *testing.T) {
 	}
 
 	results := rep["results"].([]any)
-	if len(results) != 3 {
+	if len(results) != 5 {
 		t.Fatalf("results 长度=%d", len(results))
 	}
 	r0 := results[0].(map[string]any)
@@ -223,7 +322,7 @@ func TestRunReportSchema(t *testing.T) {
 			t.Errorf("results[0] 缺字段 %q: %v", k, r0)
 		}
 	}
-	if r0["id"] != "T4-G0-01" || r0["bi"] != "BI-4.2" || r0["level"] != "G0" || r0["metric"] != "false_wake_per_hour" {
+	if r0["id"] != "TX-G0-01" || r0["bi"] != "BI-X.1" || r0["level"] != "G0" || r0["metric"] != "false_wake_per_hour" {
 		t.Errorf("results[0] 五元组=%v", r0)
 	}
 	for _, k := range []string{"observed", "evidence_hours", "upper95", "threshold"} {
@@ -231,25 +330,24 @@ func TestRunReportSchema(t *testing.T) {
 			t.Errorf("results[0].%s 类型=%T", k, r0[k])
 		}
 	}
-	if r0["evidence"] != "go test ./pkg -run ^TestG0FalseWake$ -count=1" {
-		t.Errorf("evidence=%v（登记表命中时须给最小复现命令）", r0["evidence"])
-	}
-	if r0["verdict"] != "pass" || r0["statistical_rule"] != "poisson_zero_upper95" {
-		t.Errorf("verdict/rule = %v/%v", r0["verdict"], r0["statistical_rule"])
+	if r0["verdict"] != "pass" || r0["statistical_rule"] != "go_test_exit_code" {
+		t.Errorf("verdict/rule = %v/%v（实跑判定）", r0["verdict"], r0["statistical_rule"])
 	}
 	s := summaryOf(t, rep)
-	if s["g0"] != "pass" || s["g1"] != "pass" || s["g2"] != "pass" || len(s["fail_ids"].([]any)) != 0 {
-		t.Errorf("summary=%v", s)
+	for _, k := range []string{"g0", "g1", "g2", "fail_ids", "not_impl_ids"} {
+		if _, ok := s[k]; !ok {
+			t.Errorf("summary 缺字段 %q: %v", k, s)
+		}
 	}
 	if len(rep["exemptions_applied"].([]any)) != 0 {
 		t.Errorf("exemptions_applied=%v", rep["exemptions_applied"])
 	}
 }
 
-// 4. 统计真实走 evalkit：zero_event observed=0 evidence_hours=6 → upper95≈0.4993
-// （泊松 Garwood：ln(20)/6），k=1 则 0.77 > 0.5 判红。
+// 5. 统计真实走 evalkit（judge 保留给 benchmark/holdout 数据面）：zero_event
+// observed=0 evidence_hours=6 → upper95≈0.4993（泊松 Garwood：ln(20)/6），k=1 红。
 func TestJudgeZeroEventUsesEvalkitPoisson(t *testing.T) {
-	g := Gate{ID: "T4-G0-01", BI: "BI-4.2", Level: "G0", Metric: "false_wake_per_hour",
+	g := Gate{ID: "TX-G0-01", BI: "BI-X.1", Level: "G0", Metric: "false_wake_per_hour",
 		Op: "<=", Threshold: 0.5, Src: "product", Rule: "zero_event",
 		MinEvidence: &MinEvidence{Hours: ptr(6)}}
 
@@ -269,21 +367,10 @@ func TestJudgeZeroEventUsesEvalkitPoisson(t *testing.T) {
 	}
 }
 
-// 5. 确定性：同 (commit,id) 种子的模拟观测逐位复现。
-func TestSimulateDeterministic(t *testing.T) {
-	g := Gate{ID: "T4-G1-01", Rule: "pass_rate", Op: ">=", Threshold: 0.97,
-		MinEvidence: &MinEvidence{N: ptr(500)}}
-	o1 := simulate(g, rand.New(rand.NewSource(seed("test0042", g.ID))))
-	o2 := simulate(g, rand.New(rand.NewSource(seed("test0042", g.ID))))
-	if o1 != o2 {
-		t.Fatalf("同种子观测不同: %+v vs %+v", o1, o2)
-	}
-}
-
 // 6. --report 空 → 报告打印 stdout（JSON 可解析）。
 func TestRunReportToStdout(t *testing.T) {
-	root := newRunFixture(t)
-	code, out, _ := runGate(t, root, "test0001", "--report", "")
+	root := newNoMarkFixture(t)
+	code, out, _ := runGate(t, root, "--report", "")
 	if code != ExitOK {
 		t.Fatalf("exit=%d", code)
 	}
@@ -291,7 +378,7 @@ func TestRunReportToStdout(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &rep); err != nil {
 		t.Fatalf("stdout 非 JSON 报告: %v", err)
 	}
-	if rep.Asset != "T4" || len(rep.Results) != 3 {
+	if rep.Asset != "TX" || len(rep.Results) != 5 {
 		t.Fatalf("asset=%q results=%d", rep.Asset, len(rep.Results))
 	}
 }

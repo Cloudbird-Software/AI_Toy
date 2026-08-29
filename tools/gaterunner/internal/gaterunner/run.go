@@ -1,6 +1,9 @@
-// run —— 门禁执行面（spec §3.1）。当前为桩执行：登记表来自 collect 源码扫描，
-// observed 由确定性模拟生成（rand 以 commit sha+id 为种，红/绿约 1:9——真实 go test
-// 调度接入后替换 simulate 即可）；统计判定真实走 evalkit（upper95 计算）。
+// run —— 门禁执行面（spec §3.1，IR #64 真实调度）：登记表来自 collect 源码扫描
+// （ScanMarks），门禁 id 命中注册测试 → 实跑 `go test -count=1 -run ^<Test>$ <pkg>`
+// （cwd=Root），verdict 按退出码（0=pass、非 0=fail），Evidence=实际命令串；未命中 →
+// verdict=not_implemented（实现未开始：不计 pass 不计 fail，summary 单列 not_impl_ids，
+// exit 0）。统计判定 judge（evalkit upper95）保留给 benchmark/holdout 数据面接入后
+// 复用（观测来源换成真实评测产物即可；伪造观测的旧桩已随 IR #64 删除）。
 package gaterunner
 
 import (
@@ -9,7 +12,6 @@ import (
 	"hash/fnv"
 	"io"
 	"math"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,17 +31,20 @@ type Result struct {
 	EvidenceHours   int     `json:"evidence_hours"`
 	Upper95         float64 `json:"upper95"`
 	Threshold       float64 `json:"threshold"`
-	Verdict         string  `json:"verdict"` // pass | fail | warn(G2) | exempt(G1 豁免)
+	Verdict         string  `json:"verdict"` // pass | fail | warn(G2) | exempt(G1 豁免) | not_implemented(未注册)
 	StatisticalRule string  `json:"statistical_rule"`
 	Evidence        string  `json:"evidence"`
 }
 
-// Summary 分级汇总：g0/g1 pass|fail、g2 pass|warn；fail_ids 含全部红/warn（不含豁免）。
+// Summary 分级汇总：g0/g1 pass|fail、g2 pass|warn、not_implemented（该级门禁全部
+// 未注册）、n/a（该级无门禁）；fail_ids 含全部红/warn（不含豁免）；
+// not_impl_ids 单列未实现门禁（不计 pass 不计 fail）。
 type Summary struct {
 	G0      string   `json:"g0"`
 	G1      string   `json:"g1"`
 	G2      string   `json:"g2"`
 	FailIDs []string `json:"fail_ids"`
+	NotImpl []string `json:"not_impl_ids"`
 }
 
 // Report 单资产门禁报告（committed，可逆向复算）。
@@ -64,48 +69,26 @@ type RunOpts struct {
 	ReportPath          string
 }
 
-// observation 模拟观测：k=计数类（zero_event/pass_rate），value=直接观测（eer/asr/metric）。
+// observation 观测值：k=计数类（zero_event/pass_rate），value=直接观测（eer/asr/metric）。
+// benchmark/holdout 数据面接入后由真实评测产物填充，经 judge 统计判定。
 type observation struct {
 	k     int
 	value float64
 }
 
-// simulate 确定性桩执行面：以 (commit,id) 为种决定红绿（~10% 红）并生成观测。
-func simulate(g Gate, rng *rand.Rand) observation {
-	red := rng.Float64() < 0.1
-	if g.Rule == "zero_event" {
-		if red {
-			return observation{k: 1}
-		}
-		return observation{k: 0}
+// dispatchGate 实跑注册测试：`go test -count=1 -run ^<Test>$ <pkg>`（cwd=root，
+// pkg 由注册源文件目录推导）。返回证据命令串、是否通过（退出码 0）与合并输出
+// （红灯时供诊断打印）。
+func dispatchGate(root string, m RegEntry) (evidence string, passed bool, output string) {
+	pkg := "./" + filepath.ToSlash(filepath.Dir(m.Source))
+	if pkg == "./." {
+		pkg = "."
 	}
-	if g.Rule == "pass_rate" {
-		n := 1
-		if g.MinEvidence != nil {
-			n = max(g.MinEvidence.n(), 1)
-		}
-		t := g.Threshold * 0.8
-		if g.Op == ">=" || g.Op == ">" {
-			t = min(g.Threshold+0.03, 1)
-			if red {
-				t = g.Threshold - 0.03
-			}
-		} else if red {
-			t = min(g.Threshold*1.25, 1)
-		}
-		return observation{k: int(math.Round(t * float64(n)))}
-	}
-	// eer / asr / metric：直接观测值。
-	v := g.Threshold * 0.9
-	if g.Op == ">=" || g.Op == ">" {
-		v = g.Threshold + 0.02
-		if red {
-			v = max(g.Threshold*0.9, 0)
-		}
-	} else if red {
-		v = g.Threshold*1.15 + 0.001
-	}
-	return observation{value: round4(v)}
+	evidence = fmt.Sprintf("go test -count=1 -run ^%s$ %s", m.Test, pkg)
+	cmd := exec.Command("go", "test", "-count=1", "-run", "^"+m.Test+"$", pkg)
+	cmd.Dir = root
+	out, err := cmd.CombinedOutput()
+	return evidence, err == nil, string(out)
 }
 
 // judge 统计判定（真实走 evalkit）：零事件看 95% 上界（泊松 Garwood / 二项 CP），
@@ -186,8 +169,9 @@ func seed(commit, id string) int64 {
 	return int64(h.Sum64())
 }
 
-// ExecuteRun 跑单资产门禁：校验配置 → 过滤 level/suite → 逐门禁模拟+判定 →
-// 报告+退出码。配置错误返回 InputError（CLI exit 2）。
+// ExecuteRun 跑单资产门禁：校验配置 → 过滤 level/suite → 逐门禁真实调度（登记表
+// 命中即实跑注册测试，未命中 not_implemented）→ 报告+退出码。配置错误返回
+// InputError（CLI exit 2）。not_implemented 不计 pass 不计 fail（exit 0，显式单列）。
 func ExecuteRun(opts RunOpts) (*Report, int, error) {
 	path := filepath.Join(opts.ConfigDir, opts.Asset+".yaml")
 	cfg, err := LoadAssetConfig(path)
@@ -216,9 +200,18 @@ func ExecuteRun(opts RunOpts) (*Report, int, error) {
 		Results: make([]Result, 0, len(gates)), ExemptionsApplied: []string{}}
 	today := time.Now().UTC().Format("2006-01-02")
 	for _, g := range gates {
-		o := simulate(g, rand.New(rand.NewSource(seed(commit, g.ID))))
-		res := judge(g, o)
-		res.Evidence = evidenceCmd(cfg.Asset, byID[g.ID])
+		res := Result{ID: g.ID, BI: g.BI, Level: g.Level, Metric: g.Metric, Threshold: round4(g.Threshold)}
+		if m, ok := byID[g.ID]; ok && m.Test != "" && m.Source != "" {
+			evidence, passed, output := dispatchGate(opts.Root, m)
+			res.StatisticalRule, res.Evidence, res.Verdict = "go_test_exit_code", evidence, "fail"
+			if passed {
+				res.Verdict = "pass"
+			} else {
+				fmt.Fprintf(os.Stderr, "门禁 %s 实跑红（%s）：\n%s", g.ID, evidence, output)
+			}
+		} else {
+			res.Verdict, res.StatisticalRule, res.Evidence = "not_implemented", "not_implemented", ""
+		}
 		if res.Verdict == "fail" && g.Level == "G1" { // G1 可豁免（≤30 天，过期自动红）；G0 无豁免
 			if ex, ok := exemptionFor(exemptions, g.ID, today); ok {
 				res.Verdict = "exempt"
@@ -259,22 +252,46 @@ func suiteMatches(gateSuites []string, suite string) bool {
 	return false
 }
 
+// summarize 分级汇总。级别状态优先级：任一红 → fail（G2 为 warn）；该级全部
+// not_implemented → not_implemented；该级无门禁 → n/a；否则 pass。not_implemented
+// 不算 pass 也不算 fail，not_impl_ids 单列（fail/warn/豁免均不进入该列表）。
 func summarize(results []Result) Summary {
-	s := Summary{G0: "pass", G1: "pass", G2: "pass", FailIDs: []string{}}
+	s := Summary{G0: "n/a", G1: "n/a", G2: "n/a", FailIDs: []string{}, NotImpl: []string{}}
+	total, impl, red := map[string]int{}, map[string]int{}, map[string]bool{}
 	for _, r := range results {
-		red := r.Verdict == "fail" || r.Verdict == "warn"
-		if !red {
+		total[r.Level]++
+		if r.Verdict == "not_implemented" {
+			s.NotImpl = append(s.NotImpl, r.ID)
 			continue
 		}
-		switch r.Level {
-		case "G0":
-			s.G0 = "fail"
-		case "G1":
-			s.G1 = "fail"
-		case "G2":
-			s.G2 = "warn"
+		impl[r.Level]++
+		if r.Verdict != "fail" && r.Verdict != "warn" {
+			continue
 		}
+		red[r.Level] = true
 		s.FailIDs = append(s.FailIDs, r.ID)
+	}
+	for _, lvl := range [3]string{"G0", "G1", "G2"} {
+		st := "pass"
+		switch {
+		case total[lvl] == 0:
+			st = "n/a"
+		case red[lvl]:
+			st = "fail"
+			if lvl == "G2" {
+				st = "warn"
+			}
+		case impl[lvl] == 0:
+			st = "not_implemented"
+		}
+		switch lvl {
+		case "G0":
+			s.G0 = st
+		case "G1":
+			s.G1 = st
+		case "G2":
+			s.G2 = st
+		}
 	}
 	return s
 }
@@ -289,18 +306,6 @@ func exitOf(s Summary) int {
 		return ExitG2
 	}
 	return ExitOK
-}
-
-// evidenceCmd 最小复现命令：登记表命中 → go test 到注册测试；否则 just gate 兜底。
-func evidenceCmd(asset string, m RegEntry) string {
-	if m.Test != "" && m.Source != "" {
-		dir := filepath.ToSlash(filepath.Dir(m.Source))
-		if dir == "." {
-			dir = ""
-		}
-		return fmt.Sprintf("go test ./%s -run ^%s$ -count=1", dir, m.Test)
-	}
-	return "just gate " + asset
 }
 
 // resolveCommit：--commit 优先；缺省取 root 的 git HEAD；均无 → "unknown"。
