@@ -1,0 +1,19 @@
+{
+  "batch_id": "gen-kwsadv-1.0.0-seed-6322337620886207816-d1800000",
+  "generator_id": "gen-kwsadv",
+  "generator_version": "1.0.0",
+  "seed": -6322337620886207816,
+  "duration_ms": 1800000,
+  "n": 60000,
+  "train_n": 0,
+  "holdout_n": 0,
+  "eval_n": 60000,
+  "purpose": "eval-only",
+  "source_shares": {
+    "nearconf": 0.25016666666666665,
+    "tianmao": 0.25016666666666665,
+    "xiaoai": 0.24991666666666668,
+    "xiaodu": 0.24975
+  },
+  "note": "负样本批不切 synth-holdout：8:2 切分目的是防训练集污染评测；负样本只供误唤醒评估、永不进训练管道，切分无意义且扣留 20% 只缩评估面（m2-spec §2）。PCM 由 (generator@version, seed, duration_ms) 确定性重建（源类型参数集随版本冻结，种子 FNV-1a 64 对齐全仓约定）；帧含远场宽带底噪（底噪幅度≥语音 2.6 倍——家庭音景远场口径，非干净近讲录音；M3 真模型接入后同批重测）。"
+}
