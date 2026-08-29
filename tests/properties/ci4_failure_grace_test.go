@@ -15,14 +15,14 @@ func TestCI4_FailureActionInPredefinedSet(t *testing.T) {
 	prop := func(seed int64) bool {
 		r := rand.New(rand.NewSource(seed))
 		for f := FailNone; f <= FailNoResponse; f++ {
-			allowed := DegradeMap(f)
+			allowed := testDegrade.DegradeMap(f)
 			if len(allowed) == 0 {
 				return false
 			}
 			// 随机挑 5 个动作，验证合法性判定一致
 			for k := 0; k < 5; k++ {
 				a := DegradeAction(r.Intn(int(ActApology) + 1))
-				if AllowedAction(f, a) != allowed[a] {
+				if testDegrade.AllowedAction(f, a) != allowed[a] {
 					return false
 				}
 			}
@@ -73,7 +73,7 @@ func TestCI4_PredefinedDegradeSet(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := AllowedAction(c.failure, c.action)
+			got := testDegrade.AllowedAction(c.failure, c.action)
 			if got != c.allowed {
 				t.Errorf("AllowedAction(%v,%v)=%v want %v", c.failure, c.action, got, c.allowed)
 			}
@@ -90,7 +90,7 @@ func TestCI4_PredefinedDegradeSet(t *testing.T) {
 //
 // 这个函数是运行时镜像内的参考判定；未来落地实现的行为应等价于它。
 func noResponseCompliant(a DegradeAction, out Output) bool {
-	if !AllowedAction(FailNoResponse, a) {
+	if !testDegrade.AllowedAction(FailNoResponse, a) {
 		return false
 	}
 	if a == ActNone {
@@ -122,7 +122,7 @@ func TestCI4_NoResponseMustApologize(t *testing.T) {
 				Apologize: apologizeOut,
 			}
 			// 由规则手算期望值
-			inSet := AllowedAction(FailNoResponse, action)
+			inSet := testDegrade.AllowedAction(FailNoResponse, action)
 			noneCase := (action == ActNone)
 			apologyCase := (action == ActApology && !out.Apologize)
 			want := inSet && !noneCase && !apologyCase
@@ -181,7 +181,7 @@ func TestCI4_NoResponseApologyBoundary(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			// 按 FailNoResponse 判定：合法动作 且 (ActApology→Apologize=true) 且 (ActNone=违反)
 			var ok bool
-			if AllowedAction(FailNoResponse, c.action) {
+			if testDegrade.AllowedAction(FailNoResponse, c.action) {
 				if c.action == ActNone {
 					ok = false
 				} else if c.action == ActApology {
@@ -212,7 +212,7 @@ func TestCI4_FailApplyProducesAllowedActions(t *testing.T) {
 			init[i] = Tier(r.Intn(4))
 		}
 		f := FailureType(r.Intn(int(FailNoResponse) + 1))
-		next := FailApply(init, f)
+		next := testRuntime.FailApply(init, f)
 		// 1) 必须保持单调不升档（数值不减）
 		if !MonotonicNonUpgrade(init, next) {
 			return false

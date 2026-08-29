@@ -2,6 +2,16 @@
 // package properties：tests/properties 下本地最小运行时镜像（spec §11.1：Go 侧用
 // testing/quick 做运行时镜像）。纯数据结构 + 纯函数操作，不 import packages/*。
 // 涵盖：档位 L0-L3、组件能力集、身份绑定、分段延迟预算、故障→降级映射。
+//
+// 镜像→真身替换流程（IR #65，审计漏洞 #3「镜像永不替换」的封口）：
+//  1. 属性测试一律经 contract.go 的行为契约接口驱动（RuntimeModel/IdentityModel/
+//     BudgetModel/DegradeModel），默认注入本文件的镜像实现（MirrorRuntime 等）；
+//  2. 实现 packages/go/runtime-fsm（四档降级 FSM）等真实包，满足上述契约
+//     （方法签名与本文件镜像函数一致，状态显式传参）；
+//  3. go test -tags real ./tests/properties/... 编译通过——real_runtime_test.go 的
+//     接口绑定在空壳期必编译失败（强制函数），编译通过即接线完成；
+//  4. 属性测试即以同一断言口径跑真身（两份驱动：默认镜像 / -tags real 真身），
+//     镜像保留作回归参照与规格可执行样例，不被删除。
 package properties
 
 // Tier 档位枚举，L0 全功能云档 → L3 纯离线最低档。

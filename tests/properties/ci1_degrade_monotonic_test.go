@@ -25,12 +25,12 @@ func TestCI1_GlobalCapabilitySubset(t *testing.T) {
 		}
 		for step := 0; step < nSteps; step++ {
 			f := FailureType(r.Intn(int(FailNoResponse) + 1))
-			state = FailApply(state, f)
+			state = testRuntime.FailApply(state, f)
 		}
-		global := state.GlobalCapability()
+		global := testRuntime.GlobalCapability(state)
 		// 全局能力必须是每个组件档位能力的子集
 		for i := 0; i < int(NumComponents); i++ {
-			compCap := TierCaps(state[i])
+			compCap := testRuntime.TierCaps(state[i])
 			if !compCap.Has(global) {
 				return false
 			}
@@ -82,12 +82,12 @@ func TestCI1_SafetyIsStrictest(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := c.tiers.SafetyLevel()
+			got := testRuntime.SafetyLevel(c.tiers)
 			if got != c.want {
 				t.Errorf("got %v want %v", got, c.want)
 			}
 			// 再校验：SafetyLevel 同时兼容 Capability 调用链时不应矛盾
-			g := c.tiers.GlobalCapability()
+			g := testRuntime.GlobalCapability(c.tiers)
 			if c.tiers[CompSafety] <= L1 && g.SafetyLevel() != SafetyStrict {
 				t.Errorf("全局能力里 SafetyStrict 丢失: %v", g)
 			}
@@ -108,11 +108,11 @@ func TestCI1_WatermarkMonotonic(t *testing.T) {
 		for i := range state {
 			state[i] = L0
 		}
-		prevLevel := state.SafetyLevel()
+		prevLevel := testRuntime.SafetyLevel(state)
 		for step := 0; step < nSteps; step++ {
 			f := FailureType(r.Intn(int(FailNoResponse) + 1))
-			state = FailApply(state, f)
-			curLevel := state.SafetyLevel()
+			state = testRuntime.FailApply(state, f)
+			curLevel := testRuntime.SafetyLevel(state)
 			// 水位必须不降
 			if curLevel < prevLevel {
 				return false
@@ -137,7 +137,7 @@ func TestCI1_NoUpgradeDuringFailure(t *testing.T) {
 		{
 			name:    "空序列",
 			seq:     nil,
-			wantCap: TierCaps(L0), // 全组件L0求交=L0
+			wantCap: testRuntime.TierCaps(L0), // 全组件L0求交=L0
 		},
 		{
 			name: "LLM断连 → Router=L1, LLM=L2, 其他L0；全局取交集",
@@ -165,14 +165,14 @@ func TestCI1_NoUpgradeDuringFailure(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			state := start
 			for _, f := range c.seq {
-				next := FailApply(state, f)
+				next := testRuntime.FailApply(state, f)
 				if !MonotonicNonUpgrade(state, next) {
 					t.Errorf("故障 %v 后出现升档（违反单调）", f)
 				}
 				state = next
 			}
 			if c.wantCap != 0 {
-				got := state.GlobalCapability()
+				got := testRuntime.GlobalCapability(state)
 				if got != c.wantCap {
 					t.Errorf("全局能力 got=%v want=%v", got, c.wantCap)
 				}
