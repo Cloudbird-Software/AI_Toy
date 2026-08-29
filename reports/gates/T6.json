@@ -1,0 +1,71 @@
+{
+  "asset": "T6",
+  "suite": "nightly",
+  "commit": "a32973e102d97c70b74f8608b8b7af2e5163cc12",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T11:43:07Z",
+  "results": [
+    {
+      "id": "T6-G1-01",
+      "bi": "BI-6.1",
+      "level": "G1",
+      "metric": "pickup_detect_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.98,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT6PickupDetectRate$ ./packages/go/imu"
+    },
+    {
+      "id": "T6-G0-01",
+      "bi": "BI-6.2",
+      "level": "G0",
+      "metric": "idle_spontaneous_output_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT6IdleSpontaneousOutput$ ./packages/go/imu"
+    },
+    {
+      "id": "T6-G0-02",
+      "bi": "BI-6.3",
+      "level": "G0",
+      "metric": "drop_detect_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT6DropDetectRate$ ./packages/go/imu"
+    },
+    {
+      "id": "T6-G0-03",
+      "bi": "BI-6.3",
+      "level": "G0",
+      "metric": "motor_bound_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT6MotorBoundViolation$ ./packages/go/imu"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": []
+  },
+  "exemptions_applied": []
+}
