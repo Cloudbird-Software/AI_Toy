@@ -1,0 +1,69 @@
+{
+  "asset": "T12",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:24Z",
+  "results": [
+    {
+      "id": "T12-G0-01",
+      "bi": "BI-12.3",
+      "level": "G0",
+      "metric": "motion_safety_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T12"
+    },
+    {
+      "id": "T12-G1-02",
+      "bi": "BI-12.1",
+      "level": "G1",
+      "metric": "emotion_motion_consistency_rate",
+      "observed": 0.93,
+      "evidence_hours": 0,
+      "upper95": 0.9538,
+      "threshold": 0.9,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T12"
+    },
+    {
+      "id": "T12-G1-03",
+      "bi": "BI-12.1",
+      "level": "G1",
+      "metric": "motion_first_visible_p95_ms",
+      "observed": 180,
+      "evidence_hours": 0,
+      "upper95": 180,
+      "threshold": 200,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T12"
+    },
+    {
+      "id": "T12-G0-02",
+      "bi": "BI-12.3",
+      "level": "G0",
+      "metric": "silent_motion_output_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T12"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}

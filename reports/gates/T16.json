@@ -1,0 +1,82 @@
+{
+  "asset": "T16",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:25Z",
+  "results": [
+    {
+      "id": "T16-G1-01",
+      "bi": "BI-16.3",
+      "level": "G1",
+      "metric": "pack_isolation_spill_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T16"
+    },
+    {
+      "id": "T16-G1-02",
+      "bi": "BI-16.1",
+      "level": "G1",
+      "metric": "pack_schema_pass_rate",
+      "observed": 1.02,
+      "evidence_hours": 0,
+      "upper95": 1.02,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T16"
+    },
+    {
+      "id": "T16-G0-01",
+      "bi": "BI-16.2",
+      "level": "G0",
+      "metric": "pack_content_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T16"
+    },
+    {
+      "id": "T16-G0-02",
+      "bi": "BI-16.3",
+      "level": "G0",
+      "metric": "install_residue_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T16"
+    },
+    {
+      "id": "T16-G1-03",
+      "bi": "BI-16.2",
+      "level": "G1",
+      "metric": "pack_eval_execution_rate",
+      "observed": 1.02,
+      "evidence_hours": 0,
+      "upper95": 1.02,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T16"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}

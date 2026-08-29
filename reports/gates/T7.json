@@ -1,0 +1,82 @@
+{
+  "asset": "T7",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:23Z",
+  "results": [
+    {
+      "id": "T7-G1-01",
+      "bi": "BI-7.1",
+      "level": "G1",
+      "metric": "emotion_direction_accuracy",
+      "observed": 0.88,
+      "evidence_hours": 0,
+      "upper95": 0.912,
+      "threshold": 0.85,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T7"
+    },
+    {
+      "id": "T7-G1-02",
+      "bi": "BI-7.2",
+      "level": "G1",
+      "metric": "emotion_jump_per_turn",
+      "observed": 0.27,
+      "evidence_hours": 0,
+      "upper95": 0.27,
+      "threshold": 0.3,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T7"
+    },
+    {
+      "id": "T7-G1-03",
+      "bi": "BI-7.3",
+      "level": "G1",
+      "metric": "emotion_recovery_time_min",
+      "observed": 27,
+      "evidence_hours": 0,
+      "upper95": 27,
+      "threshold": 30,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T7"
+    },
+    {
+      "id": "T7-G0-01",
+      "bi": "BI-7.4",
+      "level": "G0",
+      "metric": "emotion_boundary_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T7"
+    },
+    {
+      "id": "T7-G1-04",
+      "bi": "BI-7.1",
+      "level": "G1",
+      "metric": "emotion_response_latency_p95_ms",
+      "observed": 810,
+      "evidence_hours": 0,
+      "upper95": 810,
+      "threshold": 900,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T7"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}

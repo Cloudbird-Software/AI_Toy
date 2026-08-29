@@ -1,0 +1,56 @@
+{
+  "asset": "T20",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:25Z",
+  "results": [
+    {
+      "id": "T20-G1-02",
+      "bi": "BI-20.2",
+      "level": "G1",
+      "metric": "boundary_behavior_reach_rate",
+      "observed": 0.9833,
+      "evidence_hours": 0,
+      "upper95": 0.9954,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T20"
+    },
+    {
+      "id": "T20-G0-01",
+      "bi": "BI-20.3",
+      "level": "G0",
+      "metric": "sim_in_training_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T20"
+    },
+    {
+      "id": "T20-G1-03",
+      "bi": "BI-20.1",
+      "level": "G1",
+      "metric": "journey_in_band_rate",
+      "observed": 1.02,
+      "evidence_hours": 0,
+      "upper95": 1.02,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T20"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}

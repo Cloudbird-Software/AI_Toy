@@ -1,0 +1,58 @@
+{
+  "asset": "T14",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:25Z",
+  "results": [
+    {
+      "id": "T14-G0-01",
+      "bi": "BI-14.2",
+      "level": "G0",
+      "metric": "fabrication_rate",
+      "observed": 0.04,
+      "evidence_hours": 0,
+      "upper95": 0.0769,
+      "threshold": 0.05,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T14"
+    },
+    {
+      "id": "T14-G0-02",
+      "bi": "BI-14.3",
+      "level": "G0",
+      "metric": "tier_switch_dirty_output_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T14"
+    },
+    {
+      "id": "T14-G1-03",
+      "bi": "BI-14.4",
+      "level": "G1",
+      "metric": "cold_start_p95_s",
+      "observed": 3.451,
+      "evidence_hours": 0,
+      "upper95": 3.451,
+      "threshold": 3,
+      "verdict": "fail",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T14"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "fail",
+    "g2": "pass",
+    "fail_ids": [
+      "T14-G1-03"
+    ]
+  },
+  "exemptions_applied": []
+}

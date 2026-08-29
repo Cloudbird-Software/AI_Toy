@@ -1,0 +1,45 @@
+{
+  "asset": "T1",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:22Z",
+  "results": [
+    {
+      "id": "T1-G1-01",
+      "bi": "BI-1.1",
+      "level": "G1",
+      "metric": "assertion_registration_rate",
+      "observed": 0.9,
+      "evidence_hours": 0,
+      "upper95": 0.9,
+      "threshold": 1,
+      "verdict": "fail",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T1"
+    },
+    {
+      "id": "T1-G0-01",
+      "bi": "BI-1.3",
+      "level": "G0",
+      "metric": "mixed_pr_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T1"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "fail",
+    "g2": "pass",
+    "fail_ids": [
+      "T1-G1-01"
+    ]
+  },
+  "exemptions_applied": []
+}

@@ -1,0 +1,30 @@
+{
+  "asset": "T6",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:23Z",
+  "results": [
+    {
+      "id": "T6-G0-03",
+      "bi": "BI-6.3",
+      "level": "G0",
+      "metric": "motor_bound_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T6"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}

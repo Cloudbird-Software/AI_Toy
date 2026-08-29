@@ -1,0 +1,69 @@
+{
+  "asset": "T5",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:23Z",
+  "results": [
+    {
+      "id": "T5-G1-01",
+      "bi": "BI-5.1",
+      "level": "G1",
+      "metric": "family_eer",
+      "observed": 0.045,
+      "evidence_hours": 0,
+      "upper95": 0.045,
+      "threshold": 0.05,
+      "verdict": "pass",
+      "statistical_rule": "eer_point_est",
+      "evidence": "just gate T5"
+    },
+    {
+      "id": "T5-G0-01",
+      "bi": "BI-5.2",
+      "level": "G0",
+      "metric": "identity_switch_leak_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T5"
+    },
+    {
+      "id": "T5-G1-03",
+      "bi": "BI-5.3",
+      "level": "G1",
+      "metric": "enroll3_eer_degradation",
+      "observed": 0.018,
+      "evidence_hours": 0,
+      "upper95": 0.018,
+      "threshold": 0.02,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T5"
+    },
+    {
+      "id": "T5-G1-04",
+      "bi": "BI-5.2",
+      "level": "G1",
+      "metric": "stranger_reject_rate",
+      "observed": 0.93,
+      "evidence_hours": 0,
+      "upper95": 0.9478,
+      "threshold": 0.9,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T5"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}

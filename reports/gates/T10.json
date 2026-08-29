@@ -1,0 +1,84 @@
+{
+  "asset": "T10",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:24Z",
+  "results": [
+    {
+      "id": "T10-G1-01",
+      "bi": "BI-10.1",
+      "level": "G1",
+      "metric": "probe_recall_at_5",
+      "observed": 0.98,
+      "evidence_hours": 0,
+      "upper95": 0.9922,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T10"
+    },
+    {
+      "id": "T10-G1-02",
+      "bi": "BI-10.2",
+      "level": "G1",
+      "metric": "fact_update_new_value_rate",
+      "observed": 0.855,
+      "evidence_hours": 0,
+      "upper95": 0.855,
+      "threshold": 0.95,
+      "verdict": "fail",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T10"
+    },
+    {
+      "id": "T10-G0-01",
+      "bi": "BI-10.3",
+      "level": "G0",
+      "metric": "cross_user_leak_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T10"
+    },
+    {
+      "id": "T10-G0-02",
+      "bi": "BI-10.4",
+      "level": "G0",
+      "metric": "delete_residual_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T10"
+    },
+    {
+      "id": "T10-G1-04",
+      "bi": "BI-10.4",
+      "level": "G1",
+      "metric": "memory_retrieval_p95_ms",
+      "observed": 135,
+      "evidence_hours": 0,
+      "upper95": 135,
+      "threshold": 150,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T10"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "fail",
+    "g2": "pass",
+    "fail_ids": [
+      "T10-G1-02"
+    ]
+  },
+  "exemptions_applied": []
+}

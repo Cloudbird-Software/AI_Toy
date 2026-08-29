@@ -1,0 +1,95 @@
+{
+  "asset": "T3",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:22Z",
+  "results": [
+    {
+      "id": "T3-G1-01",
+      "bi": "BI-3.1",
+      "level": "G1",
+      "metric": "miscut_rate",
+      "observed": 0.0633,
+      "evidence_hours": 0,
+      "upper95": 0.0968,
+      "threshold": 0.08,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T3"
+    },
+    {
+      "id": "T3-G1-02",
+      "bi": "BI-3.1",
+      "level": "G1",
+      "metric": "response_first_packet_p95_ms",
+      "observed": 810,
+      "evidence_hours": 0,
+      "upper95": 810,
+      "threshold": 900,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T3"
+    },
+    {
+      "id": "T3-G0-01",
+      "bi": "BI-3.2",
+      "level": "G0",
+      "metric": "interrupt_detect_rate",
+      "observed": 0.97,
+      "evidence_hours": 0,
+      "upper95": 0.97,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T3"
+    },
+    {
+      "id": "T3-G1-03",
+      "bi": "BI-3.2",
+      "level": "G1",
+      "metric": "context_retention_rate",
+      "observed": 0.94,
+      "evidence_hours": 0,
+      "upper95": 0.9794,
+      "threshold": 0.9,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T3"
+    },
+    {
+      "id": "T3-G1-04",
+      "bi": "BI-3.3",
+      "level": "G1",
+      "metric": "midpause_miscut_rate",
+      "observed": 0.06,
+      "evidence_hours": 0,
+      "upper95": 0.1248,
+      "threshold": 0.08,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T3"
+    },
+    {
+      "id": "T3-G0-02",
+      "bi": "BI-3.1",
+      "level": "G0",
+      "metric": "silence_noise_trigger_per_hour",
+      "observed": 0,
+      "evidence_hours": 6,
+      "upper95": 0.4993,
+      "threshold": 0.5,
+      "verdict": "pass",
+      "statistical_rule": "poisson_zero_upper95",
+      "evidence": "just gate T3"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}

@@ -1,0 +1,58 @@
+{
+  "asset": "T2",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:22Z",
+  "results": [
+    {
+      "id": "T2-G0-01",
+      "bi": "BI-2.2",
+      "level": "G0",
+      "metric": "holdout_contamination_count",
+      "observed": 0.001,
+      "evidence_hours": 0,
+      "upper95": 0.001,
+      "threshold": 0,
+      "verdict": "fail",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T2"
+    },
+    {
+      "id": "T2-G0-02",
+      "bi": "BI-2.2",
+      "level": "G0",
+      "metric": "pii_residual_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T2"
+    },
+    {
+      "id": "T2-G1-01",
+      "bi": "BI-2.1",
+      "level": "G1",
+      "metric": "single_source_share",
+      "observed": 0.27,
+      "evidence_hours": 0,
+      "upper95": 0.27,
+      "threshold": 0.3,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T2"
+    }
+  ],
+  "summary": {
+    "g0": "fail",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": [
+      "T2-G0-01"
+    ]
+  },
+  "exemptions_applied": []
+}

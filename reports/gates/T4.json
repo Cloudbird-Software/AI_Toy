@@ -1,10 +1,10 @@
 {
   "asset": "T4",
   "suite": "ci",
-  "commit": "f83093fc2ea4ce6c15c68c4b666faf3db518b016",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-28T18:40:52Z",
+  "timestamp": "2026-08-29T00:25:23Z",
   "results": [
     {
       "id": "T4-G0-01",

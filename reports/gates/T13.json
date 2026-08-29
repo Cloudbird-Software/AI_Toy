@@ -1,0 +1,56 @@
+{
+  "asset": "T13",
+  "suite": "ci",
+  "commit": "04fe237cfe004dba995e808c106275b62d7196bd",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T00:25:24Z",
+  "results": [
+    {
+      "id": "T13-G1-01",
+      "bi": "BI-13.2",
+      "level": "G1",
+      "metric": "tts_first_packet_p95_ms",
+      "observed": 270,
+      "evidence_hours": 0,
+      "upper95": 270,
+      "threshold": 300,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T13"
+    },
+    {
+      "id": "T13-G0-01",
+      "bi": "BI-13.3",
+      "level": "G0",
+      "metric": "injection_readout_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "metric_point",
+      "evidence": "just gate T13"
+    },
+    {
+      "id": "T13-G1-03",
+      "bi": "BI-13.3",
+      "level": "G1",
+      "metric": "semantic_pause_error_rate",
+      "observed": 0.04,
+      "evidence_hours": 0,
+      "upper95": 0.0769,
+      "threshold": 0.05,
+      "verdict": "pass",
+      "statistical_rule": "wilson_upper95",
+      "evidence": "just gate T13"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "pass",
+    "fail_ids": []
+  },
+  "exemptions_applied": []
+}
