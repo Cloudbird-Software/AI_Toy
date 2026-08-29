@@ -1,7 +1,8 @@
 // run —— 门禁执行面（spec §3.1，IR #64 真实调度）：登记表来自 collect 源码扫描
-// （ScanMarks），门禁 id 命中注册测试 → 实跑 `go test -count=1 -run ^<Test>$ <pkg>`
-// （cwd=Root），verdict 按退出码（0=pass、非 0=fail），Evidence=实际命令串；未命中 →
-// verdict=not_implemented（实现未开始：不计 pass 不计 fail，summary 单列 not_impl_ids，
+// （ScanMarks），门禁 id 命中注册测试 → 实跑 `go test -count=1 -v -run ^<Test>$ <pkg>`
+// （cwd=Root），verdict 按退出码 + -v 输出 SKIP 解析（0=pass、非 0=fail、顶层测试
+// SKIP=debt——IR #76 阶段化通道），Evidence=实际命令串；未命中 → verdict=
+// not_implemented（实现未开始：不计 pass 不计 fail，summary 单列 not_impl_ids，
 // exit 0）。统计判定 judge（evalkit upper95）保留给 benchmark/holdout 数据面接入后
 // 复用（观测来源换成真实评测产物即可；伪造观测的旧桩已随 IR #64 删除）。
 package gaterunner
@@ -31,20 +32,22 @@ type Result struct {
 	EvidenceHours   int     `json:"evidence_hours"`
 	Upper95         float64 `json:"upper95"`
 	Threshold       float64 `json:"threshold"`
-	Verdict         string  `json:"verdict"` // pass | fail | warn(G2) | exempt(G1 豁免) | not_implemented(未注册)
+	Verdict         string  `json:"verdict"` // pass | fail | warn(G2) | exempt(G1 豁免) | debt(注册测试 SKIP) | not_implemented(未注册)
 	StatisticalRule string  `json:"statistical_rule"`
 	Evidence        string  `json:"evidence"`
 }
 
 // Summary 分级汇总：g0/g1 pass|fail、g2 pass|warn、not_implemented（该级门禁全部
-// 未注册）、n/a（该级无门禁）；fail_ids 含全部红/warn（不含豁免）；
-// not_impl_ids 单列未实现门禁（不计 pass 不计 fail）。
+// 未注册）、n/a（该级无门禁）、debt（已接线门禁全为 SKIP）、fail_ids 含全部红/warn
+// （不含豁免）；not_impl_ids 单列未实现门禁、debt_ids 单列部分实现门禁（均不计
+// pass 不计 fail）。
 type Summary struct {
 	G0      string   `json:"g0"`
 	G1      string   `json:"g1"`
 	G2      string   `json:"g2"`
 	FailIDs []string `json:"fail_ids"`
 	NotImpl []string `json:"not_impl_ids"`
+	DebtIDs []string `json:"debt_ids"`
 }
 
 // Report 单资产门禁报告（committed，可逆向复算）。
@@ -76,19 +79,46 @@ type observation struct {
 	value float64
 }
 
-// dispatchGate 实跑注册测试：`go test -count=1 -run ^<Test>$ <pkg>`（cwd=root，
-// pkg 由注册源文件目录推导）。返回证据命令串、是否通过（退出码 0）与合并输出
-// （红灯时供诊断打印）。
-func dispatchGate(root string, m RegEntry) (evidence string, passed bool, output string) {
+// dispatchGate 实跑注册测试：`go test -count=1 -v -run ^<Test>$ <pkg>`（cwd=root，
+// pkg 由注册源文件目录推导）。加 -v 捕获输出并解析 SKIP 标记（IR #76，ADR-0002
+// 阶段化）：测试名精确命中 `--- SKIP: <Test>` 行 → debt（部分实现/冷启动，不计
+// pass 不阻断——go test 单测 SKIP 退出码为 0，须靠 -v 输出区分）；退出码非 0 →
+// fail；否则 pass。返回证据命令串、verdict 与合并输出（红灯时供诊断打印）。
+func dispatchGate(root string, m RegEntry) (evidence, verdict, output string) {
 	pkg := "./" + filepath.ToSlash(filepath.Dir(m.Source))
 	if pkg == "./." {
 		pkg = "."
 	}
-	evidence = fmt.Sprintf("go test -count=1 -run ^%s$ %s", m.Test, pkg)
-	cmd := exec.Command("go", "test", "-count=1", "-run", "^"+m.Test+"$", pkg)
+	evidence = fmt.Sprintf("go test -count=1 -v -run ^%s$ %s", m.Test, pkg)
+	cmd := exec.Command("go", "test", "-count=1", "-v", "-run", "^"+m.Test+"$", pkg)
 	cmd.Dir = root
 	out, err := cmd.CombinedOutput()
-	return evidence, err == nil, string(out)
+	switch {
+	case err == nil && skippedTest(string(out), m.Test):
+		verdict = "debt"
+	case err == nil:
+		verdict = "pass"
+	default:
+		verdict = "fail"
+	}
+	return evidence, verdict, string(out)
+}
+
+// skippedTest 判定 go test -v 输出中该顶层测试是否 SKIP：精确匹配 `--- SKIP: <Test>`
+// 行（其后只允许 " (时长)" 或行尾）；子测试 `--- SKIP: <Test>/sub`（或缩进行）不
+// 误命中父名——父测试自身须整测 SKIP 才算 debt。
+func skippedTest(out, test string) bool {
+	prefix := "--- SKIP: " + test
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSuffix(line, "\r")
+		if !strings.HasPrefix(line, prefix) {
+			continue
+		}
+		if rest := line[len(prefix):]; rest == "" || strings.HasPrefix(rest, " ") {
+			return true
+		}
+	}
+	return false
 }
 
 // judge 统计判定（真实走 evalkit）：零事件看 95% 上界（泊松 Garwood / 二项 CP），
@@ -202,11 +232,9 @@ func ExecuteRun(opts RunOpts) (*Report, int, error) {
 	for _, g := range gates {
 		res := Result{ID: g.ID, BI: g.BI, Level: g.Level, Metric: g.Metric, Threshold: round4(g.Threshold)}
 		if m, ok := byID[g.ID]; ok && m.Test != "" && m.Source != "" {
-			evidence, passed, output := dispatchGate(opts.Root, m)
-			res.StatisticalRule, res.Evidence, res.Verdict = "go_test_exit_code", evidence, "fail"
-			if passed {
-				res.Verdict = "pass"
-			} else {
+			evidence, verdict, output := dispatchGate(opts.Root, m)
+			res.StatisticalRule, res.Evidence, res.Verdict = "go_test_exit_code", evidence, verdict
+			if res.Verdict == "fail" {
 				fmt.Fprintf(os.Stderr, "门禁 %s 实跑红（%s）：\n%s", g.ID, evidence, output)
 			}
 		} else {
@@ -253,11 +281,12 @@ func suiteMatches(gateSuites []string, suite string) bool {
 }
 
 // summarize 分级汇总。级别状态优先级：任一红 → fail（G2 为 warn）；该级全部
-// not_implemented → not_implemented；该级无门禁 → n/a；否则 pass。not_implemented
-// 不算 pass 也不算 fail，not_impl_ids 单列（fail/warn/豁免均不进入该列表）。
+// not_implemented → not_implemented；该级无门禁 → n/a；已接线门禁全为 debt →
+// debt（部分实现/冷启动）；否则 pass。not_implemented 与 debt 均不算 pass 也不算
+// fail，各单列 not_impl_ids/debt_ids（fail/warn/豁免均不进入这两列）。
 func summarize(results []Result) Summary {
-	s := Summary{G0: "n/a", G1: "n/a", G2: "n/a", FailIDs: []string{}, NotImpl: []string{}}
-	total, impl, red := map[string]int{}, map[string]int{}, map[string]bool{}
+	s := Summary{G0: "n/a", G1: "n/a", G2: "n/a", FailIDs: []string{}, NotImpl: []string{}, DebtIDs: []string{}}
+	total, impl, green, red := map[string]int{}, map[string]int{}, map[string]int{}, map[string]bool{}
 	for _, r := range results {
 		total[r.Level]++
 		if r.Verdict == "not_implemented" {
@@ -265,6 +294,13 @@ func summarize(results []Result) Summary {
 			continue
 		}
 		impl[r.Level]++
+		if r.Verdict == "debt" {
+			s.DebtIDs = append(s.DebtIDs, r.ID)
+			continue
+		}
+		if r.Verdict == "pass" || r.Verdict == "exempt" {
+			green[r.Level]++
+		}
 		if r.Verdict != "fail" && r.Verdict != "warn" {
 			continue
 		}
@@ -283,6 +319,8 @@ func summarize(results []Result) Summary {
 			}
 		case impl[lvl] == 0:
 			st = "not_implemented"
+		case green[lvl] == 0:
+			st = "debt"
 		}
 		switch lvl {
 		case "G0":

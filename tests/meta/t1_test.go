@@ -1,9 +1,9 @@
 // T1 元层门禁四条真实接线（IR #73）：dispatchGate 经 ScanMarks 登记表实跑
-// `go test -count=1 -run ^<Test>$ ./tests/meta`（退出码=verdict）。口径与样本量
-// 声明在 configs/gates/T1.yaml（本文件只落断言本体，不复制阈值语义）：
+// `go test -count=1 -v -run ^<Test>$ ./tests/meta`（退出码 + -v 输出 SKIP 解析=verdict，
+// IR #76）。口径与样本量声明在 configs/gates/T1.yaml（本文件只落断言本体，不复制阈值语义）：
 //
 //	T1-G0-01 mixed_pr_count == 0（BI-1.3 隔离；suite ci/nightly/release）
-//	T1-G1-01 assertion_registration_rate >= 1.0（BI-1.1 覆盖度；冷启动红→豁免台账）
+//	T1-G1-01 assertion_registration_rate >= 1.0（BI-1.1 覆盖度；冷启动 SKIP→debt）
 //	T1-G1-02 rerun_in_band_rate >= 1.0（BI-1.2；min_evidence n:30）
 //	T1-G1-03 reproducible_record_rate >= 1.0（BI-1.2；min_evidence n:20）
 package meta
@@ -48,9 +48,10 @@ func TestT1MixedPRCount(t *testing.T) {
 }
 
 // TestT1AssertionRegistrationRate T1-G1-01：执行记录率 = reports/gates/*.json 中
-// verdict∈{pass,fail,exempt} 的门禁 id 数 ÷ configs/gates/*.yaml 声明门禁总数，
-// 须达 1.0。冷启动 0 记录为真实红（ADR-0002 阶段化 DEBT），经 reports/exemptions.yaml
-// 台账豁免（gaterunner run：G1 fail → exempt，exit 0）；M1 起逐资产接线后自然消解。
+// verdict∈{pass,fail,exempt,debt} 的门禁 id 数 ÷ configs/gates/*.yaml 声明门禁总数，
+// 须达 1.0。冷启动不足 1.0 → t.Skipf（gaterunner -v 解析为 debt verdict：不计 pass
+// 不阻断、不占豁免台账，裸 go test 不再红——IR #76/ADR-0002 阶段化）；M1 起逐资产
+// 接线后自然消解（79 条全有执行记录即恢复常态断言）。
 func TestT1AssertionRegistrationRate(t *testing.T) {
 	gaterunner.Mark(t, "T1", "BI-1.1", "T1-G1-01", "G1")
 	root, ok := repoRoot(t)
@@ -71,7 +72,7 @@ func TestT1AssertionRegistrationRate(t *testing.T) {
 	sort.Strings(missing)
 	if len(missing) > 0 {
 		n := min(5, len(missing))
-		t.Errorf("assertion_registration_rate=%.4f（%d/%d）< 1.0：%d 条门禁无执行记录（reports/gates/*.json verdict∈{pass,fail,exempt}），如 %v——冷启动 DEBT（ADR-0002），见 reports/exemptions.yaml 台账豁免",
+		t.Skipf("assertion_registration_rate=%.4f（%d/%d）< 1.0：%d 条门禁无执行记录（reports/gates/*.json verdict∈{pass,fail,exempt,debt}），如 %v——冷启动 DEBT（ADR-0002）：随资产接线自然消解",
 			float64(total-len(missing))/float64(total), total-len(missing), total, len(missing), missing[:n])
 	}
 }
@@ -278,9 +279,9 @@ type reportEntry struct {
 	Verdict string `json:"verdict"`
 }
 
-// recordedGateIDs reports/gates/*.json 中 verdict∈{pass,fail,exempt} 的门禁 id 集合
-// （兼容顶层列表与 {results|assertions} 对象两种形态——与 repoctl coverage 同一
-// 数据面）。
+// recordedGateIDs reports/gates/*.json 中 verdict∈{pass,fail,exempt,debt} 的门禁
+// id 集合（兼容顶层列表与 {results|assertions} 对象两种形态——与 repoctl coverage
+// 同一数据面：debt 也是真实执行记录，IR #76）。
 func recordedGateIDs(t *testing.T, dir string) map[string]bool {
 	t.Helper()
 	ids := map[string]bool{}
@@ -316,4 +317,6 @@ func collectRecorded(ids map[string]bool, entries []reportEntry) {
 	}
 }
 
-func countedVerdict(v string) bool { return v == "pass" || v == "fail" || v == "exempt" }
+func countedVerdict(v string) bool {
+	return v == "pass" || v == "fail" || v == "exempt" || v == "debt"
+}

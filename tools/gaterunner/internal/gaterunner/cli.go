@@ -146,6 +146,9 @@ func cliRun(args []string, stdout, stderr io.Writer) int {
 	if n := len(rep.Summary.NotImpl); n > 0 {
 		fmt.Fprintf(stderr, "not_implemented: %d 门禁（实现未开始，不计 pass）\n", n)
 	}
+	if n := len(rep.Summary.DebtIDs); n > 0 {
+		fmt.Fprintf(stderr, "debt: %d 门禁（部分实现/冷启动，不计 pass 不阻断）\n", n)
+	}
 	return exit
 }
 

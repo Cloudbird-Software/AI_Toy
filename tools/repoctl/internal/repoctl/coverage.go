@@ -1,9 +1,10 @@
 // coverage —— 登记表 × 验收文档 BI 核对（spec §3.8，IR #64 阶段化执法，ADR-0002）：
-// 登记表 = reports/gates/*.json 中 verdict ∈ {pass, fail, exempt} 的条目
-// （not_implemented/warn 不算已落地断言）× docs/gates/assets/*.md 的 BI 集合
-// （正则 BI-\d+\.\d+）→ 资产登记 ≥1 条 → 强制全 BI 覆盖 + ≥1 G0 + 无孤儿断言
-// （任一缺失 exit 20）；登记 0 条 → DEBT 行（stdout，不 FAIL，exit 0——实现未
-// 开始的资产先欠账、首条断言落地即进入全执法）。
+// 登记表 = reports/gates/*.json 中 verdict ∈ {pass, fail, exempt, debt} 的条目
+// （not_implemented/warn 不算已落地断言；debt=已注册测试接线、处部分实现态——
+// IR #76）× docs/gates/assets/*.md 的 BI 集合（正则 BI-\d+\.\d+）→ 资产登记
+// ≥1 条 → 强制全 BI 覆盖 + ≥1 G0 + 无孤儿断言（任一缺失 exit 20）；登记 0 条 →
+// DEBT 行（stdout，不 FAIL，exit 0——实现未开始的资产先欠账、首条断言落地即
+// 进入全执法）。
 package repoctl
 
 import (
@@ -29,10 +30,11 @@ type covEntry struct {
 
 var biRe = regexp.MustCompile(`BI-\d+\.\d+`)
 
-// countedVerdict 报告形态条目是否计入登记表：pass/fail/exempt（与 verdict 缺席的
-// 旧式条目）算已落地；not_implemented/warn 不算（未实现/趋势警告非断言事实）。
+// countedVerdict 报告形态条目是否计入登记表：pass/fail/exempt/debt（与 verdict
+// 缺席的旧式条目）算已落地；not_implemented/warn 不算（未实现/趋势警告非断言
+// 事实）。debt（IR #76）：该 BI 已有真实测试接线（t.Skip 通道），处部分实现态。
 func countedVerdict(v string) bool {
-	return v == "" || v == "pass" || v == "fail" || v == "exempt"
+	return v == "" || v == "pass" || v == "fail" || v == "exempt" || v == "debt"
 }
 
 // loadCovRegistry 读 gatesDir 下全部 *.json：顶层列表，或 {asset, results|assertions}

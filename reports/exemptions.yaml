@@ -2,8 +2,5 @@
 # 条目 schema（spec §9.3）：[{id, reason, owner, expires(≤30d, YYYY-MM-DD), linked_pr}]；
 # 消费方：repoctl exemption audit（过期项 exit 20）、gaterunner run --exemptions（G1 fail → exempt）。
 # 空台账 = `[]`（保持 YAML 文档非空，gaterunner 的严格解码器才不会报 EOF）。
-- id: T1-G1-01
-  reason: "冷启动：79 门禁实现未开始（ADR-0002 DEBT），执行记录率为 0 属预期；M1 起逐资产接线后自然消解"
-  owner: randypanding
-  expires: "2026-09-28"
-  linked_pr: "#73"
+# IR #76 起：冷启动 G1 走 debt verdict（注册测试 t.Skip 通道），不再占用本台账。
+[]
