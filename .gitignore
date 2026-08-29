@@ -10,6 +10,9 @@ target/
 
 # 数据集：synth 大文件不入 git（manifest 追踪）
 datasets/synth/**/*.{wav,flac,mpn,bin,parquet}
+# 负样本批帧记录不入 git（6h canonical 批 ~175MB）：PCM/帧流由
+# (generator@version, seed, duration_ms) 确定性重建（m2-spec §2，IR #90）
+datasets/synth/batches/*/frames.jsonl
 
 # holdout 隔离：数据不入 git，仅保留 sealed-manifest.json
 datasets/holdout/*

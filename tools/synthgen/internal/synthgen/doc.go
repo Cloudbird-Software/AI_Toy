@@ -8,7 +8,13 @@
 //
 //	synthgen register --id <gid> --version <v> --seed-policy <p> --outputs-manifest <path>
 //	synthgen generate --id <gid> --n <N> --seed <s>
+//	synthgen generate-neg --id <gid> --duration-ms <ms> [--seed <s> | --seed-label <label>]
 //	synthgen dist-check --batch <id> [--reference <path>]
 //
 // 退出码：0 通过；2 输入错（重复注册 / 未注册 / 批次缺失）；20 单源占比 >30%。
+//
+// 负样本面（m2-spec §2，IR #90）：gen-tneg 家庭音景 / gen-kwsadv 对抗同音节帧流
+// 生成器（源类型参数集随版本冻结；PCM 不落盘，由 (generator@version, seed,
+// duration_ms) 确定性重建）；负样本批 eval-only 不切 synth-holdout——TrainN=0/
+// HoldoutN=0、全量入 eval 池（负样本只供误唤醒评估、永不进训练管道）。
 package synthgen

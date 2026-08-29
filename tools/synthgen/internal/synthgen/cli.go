@@ -28,7 +28,7 @@ const (
 // Run 执行 synthgen CLI（argv 不含程序名），返回进程退出码。
 func Run(argv []string, stdout, stderr io.Writer) int {
 	if len(argv) == 0 {
-		fmt.Fprintln(stderr, "usage: synthgen <register|generate|dist-check> [flags]")
+		fmt.Fprintln(stderr, "usage: synthgen <register|generate|generate-neg|dist-check> [flags]")
 		return ExitInput
 	}
 	switch argv[0] {
@@ -36,10 +36,12 @@ func Run(argv []string, stdout, stderr io.Writer) int {
 		return runRegister(argv[1:], stdout, stderr)
 	case "generate":
 		return runGenerate(argv[1:], stdout, stderr)
+	case "generate-neg":
+		return runGenerateNeg(argv[1:], stdout, stderr)
 	case "dist-check":
 		return runDistCheck(argv[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：register、generate、dist-check）\n", argv[0])
+		fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：register、generate、generate-neg、dist-check）\n", argv[0])
 		return ExitInput
 	}
 }
@@ -94,6 +96,51 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		return ExitInput
 	}
 	fmt.Fprintf(stdout, "batch %s: n=%d train=%d holdout=%d -> %s\n", b.ID, b.N, b.TrainN, b.HoldoutN, dir)
+	return ExitOK
+}
+
+// runGenerateNeg 生成负样本批（m2-spec §2，IR #90）：gen-tneg 家庭音景 / gen-kwsadv
+// 对抗同音节，参数化时长（6h=--duration-ms 21600000 即 360min）；批不切
+// synth-holdout（TrainN=0/HoldoutN=0、全量入 eval 池）；--seed-label 走 FNV-1a 64
+// 全仓种子约定（门禁 canonical 批与测试侧同标签同种子）。
+func runGenerateNeg(args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("generate-neg", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	id := fs.String("id", "", "负样本生成器 id（须已注册：gen-tneg / gen-kwsadv）")
+	durationMs := fs.Int("duration-ms", 0, "流时长 ms（≥30；6h=21600000 即 360min）")
+	seed := fs.Int64("seed", 0, "随机种子（同 seed 完全复现；与 --seed-label 二选一）")
+	seedLabel := fs.String("seed-label", "", "种子标签（FNV-1a 64 对齐全仓约定；与 --seed 二选一）")
+	if fs.Parse(args) != nil {
+		return ExitInput
+	}
+	explicit := map[string]bool{}
+	fs.Visit(func(f *flag.Flag) { explicit[f.Name] = true })
+	if *id == "" || *durationMs < NegFrameMs {
+		fmt.Fprintf(stderr, "error: generate-neg 需要 --id 与 --duration-ms ≥ %d\n", NegFrameMs)
+		return ExitInput
+	}
+	if explicit["seed"] && explicit["seed-label"] {
+		fmt.Fprintln(stderr, "error: --seed 与 --seed-label 二选一")
+		return ExitInput
+	}
+	if explicit["seed-label"] {
+		*seed = NegSeed(*seedLabel)
+	}
+	records, err := LoadRegistry(RegistryPath)
+	var b NegBatch
+	var dir string
+	if err == nil {
+		var g Generator
+		if g, err = FindGenerator(records, *id); err == nil {
+			b, dir, err = GenerateBatchNeg(g, BatchesDir, *durationMs, *seed)
+		}
+	}
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n", err)
+		return ExitInput
+	}
+	fmt.Fprintf(stdout, "neg-batch %s: n=%d train=%d holdout=%d eval=%d purpose=%s duration=%dms -> %s\n",
+		b.ID, b.N, b.TrainN, b.HoldoutN, b.EvalN, b.Purpose, b.DurationMs, dir)
 	return ExitOK
 }
 
