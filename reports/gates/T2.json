@@ -1,0 +1,74 @@
+{
+  "asset": "T2",
+  "suite": "nightly",
+  "commit": "0f289ffc9d31df3075ad33d1ed66cdeb588400e3",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T07:36:06Z",
+  "results": [
+    {
+      "id": "T2-G0-01",
+      "bi": "BI-2.2",
+      "level": "G0",
+      "metric": "holdout_contamination_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT2HoldoutZeroContamination$ ./tools/synthgen/internal/synthgen"
+    },
+    {
+      "id": "T2-G0-02",
+      "bi": "BI-2.2",
+      "level": "G0",
+      "metric": "pii_residual_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT2PIIResidual$ ./tools/synthgen/internal/synthgen"
+    },
+    {
+      "id": "T2-G1-01",
+      "bi": "BI-2.1",
+      "level": "G1",
+      "metric": "single_source_share",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.3,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT2SynthDiversity$ ./tools/synthgen/internal/synthgen"
+    },
+    {
+      "id": "T2-G1-02",
+      "bi": "BI-2.3",
+      "level": "G1",
+      "metric": "flywheel_improved_cycle_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.5,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT2FlywheelSpeed$ ./tools/synthgen/internal/synthgen"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T2-G0-02",
+      "T2-G1-02"
+    ]
+  },
+  "exemptions_applied": []
+}
