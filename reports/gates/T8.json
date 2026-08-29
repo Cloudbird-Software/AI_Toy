@@ -1,0 +1,88 @@
+{
+  "asset": "T8",
+  "suite": "ci",
+  "commit": "d2fff34315f0b44599b4a6609514efbc95f8126c",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T06:21:35Z",
+  "results": [
+    {
+      "id": "T8-G1-01",
+      "bi": "BI-8.1",
+      "level": "G1",
+      "metric": "compile_same_hash_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT8G101CompileSameHashRate$ ./packages/go/persona"
+    },
+    {
+      "id": "T8-G1-02",
+      "bi": "BI-8.2",
+      "level": "G1",
+      "metric": "survey_dimension_deviation_5pt",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT8G102SurveyDimensionDeviation$ ./packages/go/persona"
+    },
+    {
+      "id": "T8-G1-03",
+      "bi": "BI-8.2",
+      "level": "G1",
+      "metric": "persona_break_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.03,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT8G103PersonaBreakRate$ ./packages/go/persona"
+    },
+    {
+      "id": "T8-G1-04",
+      "bi": "BI-8.3",
+      "level": "G1",
+      "metric": "persona_classify_accuracy",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.8,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT8G104PersonaClassifyAccuracy$ ./packages/go/persona"
+    },
+    {
+      "id": "T8-G0-01",
+      "bi": "BI-8.4",
+      "level": "G0",
+      "metric": "persona_safety_breach_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT8G001PersonaSafetyBreachCount$ ./packages/go/persona"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T8-G1-02",
+      "T8-G1-03",
+      "T8-G1-04"
+    ]
+  },
+  "exemptions_applied": []
+}
