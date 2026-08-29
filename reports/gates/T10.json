@@ -1,0 +1,97 @@
+{
+  "asset": "T10",
+  "suite": "nightly",
+  "commit": "a32973e102d97c70b74f8608b8b7af2e5163cc12",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T12:16:22Z",
+  "results": [
+    {
+      "id": "T10-G1-01",
+      "bi": "BI-10.1",
+      "level": "G1",
+      "metric": "probe_recall_at_5",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT10G101ProbeRecall$ ./packages/go/memory"
+    },
+    {
+      "id": "T10-G1-02",
+      "bi": "BI-10.2",
+      "level": "G1",
+      "metric": "fact_update_new_value_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT10G102FactUpdate$ ./packages/go/memory"
+    },
+    {
+      "id": "T10-G0-01",
+      "bi": "BI-10.3",
+      "level": "G0",
+      "metric": "cross_user_leak_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT10G001CrossUserIsolation$ ./packages/go/memory"
+    },
+    {
+      "id": "T10-G0-02",
+      "bi": "BI-10.4",
+      "level": "G0",
+      "metric": "delete_residual_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT10G002DeleteResiduals$ ./packages/go/memory"
+    },
+    {
+      "id": "T10-G1-03",
+      "bi": "BI-10.4",
+      "level": "G1",
+      "metric": "high_emotion_memory_retention",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.9,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT10G103CapacityMetabolism$ ./packages/go/memory"
+    },
+    {
+      "id": "T10-G1-04",
+      "bi": "BI-10.4",
+      "level": "G1",
+      "metric": "memory_retrieval_p95_ms",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 150,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT10G104RetrievalLatency$ ./packages/go/memory"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": []
+  },
+  "exemptions_applied": []
+}

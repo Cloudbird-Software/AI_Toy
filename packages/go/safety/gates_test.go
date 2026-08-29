@@ -1,15 +1,19 @@
 // T9 门禁测试（m2-spec §10 Mark 接线策略表，IR #91）：一 ID 一顶层测试函数，
 // gaterunner 经 `--- SKIP: <Test>` 精确匹配顶层整测 SKIP 判 debt。口径与样本量
 // 唯一来源 configs/gates/T9.yaml（本文件只落断言本体；统计断言经 evalkit——
-// 勿手算）。真实 6 / debt 2（T9-G0-04 需决策层模型 Llama Guard 3、T9-G0-06 需
-// 存储层 schema 扫描+删除演练，ADR-0005 纪律）。
+// 勿手算）。真实 7 / debt 1（T9-G0-04 需决策层模型 Llama Guard 3；T9-G0-06 已
+// 随 T10-G0-02 联跑解禁——m3-spec §4：存储层就位，测试侧 import 被测包）。
 package safety
 
 import (
+	"fmt"
+	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
 
+	"github.com/Cloudbird-Software/AI_Toy/packages/go/memory"
 	"github.com/Cloudbird-Software/AI_Toy/tools/evalkit/evalkit"
 	"github.com/Cloudbird-Software/AI_Toy/tools/gaterunner/gaterunner"
 )
@@ -262,10 +266,13 @@ func TestT9G005NotifyBoundary(t *testing.T) {
 	}
 }
 
-// TestT9G006DataMinimization T9-G0-06（BI-9.4/G0，debt）：数据最小化与删除
-// （COPPA/GDPR-K 台账）需存储层 schema 扫描×删除演练 50 次（M3 与 T10-G0-02
-// 联跑）。逻辑面先行真实执行：NotifyPayload 字段全申报（零未申报字段）+
-// 摘要截断（全文不出引擎——excerpt ≤32 runes+省略号）。
+// TestT9G006DataMinimization T9-G0-06（BI-9.4/G0，真实）：数据最小化与删除
+// （COPPA/GDPR-K 台账）。三面合一：①引擎面——NotifyPayload 字段全申报（零
+// 未申报字段）+摘要截断（全文不出引擎——excerpt ≤32 runes+省略号）；②存储
+// schema 面——T10 memory.Node/Edge 全字段反射扫描对照申报台账（零未申报
+// 字段；台账无原始媒体字段=最小化构造面，原始音频不出 ASR 管线）；③删除
+// 演练面——存储层 50 次「写入（含关联边）→删除」全通道零残留（与 T10-G0-02
+// 联跑解禁，m3-spec §4；测试侧 import 被测包=ADR-0004 组装纪律许可面）。
 func TestT9G006DataMinimization(t *testing.T) {
 	gaterunner.Mark(t, "T9", "BI-9.4", "T9-G0-06", "G0")
 	e := mustEngine(t)
@@ -287,10 +294,54 @@ func TestT9G006DataMinimization(t *testing.T) {
 			t.Fatalf("样本 %d 摘要非原文前缀（内容改变=最小化语义破损）", i)
 		}
 	}
+	// 存储层 schema 扫描：T10 持久面全字段对照 COPPA/GDPR-K 申报台账
+	const kid, other = "kid", "snoop"
+	s, err := memory.NewStore(memory.Options{MaxNodes: 120})
+	if err != nil {
+		t.Fatalf("NewStore: %v", err)
+	}
+	declared := map[string]bool{ // 申报台账（逻辑记忆字段——无音频/图像/生物特征原始数据）
+		"ID": true, "UserID": true, "K": true, "Subject": true, "Pred": true,
+		"Text": true, "EmoWeight": true, "CreatedAtMs": true, "TouchedAtMs": true,
+		"St": true, "From": true, "To": true, "Rel": true,
+	}
+	for _, typ := range []reflect.Type{reflect.TypeOf(memory.Node{}), reflect.TypeOf(memory.Edge{})} {
+		for i := 0; i < typ.NumField(); i++ {
+			if f := typ.Field(i); !declared[f.Name] {
+				undeclared++
+				t.Errorf("存储 schema 未申报字段: %s.%s", typ.Name(), f.Name)
+			}
+		}
+	}
+	// 删除演练 50 次：每次写入含私密文本节点+关联边（→锚点），删除后断言
+	// 全通道零残留+双视角（本人/他人）检索捞不回（删除即消失）
+	if err := s.Write(kid, memory.Node{ID: "anchor", Subject: "锚点", Pred: "关系", Text: "锚文本"}, nil); err != nil {
+		t.Fatalf("锚点写入: %v", err)
+	}
+	for i := 0; i < 50; i++ {
+		id := "sec" + strconv.Itoa(i)
+		secret := fmt.Sprintf("家庭暗号%d号", i)
+		if err := s.Write(kid, memory.Node{ID: id, Subject: "秘密", Pred: "暗号", Text: secret},
+			[]memory.Edge{{To: "anchor", Rel: "提到"}}); err != nil {
+			t.Fatalf("演练 %d 写入: %v", i, err)
+		}
+		if err := s.Delete(kid, id); err != nil {
+			t.Fatalf("演练 %d 删除: %v", i, err)
+		}
+		if res := s.Residuals(); len(res) != 0 {
+			t.Fatalf("演练 %d 删除残留（阈值 ==0）：%v", i, res)
+		}
+		for _, who := range []string{kid, other} {
+			for _, got := range s.Search(who, secret+" 秘密 暗号", 10, 1<<30) {
+				if got.ID == id || got.Text == secret {
+					t.Fatalf("演练 %d 被删内容经检索复活（who=%s）：%v", i, who, got)
+				}
+			}
+		}
+	}
 	if undeclared != 0 {
 		t.Fatalf("undeclared_field_count=%d（阈值 ==0）", undeclared)
 	}
-	t.Skipf("T9-G0-06 debt：数据最小化需存储层全 schema 扫描 × 删除演练 50 次（min_evidence n:50，删除零残留/原始音频保留 ≤合规期限）——M3 与 T10-G0-02 联跑；当前仅引擎侧字段申报+摘要截断逻辑面（50 次演练全绿）。存储层就位后去掉本 Skip。")
 }
 
 // TestT9G007TierSafetyRecallGap T9-G0-07（BI-9.1/G0，真实）：降级档安全不降

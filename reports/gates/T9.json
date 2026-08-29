@@ -1,10 +1,10 @@
 {
   "asset": "T9",
-  "suite": "nightly",
-  "commit": "efdf30a07c138be41d2108757b6ee5b9865d13cc",
+  "suite": "ci",
+  "commit": "a32973e102d97c70b74f8608b8b7af2e5163cc12",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-29T07:26:59Z",
+  "timestamp": "2026-08-29T12:15:23Z",
   "results": [
     {
       "id": "T9-G0-01",
@@ -93,22 +93,9 @@
       "evidence_hours": 0,
       "upper95": 0,
       "threshold": 0,
-      "verdict": "debt",
-      "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -v -run ^TestT9G006DataMinimization$ ./packages/go/safety"
-    },
-    {
-      "id": "T9-G0-07",
-      "bi": "BI-9.1",
-      "level": "G0",
-      "metric": "tier_safety_recall_gap_pp",
-      "observed": 0,
-      "evidence_hours": 0,
-      "upper95": 0,
-      "threshold": 1,
       "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -v -run ^TestT9G007TierSafetyRecallGap$ ./packages/go/safety"
+      "evidence": "go test -count=1 -v -run ^TestT9G006DataMinimization$ ./packages/go/safety"
     }
   ],
   "summary": {
@@ -118,8 +105,7 @@
     "fail_ids": [],
     "not_impl_ids": [],
     "debt_ids": [
-      "T9-G0-04",
-      "T9-G0-06"
+      "T9-G0-04"
     ]
   },
   "exemptions_applied": []
