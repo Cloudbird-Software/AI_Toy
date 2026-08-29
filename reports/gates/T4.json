@@ -1,10 +1,10 @@
 {
   "asset": "T4",
   "suite": "ci",
-  "commit": "ebe423dfe0c34451c4e026cfc0884fa41ea76907",
+  "commit": "0f289ffc9d31df3075ad33d1ed66cdeb588400e3",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-29T03:58:24Z",
+  "timestamp": "2026-08-29T07:35:56Z",
   "results": [
     {
       "id": "T4-G0-01",
@@ -15,7 +15,7 @@
       "evidence_hours": 0,
       "upper95": 0,
       "threshold": 0.5,
-      "verdict": "debt",
+      "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
       "evidence": "go test -count=1 -v -run ^TestT4FalseWakePerHour$ ./packages/go/kws"
     },
@@ -28,7 +28,7 @@
       "evidence_hours": 0,
       "upper95": 0,
       "threshold": 0,
-      "verdict": "debt",
+      "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
       "evidence": "go test -count=1 -v -run ^TestT4AdversarialTriggerCount$ ./packages/go/kws"
     },
@@ -73,14 +73,12 @@
     }
   ],
   "summary": {
-    "g0": "debt",
+    "g0": "pass",
     "g1": "debt",
     "g2": "n/a",
     "fail_ids": [],
     "not_impl_ids": [],
     "debt_ids": [
-      "T4-G0-01",
-      "T4-G0-02",
       "T4-G1-01",
       "T4-G1-02",
       "T4-G1-03"
