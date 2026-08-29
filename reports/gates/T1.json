@@ -1,0 +1,72 @@
+{
+  "asset": "T1",
+  "suite": "nightly",
+  "commit": "7a0c972bd5f28f697a09af279eed6c4417d3c88c",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T02:17:56Z",
+  "results": [
+    {
+      "id": "T1-G1-01",
+      "bi": "BI-1.1",
+      "level": "G1",
+      "metric": "assertion_registration_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "exempt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -run ^TestT1AssertionRegistrationRate$ ./tests/meta"
+    },
+    {
+      "id": "T1-G1-02",
+      "bi": "BI-1.2",
+      "level": "G1",
+      "metric": "rerun_in_band_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -run ^TestT1RerunInBandRate$ ./tests/meta"
+    },
+    {
+      "id": "T1-G0-01",
+      "bi": "BI-1.3",
+      "level": "G0",
+      "metric": "mixed_pr_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -run ^TestT1MixedPRCount$ ./tests/meta"
+    },
+    {
+      "id": "T1-G1-03",
+      "bi": "BI-1.2",
+      "level": "G1",
+      "metric": "reproducible_record_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -run ^TestT1ReproducibleRecordRate$ ./tests/meta"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": []
+  },
+  "exemptions_applied": [
+    "T1-G1-01@2026-09-28"
+  ]
+}
