@@ -116,6 +116,9 @@ type Report struct {
 	Timestamp  string          `json:"timestamp"`
 	Journeys   []JourneyReport `json:"journeys"`
 	Summary    Summary         `json:"summary"`
+	// SimulationDebt（IR #72 / ADR-0003）：driver_mode=simulated 且存在失败 → true，
+	// 失败归因为桩噪声债务而非产品信号；exit 策略见 cli.Main（--strict 恢复阻断）。
+	SimulationDebt bool `json:"simulation_debt"`
 }
 
 // seedSource 把字符串种子 "seed:journey_id" 经 fnv64a 哈希成 int64 随机源
@@ -214,12 +217,16 @@ func compare(op string, a, b float64) bool {
 	return a == b // "=="
 }
 
+// DriverModeSimulated 桩 driver 模式标识（真实 T20 driver 接入后由执行层改写，
+// IR #72：模拟态失败阶段化为 SIMULATION-DEBT，不阻断）。
+const DriverModeSimulated = "simulated"
+
 // Run 执行 scripts × seeds（每剧本 seed=0..seeds-1），聚合指标并评估断言。
 func Run(scripts []*Script, seeds int, setName, driver string) (*Report, error) {
 	if seeds < 1 {
 		return nil, errors.New("seeds must be >= 1")
 	}
-	rep := &Report{Set: setName, Seeds: seeds, Driver: driver, DriverMode: "simulated",
+	rep := &Report{Set: setName, Seeds: seeds, Driver: driver, DriverMode: DriverModeSimulated,
 		Timestamp: time.Now().UTC().Format(time.RFC3339), Journeys: make([]JourneyReport, 0, len(scripts))}
 	for _, s := range scripts {
 		runs := make([]RunResult, seeds)
@@ -239,6 +246,7 @@ func Run(scripts []*Script, seeds int, setName, driver string) (*Report, error) 
 				Assertions: results, Verdict: verdict})
 	}
 	rep.Summary = summarize(rep.Journeys)
+	rep.SimulationDebt = rep.DriverMode == DriverModeSimulated && rep.Summary.Overall == "fail"
 	return rep, nil
 }
 

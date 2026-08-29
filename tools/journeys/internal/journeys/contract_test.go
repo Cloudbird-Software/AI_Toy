@@ -114,8 +114,9 @@ func TestSchemaValidationFailuresExitConfig(t *testing.T) {
 
 func TestImpossibleAssertionFailsVerdictAndExit(t *testing.T) {
 	// completion_rate >= 1.01 不可能满足（均值上界 1.0）。
+	// IR #72 后默认模拟态失败阶段化为 DEBT exit 0，故经 --strict 恢复旧 fail→1 语义。
 	bad := strings.Replace(coreYAML, "value: 0.0}", "value: 1.01}", 1)
-	code, out, _ := runCLI(t, map[string]string{"J01.yaml": bad})
+	code, out, _ := runCLI(t, map[string]string{"J01.yaml": bad}, "--strict")
 	if code != ExitFail {
 		t.Fatalf("exit=%d, want %d", code, ExitFail)
 	}

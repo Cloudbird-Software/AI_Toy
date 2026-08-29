@@ -4,9 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // CLI 退出码契约（spec §3.5）：0 全绿 / 1 断言失败 / 2 配置错误。
+// IR #72 / ADR-0003 阶段化：driver_mode=simulated 且判 fail → exit 0 + DEBT 行
+// （桩噪声债务，非产品信号）；--strict 或真实 driver 维持旧语义 fail→1。
 const (
 	ExitOK     = 0
 	ExitFail   = 1
@@ -16,7 +19,7 @@ const (
 // Main 是 journeys CLI 入口（cmd/journeys 为薄壳），返回进程退出码。
 func Main(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 || args[0] != "run" {
-		fmt.Fprintln(stderr, "usage: journeys run --set golden --seeds 3 --driver packages/go/user-sim [--scripts-dir DIR] [--out FILE]")
+		fmt.Fprintln(stderr, "usage: journeys run --set golden --seeds 3 --driver packages/go/user-sim [--scripts-dir DIR] [--out FILE] [--strict]")
 		return ExitConfig
 	}
 	fs := flag.NewFlagSet("run", flag.ContinueOnError)
@@ -26,6 +29,7 @@ func Main(args []string, stdout, stderr io.Writer) int {
 	driver := fs.String("driver", "packages/go/user-sim", "user-sim driver 路径")
 	scriptsDir := fs.String("scripts-dir", "tests/golden-journeys", "剧本目录")
 	out := fs.String("out", "", "JSON 报告写入该文件（缺省打印 stdout）")
+	strict := fs.Bool("strict", false, "严格模式：模拟 driver 失败也 exit 1（缺省桩失败阶段化为 SIMULATION-DEBT 不阻断）")
 	fail := func(format string, args ...any) int {
 		fmt.Fprintf(stderr, "error: "+format+"\n", args...)
 		return ExitConfig
@@ -60,6 +64,13 @@ func Main(args []string, stdout, stderr io.Writer) int {
 		return fail("%v", err)
 	}
 	if rep.Summary.Overall == "pass" {
+		return ExitOK
+	}
+	// IR #72：模拟态失败 = 债务而非信号（ADR-0002 同一阶段化哲学），
+	// 不阻断但必须醒目可见；真实 driver 接入后 DriverMode 不再是 simulated，自然回到旧执法。
+	if rep.SimulationDebt && !*strict {
+		fmt.Fprintf(stdout, "SIMULATION-DEBT: %d 旅程失败（driver=simulated 桩噪声，不代表产品行为；真实 T20 driver 落地后自动转真实执法，--strict 可恢复阻断）\n", rep.Summary.Fail)
+		fmt.Fprintf(stdout, "SIMULATION-DEBT-IDS: %s\n", strings.Join(rep.Summary.FailIDs, ","))
 		return ExitOK
 	}
 	return ExitFail
