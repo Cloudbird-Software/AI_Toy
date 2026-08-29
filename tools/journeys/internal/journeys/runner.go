@@ -119,6 +119,9 @@ type Report struct {
 	// SimulationDebt（IR #72 / ADR-0003）：driver_mode=simulated 且存在失败 → true，
 	// 失败归因为桩噪声债务而非产品信号；exit 策略见 cli.Main（--strict 恢复阻断）。
 	SimulationDebt bool `json:"simulation_debt"`
+	// Notes 报告附注（spec §8：core10 排除 memory_hit_rate 断言剧本等收敛策略
+	// 写进报告 note，不改剧本本体）。
+	Notes []string `json:"notes,omitempty"`
 }
 
 // seedSource 把字符串种子 "seed:journey_id" 经 fnv64a 哈希成 int64 随机源
@@ -129,8 +132,8 @@ func seedSource(scriptID string, seed int) rand.Source {
 	return rand.NewSource(int64(h.Sum64()))
 }
 
-// simulateRun 确定性桩 driver（真 driver=packages/go/user-sim 协议由后续卡接入，
-// 届时替换本函数调用点即可）。
+// simulateRun 确定性桩 driver（真 driver=RealDriver 已接入 IR #94；本桩保留
+// --driver simulated 显式回退通道，golden 50 条 M2 维持 simulated）。
 func simulateRun(s *Script, seed int) RunResult {
 	rng := rand.New(seedSource(s.ID, seed))
 	pFail := 0.05
@@ -221,17 +224,56 @@ func compare(op string, a, b float64) bool {
 // IR #72：模拟态失败阶段化为 SIMULATION-DEBT，不阻断）。
 const DriverModeSimulated = "simulated"
 
+// DriverModeReal 真驱动模式标识（spec §8：T20 user-sim → loop 真管道回放；
+// real 失败=真失败，ADR-0003 语义自然收敛——DEBT 行随之消失）。
+const DriverModeReal = "real"
+
+// Driver 驱动接口（spec §8 窄接口）：单剧本单 seed → 单次运行观测。
+// simulated=确定性桩（IR #72 阶段化）；real=user-sim 画像驱动的 loop 真管道
+// 回放（spec §7：Utterance→合成 VAD 事件+文本→PushVAD/PushAudioFrame）。
+type Driver interface {
+	Drive(script *Script, seed int) RunResult
+}
+
+// SimulatedDriver 确定性桩 driver（simulateRun 的 Driver 化落位；--driver
+// simulated 显式回退用，golden 50 条 M2 维持此通道）。
+type SimulatedDriver struct{}
+
+// Drive 实现 Driver。
+func (SimulatedDriver) Drive(s *Script, seed int) RunResult { return simulateRun(s, seed) }
+
+// ResolveDriver driver 串 → 驱动实例与模式（spec §8：driver_mode∈{simulated,real}；
+// real 在 cmd 层 wire user-sim 实现——NewRealDriver 见 realdriver.go）。
+func ResolveDriver(driver string, scripts []*Script) (Driver, string, error) {
+	switch driver {
+	case DriverModeReal:
+		d, err := NewRealDriver(scripts)
+		if err != nil {
+			return nil, "", err
+		}
+		return d, DriverModeReal, nil
+	case DriverModeSimulated:
+		return SimulatedDriver{}, DriverModeSimulated, nil
+	}
+	return nil, "", fmt.Errorf("driver must be %q or %q, got %q", DriverModeReal, DriverModeSimulated, driver)
+}
+
 // Run 执行 scripts × seeds（每剧本 seed=0..seeds-1），聚合指标并评估断言。
+// driver ∈ {"simulated","real"}（ResolveDriver 解析；real 失败=真失败）。
 func Run(scripts []*Script, seeds int, setName, driver string) (*Report, error) {
 	if seeds < 1 {
 		return nil, errors.New("seeds must be >= 1")
 	}
-	rep := &Report{Set: setName, Seeds: seeds, Driver: driver, DriverMode: DriverModeSimulated,
+	d, mode, err := ResolveDriver(driver, scripts)
+	if err != nil {
+		return nil, err
+	}
+	rep := &Report{Set: setName, Seeds: seeds, Driver: driver, DriverMode: mode,
 		Timestamp: time.Now().UTC().Format(time.RFC3339), Journeys: make([]JourneyReport, 0, len(scripts))}
 	for _, s := range scripts {
 		runs := make([]RunResult, seeds)
 		for seed := range seeds {
-			runs[seed] = simulateRun(s, seed)
+			runs[seed] = d.Drive(s, seed)
 		}
 		m := AggregateRuns(runs)
 		results := EvaluateAssertions(m, s.Assertions)
