@@ -44,20 +44,22 @@ ai-toy 是 AI 潮玩 monorepo：以「角色即资产」为内核——角色是
 | 5 | Dependabot：gomod/pnpm/cargo/github-actions 周更 | ✅ | .github/dependabot.yml 已写入（from initial upload），执行频率 = weekly |
 | 6 | `reports/exemptions.yaml` 初始 + `reports/holdout-audit.jsonl` 初始 | ✅ | PR #47 已写入 |
 
-## §14 自检报告（2026-08-28 HEAD）
+## §14 自检报告（2026-08-29，IR #64 修订）
 
 ```bash
 just verify            # → verify-configs: 79 门禁，0 违反；repoctl coverage/agents-md/forbidden-refs = 全绿
 ```
 
-§14 自检结果（HEAD=f83093f）：
+§14 自检结果（2026-08-29 复测，IR #64 真实调度 + 阶段化执法后）：
 | # | 命令 | 实测 | 期望 | 通过 |
 | --- | --- | --- | --- | --- |
-| 1 | `just bootstrap && just lint && just verify` | verify-configs: 79 门禁，0 违反；coverage = 全绿 | 全绿 | ✅（lint: pnpm/cargo 未安装不报 exit 1，gofmt/go vet 通过） |
-| 2 | `gaterunner collect \| wc -l` | 79 条断言登记 | ≥70 | ✅ |
-| 3 | `just gate T4 all` | g0=pass g1=pass g2=pass → exit 0 | exit=0（红线正常） | ✅ |
+| 1 | `just bootstrap && just lint && just verify` | verify-configs: 79 门禁，0 违反；coverage = 0 FAIL（16 资产 DEBT） | 全绿（exit 0） | ✅（lint: pnpm/cargo 未安装不报 exit 1，gofmt/go vet 通过） |
+| 2 | `gaterunner collect \| wc -l` | 83 条断言登记（79 配置门禁 + 4 条 TX 虚构资产 fixture 注册，不冒充真实资产） | ≥70 | ✅ |
+| 3 | `just gate T4 all` | 全部门禁 not_implemented（实现未开始）+ not_impl 计数显式输出，exit 0 | exit=0（not_implemented 不计 pass 不计红，IR #64） | ✅ |
 | 4 | `ls docs/gates/assets \| wc -l` | 16 | =16 | ✅ |
 | 5 | `ls packages/go/*/AGENTS.md` + packages/* 合计 | 22 份（17 go + 2 native + 2 ts + 1 根） | =22 | ✅ |
 | 6 | `git ls-files \| grep -c golden-journeys` | 50 | =50 | ✅ |
+
+说明（IR #64 / ADR-0002）：coverage 现为阶段化执法——0 断言资产输出 `coverage DEBT:` 行（16 资产全部 DEBT，不 FAIL、exit 0），资产首条断言落地即恢复全 BI 覆盖 + G0 强制；`just gate <T>` 为真实 `go test` 调度，门禁状态以 not_implemented 显式单列（不计 pass）。
 
 ⚠️ **完成判据达成**——此后任何开发 agent clone 本仓，读 AGENTS.md → docs/gates/assets/<T>.md → configs/gates/<T>.yaml 即可开工，全程无需人类解释。

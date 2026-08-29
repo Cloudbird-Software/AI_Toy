@@ -16,9 +16,9 @@ import (
 
 func TestCalibrateNoiseBand(t *testing.T) {
 	root := newRunFixture(t)
-	out := filepath.Join(root, "reports", "cal-T4.yaml")
+	out := filepath.Join(root, "reports", "cal-TX.yaml")
 	var stdout, stderr bytes.Buffer
-	code := Main([]string{"calibrate", "--asset", "T4", "--runs", "10",
+	code := Main([]string{"calibrate", "--asset", "TX", "--runs", "10",
 		"--config-dir", filepath.Join(root, "configs", "gates"),
 		"--commit", "abc1234", "--out", out}, &stdout, &stderr)
 	if code != ExitOK || stderr.Len() > 0 {
@@ -37,8 +37,8 @@ func TestCalibrateNoiseBand(t *testing.T) {
 	if err := yaml.Unmarshal(data, &s); err != nil {
 		t.Fatalf("建议 YAML 不可解析: %v\n%s", err, data)
 	}
-	if len(s.NoiseBand) != 3 {
-		t.Fatalf("噪声带 metric 数=%d, want 3: %v", len(s.NoiseBand), s.NoiseBand)
+	if len(s.NoiseBand) != 5 {
+		t.Fatalf("噪声带 metric 数=%d, want 5: %v", len(s.NoiseBand), s.NoiseBand)
 	}
 	for metric, band := range s.NoiseBand {
 		wantMean, wantSigma := evalkit.NoiseBand(calibrateValues("abc1234", metric, 10))
@@ -56,7 +56,7 @@ func TestCalibrateInputErrors(t *testing.T) {
 		name string
 		args []string
 	}{
-		{"runs<2", []string{"calibrate", "--asset", "T4", "--runs", "1", "--config-dir", cfg}},
+		{"runs<2", []string{"calibrate", "--asset", "TX", "--runs", "1", "--config-dir", cfg}},
 		{"资产配置缺失", []string{"calibrate", "--asset", "T9", "--runs", "10", "--config-dir", cfg}},
 		{"asset 缺省", []string{"calibrate", "--runs", "10", "--config-dir", cfg}},
 	}

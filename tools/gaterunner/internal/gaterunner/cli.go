@@ -134,11 +134,18 @@ func cliRun(args []string, stdout, stderr io.Writer) int {
 	for _, id := range rep.Summary.FailIDs {
 		fmt.Fprintf(stderr, "红: %s（%s）\n", id, levelOf(rep, id))
 	}
+	for _, id := range rep.Summary.NotImpl {
+		fmt.Fprintf(stderr, "未实现: %s（%s）\n", id, levelOf(rep, id))
+	}
 	for _, ex := range rep.ExemptionsApplied {
 		fmt.Fprintf(stderr, "豁免: %s\n", ex)
 	}
-	fmt.Fprintf(stderr, "gaterunner run: asset=%s suite=%s commit=%s g0=%s g1=%s g2=%s → exit %d\n",
-		rep.Asset, rep.Suite, rep.Commit, rep.Summary.G0, rep.Summary.G1, rep.Summary.G2, exit)
+	fmt.Fprintf(stderr, "gaterunner run: asset=%s suite=%s commit=%s g0=%s g1=%s g2=%s not_impl=%d → exit %d\n",
+		rep.Asset, rep.Suite, rep.Commit, rep.Summary.G0, rep.Summary.G1, rep.Summary.G2,
+		len(rep.Summary.NotImpl), exit)
+	if n := len(rep.Summary.NotImpl); n > 0 {
+		fmt.Fprintf(stderr, "not_implemented: %d 门禁（实现未开始，不计 pass）\n", n)
+	}
 	return exit
 }
 
