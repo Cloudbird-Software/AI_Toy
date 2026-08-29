@@ -1,10 +1,10 @@
 {
   "asset": "T1",
   "suite": "nightly",
-  "commit": "7a0c972bd5f28f697a09af279eed6c4417d3c88c",
+  "commit": "19eb0299044f9bdeee3620b0d4b8cd5593193774",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-29T02:17:56Z",
+  "timestamp": "2026-08-29T02:41:22Z",
   "results": [
     {
       "id": "T1-G1-01",
@@ -15,9 +15,9 @@
       "evidence_hours": 0,
       "upper95": 0,
       "threshold": 1,
-      "verdict": "exempt",
+      "verdict": "debt",
       "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -run ^TestT1AssertionRegistrationRate$ ./tests/meta"
+      "evidence": "go test -count=1 -v -run ^TestT1AssertionRegistrationRate$ ./tests/meta"
     },
     {
       "id": "T1-G1-02",
@@ -30,7 +30,7 @@
       "threshold": 1,
       "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -run ^TestT1RerunInBandRate$ ./tests/meta"
+      "evidence": "go test -count=1 -v -run ^TestT1RerunInBandRate$ ./tests/meta"
     },
     {
       "id": "T1-G0-01",
@@ -43,7 +43,7 @@
       "threshold": 0,
       "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -run ^TestT1MixedPRCount$ ./tests/meta"
+      "evidence": "go test -count=1 -v -run ^TestT1MixedPRCount$ ./tests/meta"
     },
     {
       "id": "T1-G1-03",
@@ -56,7 +56,7 @@
       "threshold": 1,
       "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -run ^TestT1ReproducibleRecordRate$ ./tests/meta"
+      "evidence": "go test -count=1 -v -run ^TestT1ReproducibleRecordRate$ ./tests/meta"
     }
   ],
   "summary": {
@@ -64,9 +64,10 @@
     "g1": "pass",
     "g2": "n/a",
     "fail_ids": [],
-    "not_impl_ids": []
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T1-G1-01"
+    ]
   },
-  "exemptions_applied": [
-    "T1-G1-01@2026-09-28"
-  ]
+  "exemptions_applied": []
 }

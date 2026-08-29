@@ -1,6 +1,7 @@
 // coverage 契约测试（spec §3.8，IR #64 阶段化执法 ADR-0002）：全齐→0；缺 BI/缺
 // G0 → 20（同资产有其他断言即全执法）；孤儿断言→20；0 断言资产→DEBT 行（stdout，
-// 不 FAIL）→0；not_implemented/warn 报告条目不计入登记表；坏 JSON→2；双空→0。
+// 不 FAIL）→0；not_implemented/warn 报告条目不计入登记表（debt 计入——IR #76：
+// 已注册测试接线、处部分实现态）；坏 JSON→2；双空→0。
 package repoctl
 
 import (
@@ -112,6 +113,20 @@ func TestCoverageZeroAssertionsIsDebtNotFail(t *testing.T) {
 		covRow("T4-G1-01", "BI-4.1", "G1", "not_implemented")))
 	if code != ExitViolation || !strings.Contains(errOut, "T4: BI BI-4.1 无任何断言") {
 		t.Fatalf("混合: exit = %d, stderr = %q", code, errOut)
+	}
+
+	// e. debt 条目计入登记表（IR #76：真实测试接线、部分实现态）→ 资产进入
+	// 全执法（本例全 BI 覆盖且含 G0 → exit 0，不是 DEBT）。
+	code, out, errOut = runRepoctl(t, covSetup(t,
+		covRow("T4-G0-01", "BI-4.2", "G0", "debt"),
+		covRow("T4-G1-01", "BI-4.1", "G1", "debt")))
+	if code != ExitOK || strings.Contains(out, "DEBT") || !strings.Contains(out, "1 资产 / 2 断言") {
+		t.Fatalf("全 debt: exit = %d, out = %q, stderr = %q", code, out, errOut)
+	}
+	// f. debt + 缺 BI（仅 debt 计入，BI-4.1 无任何条目）→ 仍全执法 FAIL 20。
+	code, _, errOut = runRepoctl(t, covSetup(t, covRow("T4-G0-01", "BI-4.2", "G0", "debt")))
+	if code != ExitViolation || !strings.Contains(errOut, "T4: BI BI-4.1 无任何断言") {
+		t.Fatalf("debt 缺 BI: exit = %d, stderr = %q", code, errOut)
 	}
 }
 

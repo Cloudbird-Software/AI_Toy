@@ -1,9 +1,10 @@
 // run 契约测试（spec §3.1，IR #64 真实调度）：ExecuteRun 以 ScanMarks 登记表为真源——
-// 门禁 id 命中注册测试 → 实跑 `go test -count=1 -run ^Test$ pkg`（退出码=verdict、
-// evidence=实际命令）；未命中 → not_implemented（不算 pass 也不算 fail，exit 0 且
-// not_impl 计数显式单列）。退出码矩阵（全绿 0 / G0 红 10 / G1 红 20 / 仅 G2 30 /
-// 配置错 2 / G1 豁免 0）。fixture 一律用虚构资产 TX（与真实资产 T1–T20 不冲突——
-// 本文件字面量被 ScanMarks 扫到也只登记 TX 行，不冒充真实断言）。
+// 门禁 id 命中注册测试 → 实跑 `go test -count=1 -v -run ^Test$ pkg`（退出码 + -v
+// 输出 SKIP 解析=verdict、evidence=实际命令；顶层 t.Skip → debt——IR #76：不计
+// pass 不阻断、debt_ids 单列）；未命中 → not_implemented（不算 pass 也不算 fail，
+// exit 0 且 not_impl 计数显式单列）。退出码矩阵（全绿 0 / G0 红 10 / G1 红 20 /
+// 仅 G2 30 / 配置错 2 / G1 豁免 0 / debt 0）。fixture 一律用虚构资产 TX（与真实
+// 资产 T1–T20 不冲突——本文件字面量被 ScanMarks 扫到也只登记 TX 行，不冒充真实断言）。
 package gaterunner
 
 import (
@@ -170,11 +171,11 @@ func TestRunRealDispatchExitMatrix(t *testing.T) {
 	}
 	byID := resultByID(t, rep)
 	if r := byID["TX-G0-01"]; r["verdict"] != "pass" ||
-		r["evidence"] != "go test -count=1 -run ^TestTXGateGreen$ ./pkg" {
+		r["evidence"] != "go test -count=1 -v -run ^TestTXGateGreen$ ./pkg" {
 		t.Fatalf("TX-G0-01（注册测试实跑绿）: %v", r)
 	}
 	if r := byID["TX-G0-02"]; r["verdict"] != "fail" ||
-		r["evidence"] != "go test -count=1 -run ^TestTXGateRed$ ./pkg" {
+		r["evidence"] != "go test -count=1 -v -run ^TestTXGateRed$ ./pkg" {
 		t.Fatalf("TX-G0-02（注册测试实跑红）: %v", r)
 	}
 	if r := byID["TX-G1-02"]; r["verdict"] != "not_implemented" || r["evidence"] != "" {
@@ -334,7 +335,7 @@ func TestRunReportSchema(t *testing.T) {
 		t.Errorf("verdict/rule = %v/%v（实跑判定）", r0["verdict"], r0["statistical_rule"])
 	}
 	s := summaryOf(t, rep)
-	for _, k := range []string{"g0", "g1", "g2", "fail_ids", "not_impl_ids"} {
+	for _, k := range []string{"g0", "g1", "g2", "fail_ids", "not_impl_ids", "debt_ids"} {
 		if _, ok := s[k]; !ok {
 			t.Errorf("summary 缺字段 %q: %v", k, s)
 		}
@@ -380,5 +381,82 @@ func TestRunReportToStdout(t *testing.T) {
 	}
 	if rep.Asset != "TX" || len(rep.Results) != 5 {
 		t.Fatalf("asset=%q results=%d", rep.Asset, len(rep.Results))
+	}
+}
+
+// debtFixGo debt verdict fixture（IR #76）：顶层 t.Skip（冷启动）→ debt；子测试
+// SKIP 而父测试 pass → 不得误判 debt（测试名精确匹配防子测试误命中父名）。
+const debtFixGo = `package kws
+
+import "testing"
+
+// stubGate 占位登记器：Mark 调用文本须与 gaterunner.ScanMarks 扫描正则一致。
+type stubGate struct{}
+
+func (stubGate) Mark(t testing.TB, asset, bi, id, level string) {}
+
+var gaterunner = stubGate{}
+
+func TestTXGateSubSkipPass(t *testing.T) {
+	gaterunner.Mark(t, "TX", "BI-X.1", "TX-G0-01", "G0")
+	t.Run("sub", func(t *testing.T) { t.Skip("子测试 SKIP：父测试仍 pass，不得误判 debt") })
+}
+
+func TestTXGateColdStartDebt(t *testing.T) {
+	gaterunner.Mark(t, "TX", "BI-X.2", "TX-G1-01", "G1")
+	t.Skip("冷启动 DEBT（ADR-0002）：随资产接线自然消解")
+}
+`
+
+// debtYAML debt fixture 配置：G1 仅一条（顶层 SKIP → debt-only 级状态专用）。
+const debtYAML = `asset: TX
+name: 虚构资产（fixture debt）
+updated: "2026-08-29"
+noise_band: {}
+gates:
+  - {id: TX-G0-01, bi: BI-X.1, level: G0, metric: sub_skip_guard, op: "==", threshold: 0, src: product, rule: metric, suite: [ci]}
+  - {id: TX-G1-01, bi: BI-X.2, level: G1, metric: partial_impl_rate, op: ">=", threshold: 1.0, src: product, rule: metric, suite: [ci]}
+`
+
+// 7. debt verdict（IR #76，ADR-0002 阶段化）：注册测试顶层 t.Skip → verdict=debt
+// （-v 输出解析——SKIP 退出码为 0，须靠 `--- SKIP: <Test>` 行区分）；子测试 SKIP
+// 而父测试 pass → 不误判；debt 不计 pass 不阻断（exit 0）、debt_ids 单列、级内
+// 已接线门禁全为 debt → 级状态 debt（不声称 pass）。
+func TestRunDebtVerdictFromSkip(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "go.mod"), gateFixMod)
+	writeFile(t, filepath.Join(root, "configs", "gates", "TX.yaml"), debtYAML)
+	writeFile(t, filepath.Join(root, "docs", "gates", "assets", "TX.md"), txDoc)
+	writeFile(t, filepath.Join(root, "pkg", "gates_test.go"), debtFixGo)
+
+	code, out, errOut := runGate(t, root)
+	if code != ExitOK {
+		t.Fatalf("debt 不阻断: exit=%d, want 0（stderr=%q）", code, errOut)
+	}
+	if out != "" {
+		t.Fatalf("--report 落文件时 stdout 须为空: %q", out)
+	}
+	rep := readReport(t, filepath.Join(root, "reports", "gates", "TX.json"))
+	byID := resultByID(t, rep)
+	if r := byID["TX-G1-01"]; r["verdict"] != "debt" ||
+		r["evidence"] != "go test -count=1 -v -run ^TestTXGateColdStartDebt$ ./pkg" {
+		t.Fatalf("TX-G1-01（顶层 t.Skip → debt）: %v", r)
+	}
+	if r := byID["TX-G0-01"]; r["verdict"] != "pass" {
+		t.Fatalf("TX-G0-01（子测试 SKIP 不误判 debt，父测试 pass）: %v", r)
+	}
+	s := summaryOf(t, rep)
+	if ids := s["debt_ids"].([]any); len(ids) != 1 || ids[0] != "TX-G1-01" {
+		t.Fatalf("debt_ids=%v", ids)
+	}
+	if len(s["fail_ids"].([]any)) != 0 || len(s["not_impl_ids"].([]any)) != 0 {
+		t.Fatalf("debt 不入 fail/not_impl: %v", s)
+	}
+	if s["g0"] != "pass" || s["g1"] != "debt" || s["g2"] != "n/a" {
+		t.Fatalf("debt-only 级状态 summary=%v（不得声称 pass）", s)
+	}
+	if !strings.Contains(errOut, "g1=debt") ||
+		!strings.Contains(errOut, "debt: 1 门禁（部分实现/冷启动，不计 pass 不阻断）") {
+		t.Fatalf("缺 debt 计数行: %q", errOut)
 	}
 }
