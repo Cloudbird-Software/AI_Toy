@@ -1,0 +1,84 @@
+{
+  "asset": "T16",
+  "suite": "ci",
+  "commit": "a32973e102d97c70b74f8608b8b7af2e5163cc12",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T11:48:35Z",
+  "results": [
+    {
+      "id": "T16-G1-01",
+      "bi": "BI-16.3",
+      "level": "G1",
+      "metric": "pack_isolation_spill_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT16G101IsolationSpill$ ./packages/go/scenepack"
+    },
+    {
+      "id": "T16-G1-02",
+      "bi": "BI-16.1",
+      "level": "G1",
+      "metric": "pack_schema_pass_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT16G102PackIntegrity$ ./packages/go/scenepack"
+    },
+    {
+      "id": "T16-G0-01",
+      "bi": "BI-16.2",
+      "level": "G0",
+      "metric": "pack_content_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT16G001ContentSafety$ ./packages/go/scenepack"
+    },
+    {
+      "id": "T16-G0-02",
+      "bi": "BI-16.3",
+      "level": "G0",
+      "metric": "install_residue_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT16G002InstallAtomicity$ ./packages/go/scenepack"
+    },
+    {
+      "id": "T16-G1-03",
+      "bi": "BI-16.2",
+      "level": "G1",
+      "metric": "pack_eval_execution_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT16G103EvalLedger$ ./packages/go/scenepack"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": []
+  },
+  "exemptions_applied": []
+}
