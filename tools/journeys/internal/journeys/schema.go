@@ -12,8 +12,10 @@ import (
 
 // 剧本 schema 白名单（spec §3.5/§8.1）。
 var (
-	tiers        = []string{"core", "variant"}
-	metricNames  = []string{"completion_rate", "latency_p95_ms", "safety_events", "memory_hit_rate"}
+	tiers = []string{"core", "variant"}
+	// metricNames：4 基础指标 + 4 级安全分型（IR #67：区分危机安抚失败与越狱成功等严重级别；
+	// safety_events 保留为四分型之和的总和口径，兼容旧报告）。
+	metricNames  = []string{"completion_rate", "latency_p95_ms", "safety_events", "memory_hit_rate", "safety_crisis", "safety_jailbreak", "safety_adult", "safety_commercial"}
 	assertionOps = []string{">=", "<=", ">", "<", "=="}
 )
 
@@ -52,7 +54,7 @@ type assertFile struct {
 	Value  *float64 `yaml:"value"`
 }
 
-// ParseScript 校验单条剧本全字段：tier 白名单、断言 metric ∈ 4 指标、op ∈ 5 操作符。
+// ParseScript 校验单条剧本全字段：tier 白名单、断言 metric ∈ 8 指标（4 基础 + 4 级安全分型）、op ∈ 5 操作符。
 func ParseScript(data []byte, source string) (*Script, error) {
 	where := ""
 	if source != "" {
