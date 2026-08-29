@@ -1,0 +1,90 @@
+{
+  "asset": "T4",
+  "suite": "ci",
+  "commit": "ebe423dfe0c34451c4e026cfc0884fa41ea76907",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T03:58:24Z",
+  "results": [
+    {
+      "id": "T4-G0-01",
+      "bi": "BI-4.2",
+      "level": "G0",
+      "metric": "false_wake_per_hour",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.5,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT4FalseWakePerHour$ ./packages/go/kws"
+    },
+    {
+      "id": "T4-G0-02",
+      "bi": "BI-4.2",
+      "level": "G0",
+      "metric": "adversarial_trigger_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT4AdversarialTriggerCount$ ./packages/go/kws"
+    },
+    {
+      "id": "T4-G1-01",
+      "bi": "BI-4.1",
+      "level": "G1",
+      "metric": "wake_rate_near",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.97,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT4WakeRateNear$ ./packages/go/kws"
+    },
+    {
+      "id": "T4-G1-02",
+      "bi": "BI-4.1",
+      "level": "G1",
+      "metric": "child_adult_wake_rate_gap",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.05,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT4ChildAdultWakeRateGap$ ./packages/go/kws"
+    },
+    {
+      "id": "T4-G1-03",
+      "bi": "BI-4.3",
+      "level": "G1",
+      "metric": "rtf",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.1,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT4RTF$ ./packages/go/kws"
+    }
+  ],
+  "summary": {
+    "g0": "debt",
+    "g1": "debt",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T4-G0-01",
+      "T4-G0-02",
+      "T4-G1-01",
+      "T4-G1-02",
+      "T4-G1-03"
+    ]
+  },
+  "exemptions_applied": []
+}
