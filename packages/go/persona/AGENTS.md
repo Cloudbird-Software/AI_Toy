@@ -2,6 +2,8 @@
 验收协议：docs/gates/assets/T8.md（先读，BI 编号以它为准）　阈值：configs/gates/T8.yaml（禁改）
 ## 本包边界
 角色卡 → 可执行人格配置的编译器：assets-packs 人格卡进 → system prompt+few-shot+采样参数+词表约束出。对接 T9（人格安全编译检查联跑）、T16（角色=数据包）、T13（换声联动 rubric-13a）。
+## 实现状态（M2，IR #93 已落地）
+核心已实现（m2-spec §6 包契约 E 路径 A）：人格卡 YAML schema（Big5/口癖/语气规则/禁忌表/价值观/亲密度）Load+校验（越界拒绝）；Compile 确定性编译→ConstraintSet（SystemSeg/Lexicon/Sampling/Hash，同卡同哈希）；Apply=禁忌词表过滤（残留=0）+口癖确定性注入位。产物=Responder 注入面（loop 未接线，M1 桩接口不动）。BAML 首批提示词纯落盘 baml/prompts（Go 侧零接线，ADR-0005）。门禁 5 条：T8-G1-01/T8-G0-01 真实 pass、T8-G1-02/03/04 debt（LLM 问卷面待 BAML 真接线），报告 reports/gates/T8.json。#91 合并后 T8-G0-01 追加与 safety.Engine 真实联跑面。
 ## 技术路径（指导，任选+可偏离，PR 记录选择）
 A 结构化人格 DSL（大五值+口癖表+台词锚点+话题偏好+禁忌）→ 确定性编译（可 diff 可版本化，模型无关，默认）｜B RoleLLM/RoleBench 角色微调（每角一训、绑定模型版本，与「角色=数据包」冲突，仅 1–2 旗舰角色）｜C 双通道=A 打底+风格 LoRA 只管「怎么说话」（可整体摘除回退）
 ## 本地命令
