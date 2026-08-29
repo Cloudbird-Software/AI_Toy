@@ -1,0 +1,103 @@
+{
+  "asset": "T3",
+  "suite": "ci",
+  "commit": "b69bd370449be4736187d1c027259145c747a2c2",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T04:27:11Z",
+  "results": [
+    {
+      "id": "T3-G1-01",
+      "bi": "BI-3.1",
+      "level": "G1",
+      "metric": "miscut_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.08,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT3G101MiscutRate$ ./packages/go/turntaking"
+    },
+    {
+      "id": "T3-G1-02",
+      "bi": "BI-3.1",
+      "level": "G1",
+      "metric": "response_first_packet_p95_ms",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 900,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT3G102ResponseFirstPacket$ ./packages/go/turntaking"
+    },
+    {
+      "id": "T3-G0-01",
+      "bi": "BI-3.2",
+      "level": "G0",
+      "metric": "interrupt_detect_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT3G001InterruptDetectRate$ ./packages/go/turntaking"
+    },
+    {
+      "id": "T3-G1-03",
+      "bi": "BI-3.2",
+      "level": "G1",
+      "metric": "context_retention_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.9,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT3G103ContextRetention$ ./packages/go/turntaking"
+    },
+    {
+      "id": "T3-G1-04",
+      "bi": "BI-3.3",
+      "level": "G1",
+      "metric": "midpause_miscut_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.08,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT3G104MidpauseTolerance$ ./packages/go/turntaking"
+    },
+    {
+      "id": "T3-G0-02",
+      "bi": "BI-3.1",
+      "level": "G0",
+      "metric": "silence_noise_trigger_per_hour",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.5,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT3G002SilenceNoiseTrigger$ ./packages/go/turntaking"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "debt",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T3-G1-01",
+      "T3-G1-02",
+      "T3-G1-03",
+      "T3-G1-04",
+      "T3-G0-02"
+    ]
+  },
+  "exemptions_applied": []
+}
