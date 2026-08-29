@@ -43,7 +43,7 @@ jobs:
       - uses: ./.github/actions/setup-go
       - run: go run ./tools/journeys/cmd/journeys run --set golden --seeds 3 --out reports/nightly/journeys.json
 
-  latency:
+  latency: # 组合冒烟（IR #95 / m2-spec §9）：loop 冒烟（唤醒→对话→出声×30）现场生成 latency.json → budgets check 守恒消费（ΣP95−overlap≤1500）
     runs-on: [self-hosted, gpu]
     timeout-minutes: 30
     steps:
@@ -51,6 +51,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-go
+      - run: go run ./tools/budgets/cmd/latency-smoke -out reports/nightly/latency.json -turns 30
       - run: go run ./tools/budgets/cmd/budgets check --report reports/nightly/latency.json
 
   chaos:

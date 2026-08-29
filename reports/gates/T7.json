@@ -1,10 +1,10 @@
 {
   "asset": "T7",
-  "suite": "ci",
-  "commit": "02491cafb9b17c06ba87e845b4e4c6c8130e51c9",
+  "suite": "nightly",
+  "commit": "394399d7a58a15698185909e264e44205f8eb68c",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-29T07:08:30Z",
+  "timestamp": "2026-08-29T08:07:00Z",
   "results": [
     {
       "id": "T7-G1-01",

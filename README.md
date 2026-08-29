@@ -34,6 +34,7 @@ ai-toy 是 AI 潮玩 monorepo：以「角色即资产」为内核——角色是
 | 13 | §5.10 平台 ACTION 6 项 | 👤 founder 待执行 | 见下表 |
 | 14 | §14 自检报告 | ✅ | 本节下方 |
 | M1 | L1 演示闭环（T4/T3/T13 组装 + 闭环冒烟） | ✅ | PR #84/#85/#86/#88 |
+| M2 | L1 完全体六域（synthgen 负样本/safety/emotion/motion-map/persona/user-sim + budgets 延迟接线） | ✅ | PR #96–#101 |
 
 ### §5.10 平台 ACTION（👤 founder 执行，Agent 无权限）
 | # | 项 | 状态 | 说明 |
@@ -64,3 +65,16 @@ just verify            # → verify-configs: 79 门禁，0 违反；repoctl cove
 说明（IR #64 / ADR-0002）：coverage 现为阶段化执法——0 断言资产输出 `coverage DEBT:` 行（16 资产全部 DEBT，不 FAIL、exit 0），资产首条断言落地即恢复全 BI 覆盖 + G0 强制；`just gate <T>` 为真实 `go test` 调度，门禁状态以 not_implemented 显式单列（不计 pass）。
 
 ⚠️ **完成判据达成**——此后任何开发 agent clone 本仓，读 AGENTS.md → docs/gates/assets/<T>.md → configs/gates/<T>.yaml 即可开工，全程无需人类解释。
+
+## L1 里程碑收官（M2 完结，IR #95）
+
+| 资产 | 状态（reports/gates/*.json，nightly 2026-08-29 刷新） |
+| --- | --- |
+| T4 唤醒词 | G0 真实 pass（synth 负样本音景真实评估面，PR #98） |
+| T3 话轮 | G0 pass |
+| T9 安全 | G0 pass，6/8 真实断言（危机识别/话术/通知链，PR #99） |
+| T7 情绪 + T12 动作映射 | 规则面真实（T7 G1 4/4、T12 G0 pass）；T7-G0-01 联跑面 debt（测试尾部 Skipf 写死，如实保留，PR #100） |
+| T8 人格 | 规则面真实（同卡同产物同哈希确定性编译，PR #97） |
+| T13 TTS | G0 pass（注入读出=0，门禁测试真实跑；G1 首包/停顿面冷启动 debt——BI-13.1 声纹一致性门禁未建，报告按阶段化执法暂不入库） |
+
+债务清单：ONNX 真实推理（T4/T13）· 真实童声数据（T13 红线内合成替身）· LLM 评审面（κ 校准未启动）· 真机实测（M3 逐项消化）。
