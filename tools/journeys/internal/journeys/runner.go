@@ -10,21 +10,75 @@ import (
 	"time"
 )
 
-// Metrics 旅程级聚合指标（spec §3.5 四指标）。
+// Metrics 旅程级聚合指标（spec §3.5 四指标 + IR #67 四级安全分型；
+// SafetyEvents 为四分型之和的总和口径，兼容旧报告）。
 type Metrics struct {
-	CompletionRate float64 `json:"completion_rate"`
-	LatencyP95MS   float64 `json:"latency_p95_ms"`
-	SafetyEvents   int     `json:"safety_events"`
-	MemoryHitRate  float64 `json:"memory_hit_rate"`
+	CompletionRate   float64 `json:"completion_rate"`
+	LatencyP95MS     float64 `json:"latency_p95_ms"`
+	SafetyEvents     int     `json:"safety_events"`
+	SafetyCrisis     int     `json:"safety_crisis"`
+	SafetyJailbreak  int     `json:"safety_jailbreak"`
+	SafetyAdult      int     `json:"safety_adult"`
+	SafetyCommercial int     `json:"safety_commercial"`
+	MemoryHitRate    float64 `json:"memory_hit_rate"`
 }
 
-// RunResult 单 seed 运行观测。
+// RunResult 单 seed 运行观测（安全事件按四级分型计数，SafetyEvents=四分型之和）。
 type RunResult struct {
-	Seed           int     `json:"seed"`
-	CompletionRate float64 `json:"completion_rate"`
-	LatencyMS      float64 `json:"latency_ms"`
-	SafetyEvents   int     `json:"safety_events"`
-	MemoryHit      bool    `json:"memory_hit"`
+	Seed             int     `json:"seed"`
+	CompletionRate   float64 `json:"completion_rate"`
+	LatencyMS        float64 `json:"latency_ms"`
+	SafetyEvents     int     `json:"safety_events"`
+	SafetyCrisis     int     `json:"safety_crisis"`
+	SafetyJailbreak  int     `json:"safety_jailbreak"`
+	SafetyAdult      int     `json:"safety_adult"`
+	SafetyCommercial int     `json:"safety_commercial"`
+	MemoryHit        bool    `json:"memory_hit"`
+}
+
+// safetyTierKinds 注入事件 kind → 四级分型 metric（IR #67）；
+// crisis_direct/crisis_metaphor 同归危机档（危机安抚失败）。
+var safetyTierKinds = map[string]string{
+	"crisis_direct":        "safety_crisis",
+	"crisis_metaphor":      "safety_crisis",
+	"jailbreak_induction":  "safety_jailbreak",
+	"adult_topic":          "safety_adult",
+	"commercial_induction": "safety_commercial",
+}
+
+// tierCounts 四级安全分型计数。
+type tierCounts struct{ crisis, jailbreak, adult, commercial int }
+
+// total 返回四分型之和（= safety_events 总和口径）。
+func (t tierCounts) total() int {
+	return t.crisis + t.jailbreak + t.adult + t.commercial
+}
+
+// add 按分型 metric 名计数。
+func (t *tierCounts) add(metric string) {
+	switch metric {
+	case "safety_jailbreak":
+		t.jailbreak++
+	case "safety_adult":
+		t.adult++
+	case "safety_commercial":
+		t.commercial++
+	default: // safety_crisis
+		t.crisis++
+	}
+}
+
+// safetyEventMetric 从注入事件声明提取 kind 并映射到分型 metric；
+// 缺失/未知 kind 保守计入最严重的危机档（宁可多计不可漏计）。
+func safetyEventMetric(ev any) string {
+	if m, ok := ev.(map[string]any); ok {
+		if k, ok := m["kind"].(string); ok {
+			if tier, ok := safetyTierKinds[k]; ok {
+				return tier
+			}
+		}
+	}
+	return "safety_crisis"
 }
 
 // AssertionResult 断言逐条评估。
@@ -88,14 +142,18 @@ func simulateRun(s *Script, seed int) RunResult {
 		completed = rng.Intn(len(s.Steps))
 	}
 	latency := 400 + rng.Float64()*1000
-	events := 0
-	for range s.Inject.SafetyEvents {
+	// 类型感知注入：每条声明事件按其 kind 分入对应分型；随机数消耗顺序与
+	// 2% 注入概率不变，保证分型改造前后红绿一致（红绿只由种子决定）。
+	var tiers tierCounts
+	for _, ev := range s.Inject.SafetyEvents {
 		if rng.Float64() < 0.02 {
-			events++
+			tiers.add(safetyEventMetric(ev))
 		}
 	}
 	return RunResult{Seed: seed, CompletionRate: round(float64(completed)/float64(len(s.Steps)), 4),
-		LatencyMS: round(latency, 1), SafetyEvents: events, MemoryHit: rng.Float64() < 0.95}
+		LatencyMS: round(latency, 1), SafetyEvents: tiers.total(),
+		SafetyCrisis: tiers.crisis, SafetyJailbreak: tiers.jailbreak,
+		SafetyAdult: tiers.adult, SafetyCommercial: tiers.commercial, MemoryHit: rng.Float64() < 0.95}
 }
 
 func round(x float64, digits int) float64 {
@@ -103,15 +161,19 @@ func round(x float64, digits int) float64 {
 	return math.Round(x*p) / p
 }
 
-// AggregateRuns 聚合单旅程多 seed 运行：完成率/记忆命中率取均值，延迟取 P95，安全事件求和。
+// AggregateRuns 聚合单旅程多 seed 运行：完成率/记忆命中率取均值，延迟取 P95，
+// 安全事件按四级分型求和（SafetyEvents=四分型之和的总和口径）。
 func AggregateRuns(runs []RunResult) Metrics {
 	latencies := make([]float64, len(runs))
 	var completion, hits float64
-	var events int
+	var tiers tierCounts
 	for i, r := range runs {
 		latencies[i] = r.LatencyMS
 		completion += r.CompletionRate
-		events += r.SafetyEvents
+		tiers.crisis += r.SafetyCrisis
+		tiers.jailbreak += r.SafetyJailbreak
+		tiers.adult += r.SafetyAdult
+		tiers.commercial += r.SafetyCommercial
 		if r.MemoryHit {
 			hits++
 		}
@@ -119,13 +181,17 @@ func AggregateRuns(runs []RunResult) Metrics {
 	slices.Sort(latencies)
 	p95 := latencies[max(1, int(math.Ceil(0.95*float64(len(latencies)))))-1]
 	return Metrics{CompletionRate: round(completion/float64(len(runs)), 4), LatencyP95MS: round(p95, 1),
-		SafetyEvents: events, MemoryHitRate: round(hits/float64(len(runs)), 4)}
+		SafetyEvents: tiers.total(), SafetyCrisis: tiers.crisis, SafetyJailbreak: tiers.jailbreak,
+		SafetyAdult: tiers.adult, SafetyCommercial: tiers.commercial,
+		MemoryHitRate: round(hits/float64(len(runs)), 4)}
 }
 
 // EvaluateAssertions 逐条评估断言，记录观测值与 pass。
 func EvaluateAssertions(m Metrics, assertions []Assertion) []AssertionResult {
 	observed := map[string]float64{"completion_rate": m.CompletionRate, "latency_p95_ms": m.LatencyP95MS,
-		"safety_events": float64(m.SafetyEvents), "memory_hit_rate": m.MemoryHitRate}
+		"safety_events": float64(m.SafetyEvents), "safety_crisis": float64(m.SafetyCrisis),
+		"safety_jailbreak": float64(m.SafetyJailbreak), "safety_adult": float64(m.SafetyAdult),
+		"safety_commercial": float64(m.SafetyCommercial), "memory_hit_rate": m.MemoryHitRate}
 	results := make([]AssertionResult, len(assertions))
 	for i, a := range assertions {
 		results[i] = AssertionResult{Metric: a.Metric, Op: a.Op, Value: a.Value,

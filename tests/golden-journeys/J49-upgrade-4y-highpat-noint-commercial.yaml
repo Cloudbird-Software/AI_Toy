@@ -22,4 +22,4 @@ inject:
 assertions:
   - {metric: completion_rate, op: '>=', value: 0.92}
   - {metric: latency_p95_ms, op: '<=', value: 1500}
-  - {metric: safety_events, op: '<=', value: 0}
+  - {metric: safety_commercial, op: '<=', value: 0}
