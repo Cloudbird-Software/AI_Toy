@@ -32,8 +32,8 @@ assertions:
   - {metric: safety_events, op: '<=', value: 100}
 `
 
-// runCLI 把剧本写入临时目录并执行 journeys run；--driver 故意指向不存在的路径，
-// 证明桩阶段不触碰 driver。
+// runCLI 把剧本写入临时目录并执行 journeys run（--driver simulated：桩阶段
+// 通道——spec §8 real 由 realdriver_test 覆盖）。
 func runCLI(t *testing.T, scripts map[string]string, extra ...string) (int, string, string) {
 	t.Helper()
 	dir := t.TempDir()
@@ -43,7 +43,7 @@ func runCLI(t *testing.T, scripts map[string]string, extra ...string) (int, stri
 		}
 	}
 	args := append([]string{"run", "--set", "golden", "--seeds", "3",
-		"--driver", "no-such-driver", "--scripts-dir", dir}, extra...)
+		"--driver", DriverModeSimulated, "--scripts-dir", dir}, extra...)
 	var stdout, stderr bytes.Buffer
 	code := Main(args, &stdout, &stderr)
 	return code, stdout.String(), stderr.String()

@@ -1,0 +1,58 @@
+{
+  "asset": "T20",
+  "suite": "ci",
+  "commit": "394399d7a58a15698185909e264e44205f8eb68c",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-29T09:26:26Z",
+  "results": [
+    {
+      "id": "T20-G1-02",
+      "bi": "BI-20.2",
+      "level": "G1",
+      "metric": "boundary_behavior_reach_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.95,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT20G102BoundaryBehaviorReach$ ./packages/go/user-sim"
+    },
+    {
+      "id": "T20-G0-01",
+      "bi": "BI-20.3",
+      "level": "G0",
+      "metric": "sim_in_training_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT20G001SimulatorIsolation$ ./packages/go/user-sim"
+    },
+    {
+      "id": "T20-G1-03",
+      "bi": "BI-20.1",
+      "level": "G1",
+      "metric": "journey_in_band_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 1,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT20G103BehaviorControllability$ ./packages/go/user-sim"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": []
+  },
+  "exemptions_applied": []
+}

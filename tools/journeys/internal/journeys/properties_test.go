@@ -39,13 +39,13 @@ func TestSameSeedsSameScriptsProduceIdenticalOutput(t *testing.T) {
 	}
 	for _, seeds := range []int{1, 3, 8} {
 		t.Run(fmt.Sprintf("seeds=%d", seeds), func(t *testing.T) {
-			first, err := Run(scripts, seeds, "golden", "packages/go/user-sim")
+			first, err := Run(scripts, seeds, "golden", DriverModeSimulated)
 			if err != nil {
 				t.Fatal(err)
 			}
 			// 逆序输入：证明各旅程结果不依赖处理位置（无共享随机态）。
 			reversed := []*Script{scripts[2], scripts[1], scripts[0]}
-			second, err := Run(reversed, seeds, "golden", "packages/go/user-sim")
+			second, err := Run(reversed, seeds, "golden", DriverModeSimulated)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -64,7 +64,7 @@ func TestSeedCountMatchesPerJourneyRuns(t *testing.T) {
 	scripts := []*Script{propScript("J200-a", "core", "high", 4, 0), propScript("J201-b", "variant", "low", 2, 1)}
 	for seeds := 1; seeds <= 8; seeds++ {
 		t.Run(fmt.Sprintf("seeds=%d", seeds), func(t *testing.T) {
-			rep, err := Run(scripts, seeds, "golden", "packages/go/user-sim")
+			rep, err := Run(scripts, seeds, "golden", DriverModeSimulated)
 			if err != nil {
 				t.Fatal(err)
 			}
