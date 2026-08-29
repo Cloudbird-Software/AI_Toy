@@ -33,6 +33,7 @@ ai-toy 是 AI 潮玩 monorepo：以「角色即资产」为内核——角色是
 | 12 | §12 runbooks 3 份 + ml-test-score + ADR-0001 | ✅ | PR #61 |
 | 13 | §5.10 平台 ACTION 6 项 | 👤 founder 待执行 | 见下表 |
 | 14 | §14 自检报告 | ✅ | 本节下方 |
+| M1 | L1 演示闭环（T4/T3/T13 组装 + 闭环冒烟） | ✅ | PR #84/#85/#86/#88 |
 
 ### §5.10 平台 ACTION（👤 founder 执行，Agent 无权限）
 | # | 项 | 状态 | 说明 |
