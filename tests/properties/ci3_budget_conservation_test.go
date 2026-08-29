@@ -29,7 +29,7 @@ func TestCI3_BudgetWithin1500(t *testing.T) {
 			segs[i] = BudgetSegment{Name: "s", P95: p95, Overlap: overlap}
 			sumP95 += p95
 		}
-		total := BudgetTotal(segs)
+		total := testBudget.BudgetTotal(segs)
 		if total < 0 {
 			return false
 		}
@@ -94,7 +94,7 @@ func TestCI3_TotalExact(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := BudgetTotal(c.segs)
+			got := testBudget.BudgetTotal(c.segs)
 			if got != c.want {
 				t.Errorf("BudgetTotal=%d want %d", got, c.want)
 			}
@@ -113,7 +113,7 @@ func TestCI3_TwoSigmaRedOnNoReallocation(t *testing.T) {
 			base[i] = 470 + r.Intn(61) // 470..530
 		}
 		baseline := LatencySample{Values: base}
-		baseMean, baseStd := baseline.MeanStd()
+		baseMean, baseStd := testBudget.MeanStd(baseline)
 		// 当前：μ ≈ baseMean + 3σ
 		shift := int(baseMean + 3*baseStd)
 		if shift < 10 {
@@ -125,11 +125,11 @@ func TestCI3_TwoSigmaRedOnNoReallocation(t *testing.T) {
 		}
 		current := LatencySample{Values: cur}
 		// 无划拨 → 必须红
-		if BudgetCheck(baseline, current, true) != BudgetRed {
+		if testBudget.BudgetCheck(baseline, current, true) != BudgetRed {
 			return false
 		}
 		// 有划拨 → 不应红
-		if BudgetCheck(baseline, current, false) == BudgetRed {
+		if testBudget.BudgetCheck(baseline, current, false) == BudgetRed {
 			return false
 		}
 		// 正常范围内样本 → 不应红/黄
@@ -137,7 +137,7 @@ func TestCI3_TwoSigmaRedOnNoReallocation(t *testing.T) {
 		for i := range norm {
 			norm[i] = int(baseMean) - 10 + r.Intn(21)
 		}
-		if BudgetCheck(baseline, LatencySample{Values: norm}, true) == BudgetRed {
+		if testBudget.BudgetCheck(baseline, LatencySample{Values: norm}, true) == BudgetRed {
 			return false
 		}
 		return true
@@ -195,7 +195,7 @@ func TestCI3_BudgetStatusBoundary(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := BudgetCheck(c.baseline, c.current, c.noAlloc)
+			got := testBudget.BudgetCheck(c.baseline, c.current, c.noAlloc)
 			if got != c.want {
 				t.Errorf("BudgetCheck=%v want %v", got, c.want)
 			}
@@ -226,7 +226,7 @@ func TestCI3_MeanStdTable(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			m, s := c.s.MeanStd()
+			m, s := testBudget.MeanStd(c.s)
 			if m != c.wantAvg {
 				t.Errorf("mean=%v want %v", m, c.wantAvg)
 			}

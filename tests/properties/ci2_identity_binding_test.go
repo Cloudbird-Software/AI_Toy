@@ -46,7 +46,7 @@ func TestCI2_UniqueIdentityBinding(t *testing.T) {
 				Content: "hi",
 			}
 			want := (verified && uid != "") || (!verified && uid == "")
-			if o.IdentityBinding() != want {
+			if testIdentity.IdentityBinding(o) != want {
 				return false
 			}
 		}
@@ -92,7 +92,7 @@ func TestCI2_OutputTraceability(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := c.out.IdentityBinding()
+			got := testIdentity.IdentityBinding(c.out)
 			if got != c.wantOK {
 				t.Errorf("IdentityBinding()=%v want %v  out=%+v", got, c.wantOK, c.out)
 			}
@@ -112,7 +112,7 @@ func TestCI2_T5RejectSwitchesMemoryToReadOnly(t *testing.T) {
 		mode := MemoryMode(r.Intn(3))
 		// 应用多次 T5 拒判
 		for i := 0; i < nSteps; i++ {
-			mode = T5Reject(mode)
+			mode = testIdentity.T5Reject(mode)
 		}
 		// 结果必须是 MemReadOnly 或 MemDisabled（不会回到读写）
 		return mode == MemReadOnly || mode == MemDisabled
@@ -135,7 +135,7 @@ func TestCI2_T5RejectBoundary(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := T5Reject(c.in)
+			got := testIdentity.T5Reject(c.in)
 			if got != c.want {
 				t.Errorf("T5Reject(%v)=%v want %v", c.in, got, c.want)
 			}
@@ -147,14 +147,14 @@ func TestCI2_T5RejectBoundary(t *testing.T) {
 func TestCI2_BindingAfterT5Chain(t *testing.T) {
 	state := CompTierMap{L0, L0, L0, L0, L0, L0, L0}
 	// 应用声纹拒判故障
-	state = FailApply(state, FailVoiceprintReject)
-	g := state.GlobalCapability()
+	state = testRuntime.FailApply(state, FailVoiceprintReject)
+	g := testRuntime.GlobalCapability(state)
 	// 记忆组件至少得有 MemoryRO
-	if !TierCaps(state[CompMemory]).Has(CapMemoryRO) {
+	if !testRuntime.TierCaps(state[CompMemory]).Has(CapMemoryRO) {
 		t.Errorf("记忆组件档位 %v 不包含只读能力", state[CompMemory])
 	}
 	// 全局能力不能有 MemoryRW（组件 Memory 档位升了）
-	if g.Has(CapMemoryRW) && !TierCaps(state[CompMemory]).Has(CapMemoryRW) {
+	if g.Has(CapMemoryRW) && !testRuntime.TierCaps(state[CompMemory]).Has(CapMemoryRW) {
 		// 若组件内存已无RW，而全局还含RW则矛盾——GlobalCapability会排除
 		t.Errorf("全局能力不应含 MemoryRW：%v", g)
 	}
