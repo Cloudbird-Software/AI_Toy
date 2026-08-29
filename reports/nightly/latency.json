@@ -1,0 +1,33 @@
+{
+  "commit": "394399d7a58a15698185909e264e44205f8eb68c",
+  "timestamp": "2026-08-29T08:15:18Z",
+  "overlap_ms": 0,
+  "segments": [
+    {
+      "id": "tail_silence",
+      "p50": 500,
+      "p95": 500
+    },
+    {
+      "id": "asr_uplink",
+      "p50": 0,
+      "p95": 0
+    },
+    {
+      "id": "cloud_llm",
+      "p50": 0,
+      "p95": 0
+    },
+    {
+      "id": "tts_first",
+      "p50": 0,
+      "p95": 0
+    },
+    {
+      "id": "transport",
+      "p50": 0,
+      "p95": 0
+    }
+  ],
+  "note": "M2 stub 语义（诚实优先，数字如实）：段值=逻辑时钟口径——tail_silence=EvVoiceEnd→ActTurnEnd（FSM SilenceMs=500 门限逐轮镜像，真实逻辑值）；asr_uplink=桩恒 0（ASR 定稿/上行面未建独立面板）；cloud_llm=Responder 面板（模板+persona.Apply 桩，逻辑口径构造保证 0，墙钟实测见 stdout 摘要）；tts_first=即时合成桩（同步泵构造保证逻辑 0）；transport=播放启动桩（同步交付即启动恒 0）；overlap_ms=0（保守口径）。不代表最终产品延迟——真实面待 ASR/云 LLM/流式 TTS 接线（M3）。"
+}

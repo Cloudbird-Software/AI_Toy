@@ -1,10 +1,10 @@
 {
   "asset": "T1",
   "suite": "nightly",
-  "commit": "19eb0299044f9bdeee3620b0d4b8cd5593193774",
+  "commit": "394399d7a58a15698185909e264e44205f8eb68c",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-29T02:41:22Z",
+  "timestamp": "2026-08-29T08:13:58Z",
   "results": [
     {
       "id": "T1-G1-01",

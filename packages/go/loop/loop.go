@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"time"
 	"unicode/utf8"
 
 	"github.com/Cloudbird-Software/AI_Toy/packages/go/kws"
@@ -193,6 +194,7 @@ type Pipeline struct {
 	stream    tts.AudioStream // 进行中播报流（nil=无；与 FSM Speaking 同进退）
 	turnID    string          // 当前播报流归属话轮
 	delivered int             // 当前播报已交付字节（上限基准）
+	lat       latencyTracker  // 分段延迟采样（旁路观测，IR #95——不进事件流）
 }
 
 // Wire 组装三资产为闭环管道（m1-spec §1 驱动层）。错误仅此处返回：Resp 缺席
@@ -227,7 +229,7 @@ func Wire(cfg Config) (*Pipeline, error) {
 	}
 	return &Pipeline{
 		cfg: cfg, det: det, fsm: fsm, router: router, resp: cfg.Resp,
-		lastMs: math.MinInt64,
+		lastMs: math.MinInt64, lat: newLatencyTracker(),
 	}, nil
 }
 
@@ -250,6 +252,7 @@ func (p *Pipeline) PushAudioFrame(f kws.Frame) []Event {
 // 返回当步事件（可为 nil）。
 func (p *Pipeline) PushVAD(ev turntaking.VADEvent) []Event {
 	p.seeMs(ev.AtMs)
+	p.latencyOnVAD(ev) // 分段延迟采样埋点（旁路，IR #95）
 	out, turnEndAt, hasTurnEnd := p.apply(p.fsm.OnVAD(ev))
 	if hasTurnEnd {
 		out = append(out, p.speak(turnEndAt)...)
@@ -272,6 +275,7 @@ func (p *Pipeline) apply(acts []turntaking.Action) ([]Event, int64, bool) {
 			out = append(out, p.stopSpeak(a.AtMs)...)
 		case turntaking.ActTurnEnd:
 			out = append(out, Event{Kind: EvTurnEnd, AtMs: a.AtMs})
+			p.lat.sampleTailSilence(a.AtMs) // 分段延迟采样埋点（旁路，IR #95）
 			turnEndAt, hasTurnEnd = a.AtMs, true
 		}
 	}
@@ -286,7 +290,9 @@ func (p *Pipeline) speak(atMs int64) []Event {
 	p.turnSeq++
 	turnID := fmt.Sprintf("turn-%d", p.turnSeq)
 	var out []Event
+	respEnter := time.Now()
 	text, err := p.resp.Respond(Turn{ID: turnID, EndMs: atMs})
+	p.lat.sampleResponder(time.Since(respEnter)) // 分段延迟采样埋点（旁路，IR #95）
 	if err != nil {
 		// CH-01：回复上游断连——诚实告知受限（兜底话术接话，绝不静默不响应）。
 		out = append(out, Event{Kind: EvDegrade, AtMs: atMs, Reason: DegradeResponderDown, Err: err})
@@ -297,6 +303,7 @@ func (p *Pipeline) speak(atMs int64) []Event {
 		out = append(out, Event{Kind: EvDegrade, AtMs: atMs, Reason: DegradeSpeakOverrun, Bytes: utf8.RuneCountInString(trunc)})
 		text = trunc
 	}
+	p.lat.markSynth(atMs) // 分段延迟采样埋点：tts_first 起点（旁路，IR #95）
 	stream, err := p.router.Synthesize(tts.Request{
 		Text: text, Voice: p.cfg.Voice, TurnID: turnID,
 		Tier: p.cfg.Tier, DeadlineMs: p.cfg.DeadlineMs,
@@ -346,6 +353,9 @@ func (p *Pipeline) PumpSpeak() []Event {
 			_ = p.router.Cancel(p.turnID)
 			out := []Event{{Kind: EvDegrade, AtMs: p.lastMs, Reason: DegradeSpeakOverrun, Bytes: p.delivered}}
 			return append(out, p.finishSpeak()...)
+		}
+		if p.delivered == 0 {
+			p.lat.sampleFirstChunk(p.lastMs) // 分段延迟采样埋点：首块 EvAudioOut（旁路，IR #95）
 		}
 		p.delivered += len(c.Data)
 		return []Event{{Kind: EvAudioOut, AtMs: p.lastMs, Seq: c.Seq, Bytes: len(c.Data)}}
