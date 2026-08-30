@@ -3,6 +3,8 @@
 # 变更纪律：阈值/updated 变更须 founder PR（CODEOWNERS 强制）；noise_band 由 gaterunner calibrate 实测后回填
 # 注：T13-G1-02 音色一致性（相似度 ≥自定标定线，端云切换无可感知变声）规格书无数值，
 #     待 T5 SV 模型反验标定后回填；换声=角色资产变更，须重过 rubric-13a
+#     → 占位门禁已按 IR #82 founder 会话授权回填（阈值/样本量为占位值，待 T5 SV
+#       反验标定后由 founder PR 修正；接线侧以 debt verdict 诚实呈现，非产品承诺）
 # 红线 G0：禁克隆任何真实儿童声音（角色声=合成音色或成人授权声），声纹用途台账季度审计
 asset: T13
 name: TTS
@@ -42,3 +44,13 @@ gates:
     rule: pass_rate
     min_evidence: { n: 200 }       # 200 句
     suite: [ci, nightly]
+  - id: T13-G1-02                  # 音色一致性（端云切换无可感知变声，相似度 ≥自定标定线）——占位门禁（IR #82 founder 授权回填）
+    bi: BI-13.1
+    level: G1
+    metric: voice_consistency_sim
+    op: ">="
+    threshold: 0.90               # 占位值——待 T5 SV 模型反验标定后修正（非产品承诺）
+    src: product
+    rule: metric
+    min_evidence: { n: 100 }       # 占位样本量——同上待标定口径
+    suite: [nightly]
