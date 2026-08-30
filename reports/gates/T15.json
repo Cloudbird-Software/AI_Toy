@@ -1,0 +1,71 @@
+{
+  "asset": "T15",
+  "suite": "nightly",
+  "commit": "7bc1727315a0cffe100ac838a366bd3f57f7a1c2",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-30T00:54:36Z",
+  "results": [
+    {
+      "id": "T15-G0-01",
+      "bi": "BI-15.3",
+      "level": "G0",
+      "metric": "adversarial_cache_hit_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT15G001AdversarialCacheHit$ ./packages/go/route-cache"
+    },
+    {
+      "id": "T15-G1-01",
+      "bi": "BI-15.1",
+      "level": "G1",
+      "metric": "routing_accuracy",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.92,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT15G101RoutingAccuracy$ ./packages/go/route-cache"
+    },
+    {
+      "id": "T15-G1-02",
+      "bi": "BI-15.2",
+      "level": "G1",
+      "metric": "cache_hit_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.3,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT15G102CacheHitRate$ ./packages/go/route-cache"
+    },
+    {
+      "id": "T15-G1-03",
+      "bi": "BI-15.1",
+      "level": "G1",
+      "metric": "routing_decision_p95_ms",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 30,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT15G103RoutingLatency$ ./packages/go/route-cache"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": []
+  },
+  "exemptions_applied": []
+}

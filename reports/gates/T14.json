@@ -1,0 +1,99 @@
+{
+  "asset": "T14",
+  "suite": "nightly",
+  "commit": "7bc1727315a0cffe100ac838a366bd3f57f7a1c2",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-30T00:54:34Z",
+  "results": [
+    {
+      "id": "T14-G0-01",
+      "bi": "BI-14.2",
+      "level": "G0",
+      "metric": "fabrication_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.05,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT14G001DegradationHonesty$ ./packages/go/runtime-fsm"
+    },
+    {
+      "id": "T14-G0-02",
+      "bi": "BI-14.3",
+      "level": "G0",
+      "metric": "tier_switch_dirty_output_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT14G002SwitchSafety$ ./packages/go/runtime-fsm"
+    },
+    {
+      "id": "T14-G1-01",
+      "bi": "BI-14.1",
+      "level": "G1",
+      "metric": "offline_journey_completion_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.8,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT14G101OfflineJourney$ ./packages/go/runtime-fsm"
+    },
+    {
+      "id": "T14-G1-02",
+      "bi": "BI-14.4",
+      "level": "G1",
+      "metric": "thermal_throttle_token_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.7,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT14G102PowerThermal$ ./packages/go/runtime-fsm"
+    },
+    {
+      "id": "T14-G1-03",
+      "bi": "BI-14.4",
+      "level": "G1",
+      "metric": "cold_start_p95_s",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 3,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT14G103ColdStart$ ./packages/go/runtime-fsm"
+    },
+    {
+      "id": "T14-G0-03",
+      "bi": "BI-14.3",
+      "level": "G0",
+      "metric": "tier_safety_violation_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT14G003TierSafetyInvariance$ ./packages/go/runtime-fsm"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "pass",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T14-G1-02"
+    ]
+  },
+  "exemptions_applied": []
+}

@@ -38,7 +38,7 @@ func propMod(v, m int64) int {
 // propKey 抽象操作 → 缓存键。
 func (o propOp) key() Key {
 	return Key{NormQuery: Normalize(o.Q), UserID: "u" + string(rune('0'+propMod(int64(o.U), 3))),
-		Role: "r" + string(rune('0'+propMod(int64(o.R), 2))),
+		Role:     "r" + string(rune('0'+propMod(int64(o.R), 2))),
 		EmoLabel: "e" + string(rune('0'+propMod(int64(o.E), 2)))}
 }
 
