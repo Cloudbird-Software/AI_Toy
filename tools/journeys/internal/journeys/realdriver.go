@@ -1,4 +1,5 @@
-// RealDriver —— T20 用户模拟器驱动的真管道 driver（m2-spec §7/§8，IR #94）。
+// RealDriver —— T20 用户模拟器驱动的真管道 driver（m2-spec §7/§8，IR #94；
+// M3 记忆接线 IR #108）。
 //
 // 数据面（spec §7「journeys driver 接口」）：persona→usersim.Profile→Script()
 // 生成确定性儿童话语流；Utterance→合成 VAD 事件+文本→loop 真管道回放
@@ -9,7 +10,11 @@
 //   - safety=safety.Engine 四级分型决策计数——注入事件引擎未接住（miss）才
 //     计数：crisis 类 Classify≠Crisis=安抚未启动、攻击类 PreSpeak 未 Intercept=
 //     拦截失效（接住=0=产品正确行为，与剧本断言 safety_* <= 0 口径一致）；
-//   - memory_hit=M2 恒 false（spec §8：无记忆，断言含该指标的剧本不入 core10）。
+//   - memory_hit=M3 真值（IR #108 解禁）：记事旅程（write_memory 步）逐话轮
+//     写入真 memory.Store（uid=child-<seed>——同 seed 跨旅程共享，J06 记事→
+//     J07 复习配对的载体）；复习旅程（recall_stored_fact 步）以已写事实键经
+//     真 memory.Search 往返召回（T10-G1-01「写入→检索往返」同口径）——全量
+//     命中=true。真实儿童语义检索（NLU 抽取）=真模型面 L5 注记。
 //
 // 注入面（ADR-0004）：Responder=「引擎中介回声」M2 模板（PreSpeak(cur).
 // SpokenText——危机→四锚点话术、攻击→安全替代、Benign→原文回声；LLM 接入
@@ -28,6 +33,7 @@ import (
 
 	"github.com/Cloudbird-Software/AI_Toy/packages/go/kws"
 	"github.com/Cloudbird-Software/AI_Toy/packages/go/loop"
+	"github.com/Cloudbird-Software/AI_Toy/packages/go/memory"
 	"github.com/Cloudbird-Software/AI_Toy/packages/go/safety"
 	"github.com/Cloudbird-Software/AI_Toy/packages/go/tts"
 	"github.com/Cloudbird-Software/AI_Toy/packages/go/turntaking"
@@ -68,6 +74,12 @@ const interruptDefaultText = "等一下，听我说！"
 type RealDriver struct {
 	profiles map[string]usersim.Profile // 剧本 id → 画像（构造时预校验）
 	tiers    map[string]int             // 剧本 id → T14 档（runtime_tier L0..L3）
+	// mem/facts M3 记忆接线（IR #108）：单 Run 生命周期共享（ResolveDriver 每
+	// Run 重建——跨 Run 无状态泄漏）；mem=真 memory.Store（J06 记事写入侧），
+	// facts=uid → 已写事实键账本（J07 复习召回查询面）。uid=child-<seed>：
+	// 同 seed 跨旅程配对（J06 seed-s 写 → J07 seed-s 读——确定性）。
+	mem   *memory.Store
+	facts map[string][]string
 }
 
 // NewRealDriver 构造真 driver：逐剧本解析 persona→Profile（越界/不可解析
@@ -76,7 +88,13 @@ func NewRealDriver(scripts []*Script) (*RealDriver, error) {
 	d := &RealDriver{
 		profiles: make(map[string]usersim.Profile, len(scripts)),
 		tiers:    make(map[string]int, len(scripts)),
+		facts:    map[string][]string{},
 	}
+	mem, err := memory.NewStore(memory.Options{MaxNodes: 4096})
+	if err != nil { // 固定配置到达即代码回归，fail loud
+		return nil, fmt.Errorf("journeys: memory 存储组装失败: %w", err)
+	}
+	d.mem = mem
 	for _, s := range scripts {
 		p, err := journeyProfile(s)
 		if err != nil {
@@ -103,16 +121,17 @@ func (d *RealDriver) Drive(s *Script, seed int) RunResult {
 		LatencyMS: round(p95(tr.latencies), 1), SafetyEvents: tiers.total(),
 		SafetyCrisis: tiers.crisis, SafetyJailbreak: tiers.jailbreak,
 		SafetyAdult: tiers.adult, SafetyCommercial: tiers.commercial,
-		MemoryHit: false} // M2 恒 false（spec §7）
+		MemoryHit: tr.memoryHit} // M3 真值（IR #108：真 memory.Search 往返召回）
 }
 
-// replayTrace 真管道回放观测（测试断言面：完成步/延迟样本/四级 miss/打断）。
+// replayTrace 真管道回放观测（测试断言面：完成步/延迟样本/四级 miss/打断/记忆命中）。
 type replayTrace struct {
 	completed                         int
 	latencies                         []float64
 	crisisMiss, jailbreakMiss         int
 	adultMiss, commercialMiss         int
 	interrupts, turnEnds, speakStarts int
+	memoryHit                         bool
 }
 
 // replay 单 seed 全回放：构建时间线 → wire 真管道 → 逐话轮推进并观测事件流。
@@ -190,6 +209,11 @@ func (d *RealDriver) replay(s *Script, seed int) replayTrace {
 
 	items := d.buildTimeline(s, seed)
 	interruptsAt := interruptDecls(s)
+	// M3 记忆接线（IR #108）：记事旅程逐话轮写真存储；复习旅程以已写事实键
+	// 真 Search 往返召回（uid=child-<seed> 同 seed 跨旅程配对）。
+	uid := fmt.Sprintf("child-%d", seed)
+	isMemo := hasAnyStep(s, "write_memory", "child_states_fact")
+	isRecall := hasAnyStep(s, "recall_stored_fact", "prompt_recall_yesterday")
 	stepNo := 0 // 已完成步号（1 起——inject.interrupts at_step 对位）
 	for i := range items {
 		it := &items[i]
@@ -210,6 +234,14 @@ func (d *RealDriver) replay(s *Script, seed int) replayTrace {
 		stepDone := runTurn(it.text, max(it.atMs, p.LastMs())) // 迟到帧钳制（FSM 单调门对齐）
 		if it.isStep {
 			stepNo++
+			if isMemo { // 记事：话轮文本作为事实写入真存储（J06 写入侧）
+				if err := d.mem.Write(uid, memory.Node{
+					Subject: it.text, Pred: "记事", Text: it.text,
+					EmoWeight: 0.6, CreatedAtMs: it.atMs, TouchedAtMs: it.atMs,
+				}, nil); err == nil {
+					d.facts[uid] = append(d.facts[uid], it.text)
+				}
+			}
 			if stepDone { // 完成步=该话轮在真 FSM 走到 EvTurnEnd（spec §7）
 				tr.completed++
 			}
@@ -221,8 +253,39 @@ func (d *RealDriver) replay(s *Script, seed int) replayTrace {
 			}
 		}
 	}
-	drain() // 末轮播报收口
+	drain()       // 末轮播报收口
+	if isRecall { // 复习：已写事实键经真 Search 往返召回（J07 召回侧——全量命中）
+		tr.memoryHit = d.recallAll(uid, p.LastMs())
+	}
 	return tr
+}
+
+// recallAll 复习召回：逐条已写事实键 memory.Search top-5 往返（T10-G1-01
+// 「写入→检索往返 recall@5」同口径）——全量命中才 true（与剧本
+// memory_hit_rate ≥0.9 断言面对齐；无已写事实=无召回对象恒 false）。
+func (d *RealDriver) recallAll(uid string, atMs int64) bool {
+	queries := d.facts[uid]
+	if len(queries) == 0 {
+		return false
+	}
+	for _, q := range queries {
+		if len(d.mem.Search(uid, q, 5, atMs)) == 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// hasAnyStep 剧本 steps 是否含任一给定步名（记事/复习旅程的语义分类面）。
+func hasAnyStep(s *Script, names ...string) bool {
+	for _, st := range s.Steps {
+		for _, n := range names {
+			if st == n {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // replayItem 时间线项：步骤话轮 / 注入安全事件话轮。

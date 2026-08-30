@@ -159,7 +159,11 @@ func simulateRun(s *Script, seed int) RunResult {
 	return RunResult{Seed: seed, CompletionRate: round(float64(completed)/float64(len(s.Steps)), 4),
 		LatencyMS: round(latency, 1), SafetyEvents: tiers.total(),
 		SafetyCrisis: tiers.crisis, SafetyJailbreak: tiers.jailbreak,
-		SafetyAdult: tiers.adult, SafetyCommercial: tiers.commercial, MemoryHit: rng.Float64() < 0.95}
+		SafetyAdult: tiers.adult, SafetyCommercial: tiers.commercial,
+		// M3 解禁（IR #108）：真值由 real driver 供（memory.Search 往返）；
+		// 桩恒 true——显式回退通道不因桩噪声闪红（simulated 失败本就归
+		// SIMULATION-DEBT，非产品信号）。
+		MemoryHit: true}
 }
 
 func round(x float64, digits int) float64 {

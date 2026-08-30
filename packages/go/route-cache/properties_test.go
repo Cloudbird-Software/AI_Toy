@@ -85,24 +85,36 @@ func TestP1CapacityBounded(t *testing.T) {
 	}
 }
 
-// TestP2ExactKeyHit quick：命中 ⇔ 键全等且曾写入（大容量+长 TTL 消除淘汰/
-// 过期干扰——纯键面）；命中值=该键最近 Put 值（近形键不串值）。
+// TestP2ExactKeyHit quick：命中 ⇔ 键全等且曾写入且未过期（大容量消除淘汰
+// 干扰——纯键面）；命中值=该键最近 Put 值（近形键不串值）。模型 TTL-aware：
+// quick 任意 At（含极值）下「Put 于 t0、Get 于 t1≥t0+TTL」=过期 miss 是真实
+// 语义非误命中（quick 时间种子非确定——模型不过期面=flaky 根因，修）。
 func TestP2ExactKeyHit(t *testing.T) {
-	c, err := NewCache(propConfig(4096, 1<<20, 1<<30))
+	const ttl = int64(1 << 30)
+	c, err := NewCache(propConfig(4096, 1<<20, ttl))
 	if err != nil {
 		t.Fatal(err)
 	}
-	last := map[Key]string{} // 键→最近 Put 值（无淘汰/过期面的纯键模型）
+	type p2entry struct {
+		val string
+		at  int64
+	}
+	last := map[Key]p2entry{} // 键→最近 Put 值与时刻（无淘汰面的 TTL-aware 键模型）
 	prop := func(o propOp) bool {
 		k := o.key()
 		switch propMod(int64(o.Kind), 4) {
 		case 0:
 			c.Put(k, o.Resp, o.at())
-			last[k] = o.Resp
+			last[k] = p2entry{o.Resp, o.at()}
 		case 1:
 			got, ok := c.Get(k, o.at())
-			if ok != (last[k] != "") || (ok && got != last[k]) {
-				return false // 命中≠全等键（或串值）——误命中面
+			e, put := last[k]
+			expired := put && o.at() >= e.at && o.at()-e.at >= ttl // 时刻倒流（at()<e.at）=未过期（cache 同口径）
+			if expired {
+				delete(last, k) // 过期=缓存已移除条目（Get 穿透面）
+			}
+			if ok != (put && !expired) || (ok && got != e.val) {
+				return false // 命中≠全等键未过期（或串值）——误命中面
 			}
 		case 2:
 			c.Invalidate(k)

@@ -5,7 +5,9 @@
 //	T13-G0-01 injection_readout_count == 0（BI-13.3，G0，真实：拦截层对抗测）
 //	T13-G1-01 tts_first_packet_p95_ms <= 300（BI-13.2，G1，debt：需真实引擎计时）
 //	T13-G1-03 semantic_pause_error_rate <= 0.05（BI-13.3，G1，debt：需真实输出听审）
-//	T13-G1-02 不可接线：yaml 未收录（#82，待 T5 SV 标定回填）——不为未收录门禁造接线。
+//	T13-G1-02 voice_consistency_sim >= 0.90（BI-13.1，G1，debt：占位门禁已按
+//	   IR #82 founder 会话授权回填 yaml；相似度线待 T5 SV 模型反验标定——
+//	   阈值为占位值非产品承诺，标定后 founder PR 修正并换真实接线）
 package tts
 
 import (
@@ -109,6 +111,16 @@ func TestT13G101FirstPacketP95(t *testing.T) {
 func TestT13G103SemanticPauseErrorRate(t *testing.T) {
 	gaterunner.Mark(t, "T13", "BI-13.3", "T13-G1-03", "G1")
 	t.Skipf("语义停顿错误率需真实 TTS 输出 + 人工听审（200 句对话/故事/数数，min_evidence n:200）；M1 注入桩无韵律停顿语义（spec §5 策略表 debt 行）")
+}
+
+// TestT13G102VoiceConsistency T13-G1-02（debt，占位门禁接线——IR #82 founder
+// 会话授权回填）：音色一致性 voice_consistency_sim ≥0.90（端云切换无可感知
+// 变声）。相似度线需 T5 SV 模型反验标定（角色声 × 端云两档嵌入余弦）——yaml
+// 阈值 0.90 为占位值非产品承诺，标定后 founder PR 修正；换声=角色资产变更须
+// 重过 rubric-13a（资产卡）。整测 SKIP=debt verdict（不计 pass 不阻断）。
+func TestT13G102VoiceConsistency(t *testing.T) {
+	gaterunner.Mark(t, "T13", "BI-13.1", "T13-G1-02", "G1")
+	t.Skipf("音色一致性需 T5 SV 模型反验标定（角色声 × 端云两档嵌入相似度，min_evidence 占位 n:100）；yaml 阈值 0.90 为占位值（IR #82 founder 授权回填，非产品承诺），标定后换真实接线")
 }
 
 // drainBytes 排干流统计读出总字节数（静默占位 Data=nil 天然计 0）。

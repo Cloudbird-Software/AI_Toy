@@ -1,0 +1,75 @@
+{
+  "asset": "T13",
+  "suite": "nightly",
+  "commit": "80eb999b9490798105b28394f17f3eab61546fb9",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-08-30T02:00:44Z",
+  "results": [
+    {
+      "id": "T13-G1-01",
+      "bi": "BI-13.2",
+      "level": "G1",
+      "metric": "tts_first_packet_p95_ms",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 300,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT13G101FirstPacketP95$ ./packages/go/tts"
+    },
+    {
+      "id": "T13-G0-01",
+      "bi": "BI-13.3",
+      "level": "G0",
+      "metric": "injection_readout_count",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT13G001InjectionReadoutZero$ ./packages/go/tts"
+    },
+    {
+      "id": "T13-G1-03",
+      "bi": "BI-13.3",
+      "level": "G1",
+      "metric": "semantic_pause_error_rate",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.05,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT13G103SemanticPauseErrorRate$ ./packages/go/tts"
+    },
+    {
+      "id": "T13-G1-02",
+      "bi": "BI-13.1",
+      "level": "G1",
+      "metric": "voice_consistency_sim",
+      "observed": 0,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.9,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT13G102VoiceConsistency$ ./packages/go/tts"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "debt",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T13-G1-01",
+      "T13-G1-03",
+      "T13-G1-02"
+    ]
+  },
+  "exemptions_applied": []
+}

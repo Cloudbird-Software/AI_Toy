@@ -1,10 +1,10 @@
 {
   "asset": "T20",
-  "suite": "ci",
-  "commit": "394399d7a58a15698185909e264e44205f8eb68c",
+  "suite": "nightly",
+  "commit": "80eb999b9490798105b28394f17f3eab61546fb9",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-08-29T09:26:26Z",
+  "timestamp": "2026-08-30T02:00:56Z",
   "results": [
     {
       "id": "T20-G1-02",

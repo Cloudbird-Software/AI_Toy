@@ -78,3 +78,32 @@ just verify            # → verify-configs: 79 门禁，0 违反；repoctl cove
 | T13 TTS | G0 pass（注入读出=0，门禁测试真实跑；G1 首包/停顿面冷启动 debt——BI-13.1 声纹一致性门禁未建，报告按阶段化执法暂不入库） |
 
 债务清单：ONNX 真实推理（T4/T13）· 真实童声数据（T13 红线内合成替身）· LLM 评审面（κ 校准未启动）· 真机实测（M3 逐项消化）。
+
+## M3 里程碑收官（IR #108，2026-08-30）
+
+**golden 50 条全量 real**：`just journeys` = `--driver real`（spec §8 一次性切换）——T20 user-sim → loop 真管道 ×50 剧本 ×3 seeds = **50/50 pass**（`reports/nightly/journeys-golden.json`，SIMULATION-DEBT 消灭，simulated 分支保留仅作显式回退）。安全旅程 J21–J50 走 T9 真拦截（miss=0）；记忆旅程解禁：J06 记事→J07 复习经真 `memory.Search` 往返召回（memory_hit_rate=1.0），core10 扩容含记忆旅程（10/10 pass）。
+
+**L1+M3 全资产状态表**（16 资产 / 79 断言，nightly 2026-08-30 刷新；debt verdict=数据/模型/真机面，无「实现未开始」DEBT 行）：
+
+| 资产 | G0 | G1 | 剩余 debt（全部为数据/模型/真机面） |
+| --- | --- | --- | --- |
+| T1 评测平台 | pass | pass | G1-01 评测数据集（数据面） |
+| T2 数据飞轮 | pass | pass | G0-02 泄漏复查 / G1-02 多样性（数据面） |
+| T3 话轮 | pass | pass | G0-02/G1-01..04 真机实测（含硬件 VAD） |
+| T4 唤醒词 | pass | pass | G1-01..03 ONNX 真实推理（模型面） |
+| T5 声纹 | pass | pass | G1-02 真实会话声纹（数据面） |
+| T6 IMU | pass | pass | — |
+| T7 情绪 | pass | pass | G0-01 LLM 评审联跑（模型面） |
+| T8 人格 | pass | pass | G1-02..04 LLM 评审 κ 校准（模型面） |
+| T9 安全 | pass | pass | G0-04 攻击混淆度模型面（红队 holdout 外） |
+| T10 记忆+T11 底座 | pass | pass | 数据面 debt（memory_probes+真实家庭日志，PR #112） |
+| T12 情绪→动作 | pass | pass | — |
+| T13 TTS | pass | pass | G1-01 首包/RTF 真实引擎（模型面）· G1-03 听审（数据面）· G1-02 音色一致性待 T5 SV 标定（模型面，占位门禁 IR #82 founder 会话授权回填） |
+| T14 离线运行时 | pass | pass | G1-02 功耗/热真机 4h+温箱（真机面） |
+| T15 路由缓存 | pass | pass | 语义缓存 θ 权衡曲线=嵌入模型面（L5） |
+| T16 场景包+T18 | pass | pass | 内容管线 LLM 面（模型面） |
+| T20 用户模拟器 | pass | pass | — |
+
+M3 六资产 Mark 总表对齐（m3-spec §9）：T10 6 + T5/T6/T16/T14/T15 共 30 ID，真实 28 / debt 2（T14-G1-02 真机功耗热、T5-G1-02 真实会话声纹）。
+
+剩余债务（M4 前消化）：ONNX 真实推理（T4/T13）· 真实童声/家庭数据（T13/T10 holdout）· LLM 评审 κ 校准（T7/T8/T16）· 真机实测（T3/T14）· 安全词面离线维护（issue #113，founder 流程）。

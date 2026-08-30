@@ -21,7 +21,7 @@ gate ASSET LEVEL="all":
     go run ./tools/gaterunner/cmd/gaterunner run --asset {{ASSET}} --level {{LEVEL}} --report reports/gates/{{ASSET}}.json
 
 journeys:
-    go run ./tools/journeys/cmd/journeys run --set golden --seeds 3
+    go run ./tools/journeys/cmd/journeys run --set golden --seeds 3 --driver real
 
 budgets:
     go run ./tools/budgets/cmd/budgets check --report reports/nightly/latency.json

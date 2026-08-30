@@ -57,9 +57,12 @@ func Main(args []string, stdout, stderr io.Writer) int {
 		if scripts, ok = filterTier(scripts, tier); !ok {
 			return fail("no tier=%s scripts for set %q", tier, *set)
 		}
-		// spec §8：M2 无记忆（memory_hit 恒 false），断言含 memory_hit_rate 的
-		// 剧本不入 core10（收敛策略写进报告 note，不改剧本本体；M3 记忆落地后纳入）。
-		scripts, notes = filterCore10(scripts)
+		// core10 扩容（M3 IR #108）：记忆旅程解禁——J06 记事→J07 复习的
+		// memory_hit 断言随真记忆接线纳入（m2-spec §8 排除约束解除；真实
+		// 儿童语义检索=真模型面 L5 注记，收敛策略写报告 note 不改剧本本体）。
+		notes = []string{
+			"core10 扩容（M3 IR #108）：memory_hit_rate 断言剧本（J07/J15/J20）随真记忆接线纳入本集——real driver 经真 memory.Search 往返召回（T10-G1-01 同口径）",
+		}
 	}
 	rep, err := Run(scripts, *seeds, *set, *driver)
 	if err != nil {
@@ -101,31 +104,4 @@ func filterTier(scripts []*Script, tier string) ([]*Script, bool) {
 		}
 	}
 	return filtered, len(filtered) > 0
-}
-
-// filterCore10 剔除断言含 memory_hit_rate 的剧本（spec §8：M2 无记忆恒 false，
-// 入 core10 必假红——非产品信号），返回过滤后剧本与报告附注。
-func filterCore10(scripts []*Script) ([]*Script, []string) {
-	filtered := make([]*Script, 0, len(scripts))
-	dropped := []string{}
-	for _, s := range scripts {
-		hasMemory := false
-		for _, a := range s.Assertions {
-			if a.Metric == "memory_hit_rate" {
-				hasMemory = true
-				break
-			}
-		}
-		if hasMemory {
-			dropped = append(dropped, s.ID)
-			continue
-		}
-		filtered = append(filtered, s)
-	}
-	if len(dropped) == 0 {
-		return filtered, nil
-	}
-	return filtered, []string{fmt.Sprintf(
-		"core10 收敛（spec §8）：M2 无记忆（memory_hit 恒 false），断言含 memory_hit_rate 的剧本不入本集：%s；M3 记忆落地后纳入",
-		strings.Join(dropped, ","))}
 }
