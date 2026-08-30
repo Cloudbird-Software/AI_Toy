@@ -126,3 +126,28 @@ var (
 	testBudget   BudgetModel   = MirrorBudget{}
 	testDegrade  DegradeModel  = MirrorDegrade{}
 )
+
+// BindRuntime 把档位机驱动切换到指定实现（-tags real 真身接线入口——外部
+// 测试包 properties_test 经 init 调用；镜像默认注入不受影响）。
+func BindRuntime(m RuntimeModel) { testRuntime = m }
+
+// BindIdentity 把身份模型驱动切换到指定实现。
+func BindIdentity(m IdentityModel) { testIdentity = m }
+
+// BindBudget 把预算模型驱动切换到指定实现。
+func BindBudget(m BudgetModel) { testBudget = m }
+
+// BindDegrade 把降级集模型驱动切换到指定实现。
+func BindDegrade(m DegradeModel) { testDegrade = m }
+
+// CurrentRuntime 返回当前档位机驱动（接线验证面——判别镜像/真身绑定）。
+func CurrentRuntime() RuntimeModel { return testRuntime }
+
+// CurrentIdentity 返回当前身份模型驱动。
+func CurrentIdentity() IdentityModel { return testIdentity }
+
+// CurrentBudget 返回当前预算模型驱动。
+func CurrentBudget() BudgetModel { return testBudget }
+
+// CurrentDegrade 返回当前降级集模型驱动。
+func CurrentDegrade() DegradeModel { return testDegrade }
