@@ -1,0 +1,46 @@
+# training/ 依赖与数据源 license 台账（AGENTS.md G0 红线：无台账的新依赖禁止引入）
+# 变更纪律：训练管道换依赖/数据源必须先改本文件再改 requirements/config。
+
+dependencies:                    # pip 包（training/t4/requirements.txt）
+  - { name: openwakeword, version: 0.6.0, license: Apache-2.0 }        # 训练框架+推理
+  - { name: piper-phonemize, version: 1.1.0, license: MIT }            # TTS 音素化
+  - { name: webrtcvad, version: 2.0.10, license: BSD-3-Clause }         # VAD
+  - { name: torch, version: ">=2.0", license: BSD-3-Clause }            # 训练后端
+  - { name: torchaudio, version: ">=2.0", license: BSD-3-Clause }
+  - { name: audiomentations, version: 0.33.0, license: MIT }           # 数据增强
+  - { name: torch-audiomentations, version: 0.11.0, license: MIT }
+  - { name: acoustics, version: 0.2.6, license: BSD-3-Clause }         # RIR 卷积
+  - { name: datasets, version: 2.14.6, license: Apache-2.0 }           # HF 数据下载
+  - { name: scipy, version: ">=1.10", license: BSD-3-Clause }
+  - { name: numpy, version: "<2", license: BSD-3-Clause }
+  - { name: onnx, version: ">=1.14", license: Apache-2.0 }
+  - { name: onnxruntime, version: ">=1.16", license: MIT }
+  - { name: speechbrain, version: 0.5.14, license: Apache-2.0 }         # openwakeword 训练链
+  - { name: mutagen, version: 1.47.0, license: GPL-2.0-only }          # 音频元数据（openwakeword 传递依赖，工具性使用不改其产物许可）
+  - { name: torchinfo, version: 1.8.0, license: MIT }
+  - { name: torchmetrics, version: 1.2.0, license: Apache-2.0 }
+  - { name: pronouncing, version: 0.2.0, license: BSD-3-Clause }
+  - { name: deep-phonemizer, version: 0.0.19, license: MIT }
+  - { name: pyyaml, version: ">=6", license: MIT }
+  - { name: tqdm, version: ">=4", license: MIT/MIT**
+
+models:                          # 模型权重（models/manifests/ 登记）
+  - { name: en_US-libritts_r-medium.pt, source: "https://github.com/rhasspy/piper-sample-generator/releases/download/v2.0.0/en_US-libritts_r-medium.pt", license: MIT }  # piper 音色（正样本 TTS）
+  - { name: melspectrogram.onnx, source: "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/melspectrogram.onnx", license: Apache-2.0 }              # 特征提取
+  - { name: embedding_model.onnx, source: "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/embedding_model.onnx", license: Apache-2.0 }            # 语音嵌入（Google speech_embedding 复现）
+
+datasets:                        # 训练数据源（全部只作增强/负样本；holdout 红线不受影响）
+  - { name: MIT_environmental_impulse_responses, source: "hf:davidscripka/MIT_environmental_impulse_responses", license: CC-BY-NC-SA-4.0(原始 MIT IR Survey) }  # RIR——仅训练增强用，不入产物
+  - { name: AudioSet(bal_train 片段), source: "hf:agkphysics/AudioSet", license: CC-BY-4.0(原始 Google AudioSet) }                                              # 背景噪声
+  - { name: FMA small, source: "hf:rudraml/fma", license: CC-BY-4.0(FMA small) }                                                                              # 背景音乐
+  - { name: openwakeword_features_ACAV100M, source: "hf:davidscripka/openwakeword_features", license: CC-BY-4.0(原始 ACAV100M) }                              # 负样本预计算特征
+  - { name: validation_set_features, source: "hf:davidscripka/openwakeword_features", license: CC-BY-4.0 }                                                    # 误唤醒验证特征
+
+notes: |
+  1. 训练产物模型权重的 license 声明：Apache-2.0（全合成数据自训，见
+     training/t4/register_model.py 写入 models/manifests 的条目）。
+  2. NC 类许可（MIT IR Survey 原始为研究用途）只用于训练期增强，不随产物分发；
+     若未来商用授权收紧，替换 RIR 源后重训即可（管道幂等）。
+  3. 本仓 holdout 密封数据（制度见 docs/gates/holdout.md）与 T20 模拟器产物
+     不进任何训练路径（AGENTS.md G0 红线；T2-G0-01/T20-G0-01 由 Go 门禁执法，
+     训练管道不触碰两处）。

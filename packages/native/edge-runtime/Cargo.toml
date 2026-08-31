@@ -1,0 +1,10 @@
+[package]
+name = "edge-runtime"
+version = "0.0.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "ai-toy 端侧运行时（T14 native 面，占位 crate——内容见资产卡；仅使 workspace 成员可解析，`cargo fetch` 不再失败）"
+publish = false
+
+[lints]
+workspace = true

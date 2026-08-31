@@ -3,6 +3,7 @@ package synthgen
 // cli —— synthgen 子命令入口（spec §3.7）。
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/Cloudbird-Software/AI_Toy/tools/llmclient/llmclient"
 )
 
 // CLI 退出码（CI 与 justfile 的依赖面，不得偏离）。
@@ -28,7 +31,7 @@ const (
 // Run 执行 synthgen CLI（argv 不含程序名），返回进程退出码。
 func Run(argv []string, stdout, stderr io.Writer) int {
 	if len(argv) == 0 {
-		fmt.Fprintln(stderr, "usage: synthgen <register|generate|generate-neg|dist-check> [flags]")
+		fmt.Fprintln(stderr, "usage: synthgen <register|generate|generate-llm|generate-neg|dist-check> [flags]")
 		return ExitInput
 	}
 	switch argv[0] {
@@ -36,12 +39,14 @@ func Run(argv []string, stdout, stderr io.Writer) int {
 		return runRegister(argv[1:], stdout, stderr)
 	case "generate":
 		return runGenerate(argv[1:], stdout, stderr)
+	case "generate-llm":
+		return runGenerateLLM(argv[1:], stdout, stderr)
 	case "generate-neg":
 		return runGenerateNeg(argv[1:], stdout, stderr)
 	case "dist-check":
 		return runDistCheck(argv[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：register、generate、generate-neg、dist-check）\n", argv[0])
+		fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：register、generate、generate-llm、generate-neg、dist-check）\n", argv[0])
 		return ExitInput
 	}
 }
@@ -97,6 +102,87 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "batch %s: n=%d train=%d holdout=%d -> %s\n", b.ID, b.N, b.TrainN, b.HoldoutN, dir)
 	return ExitOK
+}
+
+// runGenerateLLM 用真实 LLM（OpenAI 兼容 API）生成正样本批次：凭据经环境变量
+// LLM_API_BASE/LLM_API_KEY（tools/llmclient 契约），模型池 --models 或
+// LLM_MODELS_TEXT_POOL（缺省 LLM_MODEL_TEXT）。未配置 API → exit 2（配置指引）；
+// LLM 调用/解析失败 → exit 2；批次结构与 generate 完全一致（dist-check 兼容）。
+func runGenerateLLM(args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("generate-llm", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	id := fs.String("id", "", "生成器 id（须已注册）")
+	n := fs.Int("n", 0, "生成条数")
+	seed := fs.Int64("seed", 0, "随机种子（slot 分配确定性）")
+	modelsFlag := fs.String("models", "", "逗号分隔模型池（缺省取 LLM_MODELS_TEXT_POOL / LLM_MODEL_TEXT）")
+	if fs.Parse(args) != nil {
+		return ExitInput
+	}
+	if *id == "" || *n < 1 {
+		fmt.Fprintln(stderr, "error: generate-llm 需要 --id 与 --n ≥ 1")
+		return ExitInput
+	}
+	cfg, err := llmclient.FromEnv()
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n配置模板见 configs/llm/api.env.example（export 后重试）\n", err)
+		return ExitInput
+	}
+	models := parseModels(*modelsFlag)
+	if len(models) == 0 {
+		models = llmclient.TextModelPool()
+	}
+	if len(models) == 0 {
+		fmt.Fprintln(stderr, "error: 模型池为空（--models 或 LLM_MODELS_TEXT_POOL / LLM_MODEL_TEXT）")
+		return ExitInput
+	}
+	if len(models) == 1 {
+		fmt.Fprintf(stderr, "warning: 单模型池的单源占比=1.00 将触发 dist-check 违规（>0.30）；建议 ≥4 个模型轮转\n")
+	}
+	records, err := LoadRegistry(RegistryPath)
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n", err)
+		return ExitInput
+	}
+	g, err := FindGenerator(records, *id)
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n", err)
+		return ExitInput
+	}
+	client := llmclient.New(cfg)
+	ctx := context.Background()
+	chat := func(ctx context.Context, prompt, model string) (string, error) {
+		out, err := client.Chat(ctx, []llmclient.Message{{Role: "user", Content: prompt}}, &llmclient.Opts{Model: model})
+		if err != nil {
+			return "", err
+		}
+		extracted, err := llmclient.ExtractJSON(out)
+		if err != nil {
+			return "", err
+		}
+		return string(extracted), nil
+	}
+	b, dir, err := GenerateBatchLLM(ctx, g, *n, *seed, models, chat)
+	if err != nil {
+		fmt.Fprintf(stderr, "error: %v\n", err)
+		return ExitInput
+	}
+	fmt.Fprintf(stdout, "llm-batch %s: n=%d train=%d holdout=%d models=%d -> %s\n",
+		b.ID, b.N, b.TrainN, b.HoldoutN, len(models), dir)
+	return ExitOK
+}
+
+// parseModels 解析逗号分隔模型池（空/全空白 → nil）。
+func parseModels(flagValue string) []string {
+	if flagValue == "" {
+		return nil
+	}
+	var models []string
+	for _, m := range strings.Split(flagValue, ",") {
+		if m = strings.TrimSpace(m); m != "" {
+			models = append(models, m)
+		}
+	}
+	return models
 }
 
 // runGenerateNeg 生成负样本批（m2-spec §2，IR #90）：gen-tneg 家庭音景 / gen-kwsadv

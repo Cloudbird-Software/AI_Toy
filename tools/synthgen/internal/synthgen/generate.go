@@ -120,6 +120,15 @@ func GenerateBatch(g Generator, n int, seed int64) (Batch, string, error) {
 	return b, dir, nil
 }
 
+// writeManifest 落盘批次 manifest（generate 与 generate-llm 共用）。
+func writeManifest(path string, b Batch) error {
+	data, err := json.MarshalIndent(b, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, append(data, '\n'), 0o644)
+}
+
 // writeJSONL 写 jsonl（每行一条 JSON；struct 字段序 + map 键序确定 → 同 seed 字节级复现）。
 func writeJSONL(path string, records []Sample) error {
 	var buf bytes.Buffer

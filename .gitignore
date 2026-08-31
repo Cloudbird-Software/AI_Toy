@@ -26,6 +26,12 @@ models/**/pt
 # 临时报告
 reports/tmp/
 
+# 训练：数据/产物/venv/日志不入 git（台账 training/licenses.yaml 追踪）
+training/.venv/
+training/logs/
+training/t4/vendor/
+training/t4/data/
+
 # 环境变量 / 密钥
 .env*
 

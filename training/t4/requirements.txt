@@ -1,0 +1,26 @@
+# T4 唤醒词训练依赖（官方 automatic_model_training 流程，见 ADR-0007）
+# 版本策略：核心链路跟随 openwakeword 主版本；训练环境推荐 python3.10
+# （openwakeword 部分依赖对 ≥3.11 支持不稳，bootstrap.sh 会做版本检查）。
+#
+# 注意：tensorflow/onnx_tf（tflite 转换用）不在本清单——本仓 Go 运行时走
+# onnx 推理，tflite 不产出；若 PM 需要可为 MCU 路线（microWakeWord）另开卡。
+openwakeword==0.6.0
+piper-phonemize==1.1.0
+webrtcvad==2.0.10
+mutagen==1.47.0
+torchinfo==1.8.0
+torchmetrics==1.2.0
+speechbrain==0.5.14
+audiomentations==0.33.0
+torch-audiomentations==0.11.0
+acoustics==0.2.6
+pronouncing==0.2.0
+datasets==2.14.6
+deep-phonemizer==0.0.19
+numpy<2
+scipy
+pyyaml
+tqdm
+onnx
+onnxruntime
+# torch 由 bootstrap.sh 单独安装（CUDA 版本随机器，见 scripts/gpu/bootstrap.sh）

@@ -6,6 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
+	"sync/atomic"
+
+	"github.com/Cloudbird-Software/AI_Toy/tools/llmclient/llmclient"
 )
 
 // CLI 退出码契约（CI 与其它工具的依赖面，不得偏离）：
@@ -119,9 +123,23 @@ func runRunCmd(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail("%v", err)
 	}
-	records := RunPairwiseSwap(rubric, model.SHA256, judges, targets, DeterministicJudge)
+	// 评审后端选择：LLM_JUDGE=1 且 LLM API 已配置 → LLM 后端（pairwise+swap 协议
+	// 不变，judge 身份沿用 model.yaml 锁定值）；否则 DeterministicJudge 桩。
+	judgeFn := Judge(DeterministicJudge)
+	var llmErrs *atomic.Int64
+	if os.Getenv("LLM_JUDGE") == "1" {
+		cfg, err := llmclient.FromEnv()
+		if err != nil {
+			return fail("%v（LLM_JUDGE=1 需要已配置 API，模板见 configs/llm/api.env.example）", err)
+		}
+		judgeFn, llmErrs = NewLLMJudge(llmclient.New(cfg), rubric, stderr)
+	}
+	records := RunPairwiseSwap(rubric, model.SHA256, judges, targets, judgeFn)
 	if err := EmitJSONL(records, *out, stdout); err != nil {
 		return fail("%v", err)
+	}
+	if llmErrs != nil && llmErrs.Load() > 0 {
+		return fail("LLM 评审有 %d 次调用失败（报告不完整，已作废——修复 API 后重跑）", llmErrs.Load())
 	}
 	pairs := len(targets) * (len(targets) - 1) / 2
 	dest := "stdout"

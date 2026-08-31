@@ -1,0 +1,63 @@
+## T4 唤醒词自训配置（openwakeword 官方 custom_model schema，由 train.sh 驱动）
+## 官方文档：https://github.com/dscripka/openWakeWord#training-new-models
+## 变更纪律：target_phrase（量产唤醒词）由 founder 定夺后改本文件即可，其余参数
+## PM agent 可按门禁反馈调优（n_samples 越大效果越好，4060 拉长时间即可）。
+
+# 模型名（产出 onnx 文件名与目录名）
+model_name: "ai-toy-wakeword"
+
+# 目标唤醒词/短语。当前与开发期占位模型一致的英文短语；注意 openwakeword 的
+# piper TTS 训练数据链只支持英文——中文唤醒词须换 TTS 音源（founder 决策项，
+# 见 docs/runbooks/training-bootstrap.md §已知边界）。
+target_phrase:
+  - "hey jarvis"
+
+# 定向抑制误唤醒的短语（可选；电视广告/他牌唤醒词同音节可在此显式列出）
+custom_negative_phrases: []
+
+# 正样本量（官方建议 ≥20000；G1-01 需每词 ≥500 且年龄/口音分层——
+# 通过 piper 多音色 + 增强覆盖，分层证据由 evaluate.py 产出）
+n_samples: 40000
+n_samples_val: 2000
+
+tts_batch_size: 50
+augmentation_batch_size: 16
+
+# piper-sample-generator 位置（prepare_data.sh 克隆到 vendor/）
+piper_sample_generator_path: "./training/t4/vendor/piper-sample-generator"
+
+# 产出目录（合成正样本/增强后数据/训练模型；gitignore 排除）
+output_dir: "./training/t4/data/model"
+
+# 房间冲激响应（prepare_data.sh 从 MIT IR Survey 下载）
+rir_paths:
+  - "./training/t4/data/rirs/mit"
+
+# 背景噪声目录（prepare_data.sh 下载 audioset 片段 + FMA 音乐）
+background_paths:
+  - "./training/t4/data/noise/audioset"
+  - "./training/t4/data/noise/fma"
+background_paths_duplication_rate:
+  - 1
+  - 1
+
+# 误唤醒验证特征（~11h 语音/噪声/音乐，HF 公开预计算特征）
+false_positive_validation_data_path: "./training/t4/data/features/validation_set_features.npy"
+
+augmentation_rounds: 1
+
+# 预计算负样本特征（ACAV100M ~2000h；memory-map 加载，不受内存限制）
+feature_data_files:
+  "ACAV100M_sample": "./training/t4/data/features/openwakeword_features_ACAV100M_2000_hrs_16bit.npy"
+
+batch_n_per_class:
+  "ACAV100M_sample": 1024
+  "adversarial_negative": 50
+  "positive": 50
+
+model_type: "dnn"
+layer_size: 32
+
+steps: 50000
+max_negative_weight: 1500
+target_false_positives_per_hour: 0.2   # 对齐 T4-G0-01 量产线 0.1~0.5/h 的量级
