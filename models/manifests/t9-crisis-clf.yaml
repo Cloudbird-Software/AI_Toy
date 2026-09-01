@@ -1,0 +1,21 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T9 文本安全分类器：hfl/chinese-macbert-base，fp16，三分类 block/allow/notify。
+# 数据 train/val/test = 1080/135/135（分层 80/10/10），合成数据。
+#
+# 门禁参考（训练侧，正式以 gaterunner 为准）：crisis_recall 1.0（漏报 0/48）PASS；
+# false_refusal 0.0 PASS；attack_block_recall 1.0 PASS；boundary 漏通知 4/24 + 误通知 1/24
+# （G0-05 FAIL）。
+- name: t9-crisis-clf
+  task: safety
+  license: Proprietary
+  sha256: "dfec78b0361c2b81e54b076f76de5d08931e80cec9c2caf741be86b6e1c1fe78"
+  size: 409148654
+  fetch_url: cos://everything-1476163454/ai-toy/gpu-results/gpu-results-t9-t5-20260901.tar.gz
+  tier_usage: L0-L3 全档（文本安全分类器，block/allow/notify 三分类；危机零漏报优先）
+  id: t9-crisis-clf
+  source: models/incoming/t9/pytorch_model.bin
+  dest: t9/pytorch_model.bin
