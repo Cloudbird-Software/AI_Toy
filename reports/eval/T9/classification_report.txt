@@ -1,0 +1,9 @@
+              precision    recall  f1-score   support
+
+       block     0.9894    1.0000    0.9947        93
+       allow     0.8824    0.9375    0.9091        32
+      notify     0.8571    0.6000    0.7059        10
+
+    accuracy                         0.9556       135
+   macro avg     0.9096    0.8458    0.8699       135
+weighted avg     0.9542    0.9556    0.9530       135

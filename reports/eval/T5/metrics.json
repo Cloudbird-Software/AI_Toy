@@ -1,0 +1,149 @@
+{
+  "task": "C4 T5 SV CPU（冻结 ECAPA-TDNN embedding + 轻量头）",
+  "generated_at": "2026-08-31T10:24:50.257723+00:00",
+  "model": {
+    "source": "speechbrain/spkrec-ecapa-voxceleb",
+    "mode": "frozen, no finetune",
+    "dim": 192
+  },
+  "data": {
+    "n_members": 52,
+    "n_enroll": 416,
+    "n_verify": 156,
+    "n_stranger_clips": 72,
+    "n_stranger_speakers": 24,
+    "n_embeddings": 644
+  },
+  "trials": {
+    "pos_verification": 156,
+    "neg_verification": 7956,
+    "stranger_maxcos": 72,
+    "total": 8184,
+    "small_sample_flag": false,
+    "note": "负样本=verify×异成员 centroid 全交叉；正样本仅 156，EER 点估计 CI 宽"
+  },
+  "eer": {
+    "value": 0.17232,
+    "threshold": 0.8154,
+    "ci95": [
+      0.1541,
+      0.1869
+    ],
+    "gate": "T5-G1-01 ≤0.05",
+    "pass": false
+  },
+  "operating_points": {
+    "far1pct": {
+      "threshold": 0.9042,
+      "tar": 0.1026
+    },
+    "far01pct": {
+      "threshold": 0.9212,
+      "tar": 0.0385
+    }
+  },
+  "reidentification_closed_set": {
+    "top1": 0.2692,
+    "top2": 0.1538,
+    "top3": 0.141,
+    "top1_and_thr@eer": 0.2692,
+    "top1_and_thr@far1pct": 0.0513,
+    "top1_and_thr@far01pct": 0.0192,
+    "gallery_size": 52,
+    "n_probes": 156
+  },
+  "stranger_rejection": {
+    "gate": "T5-G1-04 ≥0.9",
+    "eer": {
+      "threshold": 0.8154,
+      "clip_level": 0.5,
+      "speaker_level": 0.2083
+    },
+    "far1pct": {
+      "threshold": 0.9042,
+      "clip_level": 1.0,
+      "speaker_level": 1.0
+    },
+    "far01pct": {
+      "threshold": 0.9212,
+      "clip_level": 1.0,
+      "speaker_level": 1.0
+    },
+    "pass_at_eer_thr": false
+  },
+  "separability": {
+    "cos_pos_mean_std": [
+      0.8547,
+      0.049
+    ],
+    "cos_neg_mean_std": [
+      0.3992,
+      0.3131
+    ],
+    "dprime": 2.033,
+    "neg_same_family_mean": 0.3316,
+    "neg_same_family_n": 666,
+    "neg_cross_family_mean": 0.4053,
+    "neg_adult_only_mean": 0.7909,
+    "neg_adult_only_n": 1140,
+    "intra_member_enroll_cos_mean": 0.7626,
+    "pos_by_age_group": {
+      "child": {
+        "mean": 0.8712,
+        "min": 0.8002,
+        "n": 54
+      },
+      "adult": {
+        "mean": 0.8153,
+        "min": 0.6807,
+        "n": 60
+      },
+      "elder": {
+        "mean": 0.8897,
+        "min": 0.8351,
+        "n": 42
+      }
+    }
+  },
+  "age_group_eer": {
+    "child": {
+      "eer": 0.2593,
+      "threshold": 0.8521,
+      "n_members": 18,
+      "n_pos": 54,
+      "n_neg": 918
+    },
+    "adult": {
+      "eer": 0.3684,
+      "threshold": 0.8144,
+      "n_members": 20,
+      "n_pos": 60,
+      "n_neg": 1140
+    },
+    "elder": {
+      "eer": 0.337,
+      "threshold": 0.8818,
+      "n_members": 14,
+      "n_pos": 42,
+      "n_neg": 546
+    }
+  },
+  "age_group_eer_note": "组内全交叉（verify×同组 centroid）；对照组见 separability.neg_adult_only_mean",
+  "linear_head_52cls": {
+    "train_acc": 1.0,
+    "verify_acc": 0.2308,
+    "final_loss": 0.0,
+    "epochs": 300
+  },
+  "limitations": [
+    "纯合成声纹：76 名说话人共用一个 TTS 基础音色（cixingnansheng），成员区分来自 tts_style 指令 + ffmpeg pitch/speed 确定性增强；embedding 可分性部分来自渲染参数而非声学本质，真实人声变异（信道/设备/情绪/生理）完全未覆盖。",
+    "EER 为合成域内指标，不可外推到真机场景；真实声纹差距（合成↔真实域差）未测量。",
+    "enroll common5 固定文本跨成员重复、verify 文本零重复，文本变量与真实部署不一致（半文本相关协议）。",
+    "正样本 trial 仅 156（52×3），bootstrap CI 宽；EER 单点 PASS/FAIL 不稳健，以 CI 与曲线为准。",
+    "本路线未微调 backbone，VoxCeleb 预训练域（真实人声）对纯 TTS 合成音频属跨域使用，embedding 质量上限未知。"
+  ],
+  "runtime_sec": 3.5,
+  "python": "/root/workspace/gpu-prep/.venv-cpu/bin/python",
+  "torch": "2.4.1+cpu",
+  "speechbrain": "1.1.1"
+}

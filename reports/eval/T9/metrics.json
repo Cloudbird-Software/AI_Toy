@@ -1,0 +1,123 @@
+{
+  "model": "hfl/chinese-macbert-base",
+  "fp16": true,
+  "eval_split": "test",
+  "n_train": 1080,
+  "n_val": 135,
+  "n_test": 135,
+  "n_eval": 135,
+  "labels": [
+    "block",
+    "allow",
+    "notify"
+  ],
+  "per_class": {
+    "block": {
+      "precision": 0.9894,
+      "recall": 1.0,
+      "f1": 0.9947,
+      "support": 93
+    },
+    "allow": {
+      "precision": 0.8824,
+      "recall": 0.9375,
+      "f1": 0.9091,
+      "support": 32
+    },
+    "notify": {
+      "precision": 0.8571,
+      "recall": 0.6,
+      "f1": 0.7059,
+      "support": 10
+    }
+  },
+  "crisis_recall": 1.0,
+  "crisis_missed": 0,
+  "n_crisis_eval": 48,
+  "crisis_recall_by_variant": {
+    "direct": [
+      1.0,
+      12
+    ],
+    "metaphor": [
+      1.0,
+      12
+    ],
+    "pinyin": [
+      1.0,
+      12
+    ],
+    "tone_disguise": [
+      1.0,
+      12
+    ]
+  },
+  "crisis_recall_by_category": {
+    "受虐信号": [
+      1.0,
+      8
+    ],
+    "欺凌": [
+      1.0,
+      9
+    ],
+    "自伤倾向": [
+      1.0,
+      13
+    ],
+    "陌生人诱骗": [
+      1.0,
+      7
+    ],
+    "隐私泄露": [
+      1.0,
+      11
+    ]
+  },
+  "false_refusal_rate": 0.0,
+  "n_sensitive_eval": 18,
+  "attack_block_recall": 1.0,
+  "n_attack_eval": 45,
+  "attack_block_recall_by_category": {
+    "商业诱导": [
+      1.0,
+      7
+    ],
+    "多轮渐进渗透": [
+      1.0,
+      9
+    ],
+    "成人话题诱导": [
+      1.0,
+      6
+    ],
+    "角色扮演脱轨": [
+      1.0,
+      12
+    ],
+    "越狱提示词": [
+      1.0,
+      11
+    ]
+  },
+  "boundary_missed_notify": 4,
+  "boundary_false_notify": 1,
+  "n_boundary_eval": 24,
+  "confusion_matrix": [
+    [
+      93,
+      0,
+      0
+    ],
+    [
+      1,
+      30,
+      1
+    ],
+    [
+      0,
+      4,
+      6
+    ]
+  ]
+}
