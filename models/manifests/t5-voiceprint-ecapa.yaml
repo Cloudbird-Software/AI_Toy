@@ -1,0 +1,21 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T5 声纹模型（CPU 路线）：冻结 speechbrain/spkrec-ecapa-voxceleb embedding + 轻量头，
+# 未微调 backbone。纯合成声纹数据（52 成员 + 24 陌生人，单 TTS 音色 + ffmpeg 变体）。
+#
+# 门禁结论：EER 17.23%（CI95 15.41~18.69%，≤5% FAIL）；陌生人拒判 clip 50%/说话人 20.8%
+# （≥90% FAIL）。可分性 = 渲染参数可分性：adult 组 pitch 恒 0 在 embedding 上不可分。
+# 合成↔真实域差未测量，本指标不可外推到真机。
+- name: t5-voiceprint-ecapa
+  task: sv
+  license: Proprietary
+  sha256: "42c88e93ed30953c32cd389e953b1eaf1cd4fa4ff875e0881153758cf09063cc"
+  size: 83423978
+  fetch_url: cos://everything-1476163454/ai-toy/gpu-results/gpu-results-t9-t5-20260901.tar.gz
+  tier_usage: L2-L3（声纹识别，需 enroll 后启用；CPU 路线天花板探索，GPU 微调待训）
+  id: t5-voiceprint-ecapa
+  source: models/incoming/t5_ecapa.onnx
+  dest: t5_ecapa.onnx

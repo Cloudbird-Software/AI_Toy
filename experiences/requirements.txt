@@ -1,0 +1,11 @@
+# T4 唤醒词 (openwakeword 自带 onnxruntime，显式 pin 便于 T5 复用)
+openwakeword==0.6.0
+# T5 声纹 (onnxruntime + librosa fbank)
+onnxruntime==1.29.0
+librosa==0.11.0
+# T9 危机分类 (transformers)
+transformers==4.44.2
+# 公共
+soundfile==0.14.0
+numpy==1.26.4
+# torch / torchaudio：CPU 版从 PyTorch 官方 CPU 索引安装（见 start.sh），不写在此处避免拉错 CUDA 版
