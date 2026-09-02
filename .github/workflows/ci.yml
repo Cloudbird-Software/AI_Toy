@@ -23,6 +23,9 @@ jobs:
     # base↔head），直推 main 时 deps job 被 skip 而 gate 判绿——push 面零校验。
     # 直推本应只有破玻璃（§8 后验），但"跳过=通过"的 gate 语义是声明性漏洞：
     # push 用 lockfile 审计兜底（npm audit 只读 registry 元数据，无新 action 依赖）。
+    # issue #121：仓内尚无任何 lockfile（TS 包为骨架，packageManager=pnpm）——
+    # `npm audit --package-lock-only` 无 lockfile 必 ENOLOCK；守卫式执行，
+    # lockfile 落地后自动生效（审计面不因骨架期缺失而永久缺席）。
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -35,15 +38,18 @@ jobs:
           python-version: "3.12"
       - name: npm audit（lockfile 高危阻断）
         run: |
-          # 只装 npm（runner 预装）；审计 prod+dev 依赖的 high/critical
-          npm audit --package-lock-only --audit-level=high
+          if [ -f package-lock.json ]; then
+            # 只装 npm（runner 预装）；审计 prod+dev 依赖的 high/critical
+            npm audit --package-lock-only --audit-level=high
+          else
+            echo "::warning::deps-audit debt: 无 package-lock.json（TS 骨架期），lockfile 落地后本守卫自动启用审计"
+          fi
 
-  check:
-    uses: Cloudbird-Software/CI-Workflows/.github/workflows/check.yml@61191f87c537f6e887695517121c6e530a838261 # v1
-    with:
-      ciw-ref: 61191f87c537f6e887695517121c6e530a838261
-      runtime: node
-      node-version: "24"
+  # check（CI-Workflows check.yml）暂不接线（issue #121 实测）：该 reusable 以
+  # `make setup`/`make check` 为入口且 node runtime 硬依赖 npm lockfile——本仓
+  # 构建面是 justfile（无 Makefile）、TS 包为纯骨架（无 lockfile），二者皆不满足。
+  # 复接条件：TS 实现落地（pnpm-lock.yaml + org check.yml 支持 just/pnpm 入口）。
+  # 过渡期质量门禁由 quality-gates（gaterunner，Go 实测面）承担，非空窗。
 
   deps:
     if: github.event_name == 'pull_request'
@@ -169,7 +175,6 @@ jobs:
     needs:
       [
         hygiene,
-        check,
         deps,
         deps-audit,
         adr-required,
