@@ -191,7 +191,7 @@ func TestPropertyDeleteIdempotent(t *testing.T) {
 	f := func(pre, post []propOp) bool {
 		s := mustStore(t, propOpts)
 		for _, o := range pre {
-			propApply(s, o)
+			_ = propApply(s, o) // 域错误（ErrNotFound/ErrCrossDomain 等）=随机操作流合法结果，断言面在存储不变式
 		}
 		ids := propIDs(s)
 		if len(ids) == 0 {
@@ -216,7 +216,7 @@ func TestPropertyDeleteIdempotent(t *testing.T) {
 			}
 		}
 		for _, o := range post { // 后续任意操作流不复活
-			propApply(s, o)
+			_ = propApply(s, o) // 域错误（ErrNotFound/ErrCrossDomain 等）=随机操作流合法结果，断言面在存储不变式
 			if s.nodes[id] != nil {
 				return false
 			}
@@ -234,8 +234,8 @@ func TestPropertyDeterministicReplay(t *testing.T) {
 	f := func(ops []propOp) bool {
 		a, b := mustStore(t, propOpts), mustStore(t, propOpts)
 		for _, o := range ops {
-			propApply(a, o)
-			propApply(b, o)
+			_ = propApply(a, o) // 域错误（ErrNotFound/ErrCrossDomain 等）=随机操作流合法结果，断言面在存储不变式
+			_ = propApply(b, o) // 域错误（ErrNotFound/ErrCrossDomain 等）=随机操作流合法结果，断言面在存储不变式
 		}
 		if a.Size() != b.Size() {
 			return false
@@ -273,7 +273,7 @@ func TestPropertyReadOnlyInvariant(t *testing.T) {
 			if propMod(int64(o.Kind), 7) == 6 {
 				continue
 			}
-			propApply(s, o)
+			_ = propApply(s, o) // 域错误（ErrNotFound/ErrCrossDomain 等）=随机操作流合法结果，断言面在存储不变式
 		}
 		u := propUsers[propMod(int64(pick), 3)]
 		_ = s.SetReadOnly(u, false, 0)
@@ -329,7 +329,7 @@ func TestPropertyCapacityBounded(t *testing.T) {
 	f := func(ops []propOp) bool {
 		s := mustStore(t, Options{MaxNodes: maxN, DecayHalfLifeMs: 1000})
 		for _, o := range ops {
-			propApply(s, o)
+			_ = propApply(s, o) // 域错误（ErrNotFound/ErrCrossDomain 等）=随机操作流合法结果，断言面在存储不变式
 			if s.Size() > maxN {
 				return false // 容量越界（无 OOM 的构造保证）
 			}

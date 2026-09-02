@@ -123,7 +123,7 @@ func Script(p Profile, seed int64, id string) []Utterance {
 // 的字符串种子哈希约定（同画像同种子同 id→同源；画像入键=确定性契约的参数面）。
 func scriptSource(p Profile, seed int64, id string) rand.Source {
 	h := fnv.New64a()
-	fmt.Fprintf(h, "%d:%s:%s", seed, id, profileKey(p))
+	_, _ = fmt.Fprintf(h, "%d:%s:%s", seed, id, profileKey(p)) // hash.Write 契约：永不返回错误
 	return rand.NewSource(int64(h.Sum64()))
 }
 

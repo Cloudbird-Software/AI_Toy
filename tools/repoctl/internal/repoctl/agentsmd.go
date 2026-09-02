@@ -99,13 +99,13 @@ func cliAgentsMD(args []string, stdout, stderr io.Writer) int {
 	}
 	fails, nPkgs, err := CheckAgentsMD(*root)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
 	for _, f := range fails {
-		fmt.Fprintln(stderr, "agents-md FAIL: "+f)
+		_, _ = fmt.Fprintln(stderr, "agents-md FAIL: "+f)
 	}
-	fmt.Fprintf(stdout, "agents-md: 根 + %d 个包\n", nPkgs)
+	_, _ = fmt.Fprintf(stdout, "agents-md: 根 + %d 个包\n", nPkgs)
 	if len(fails) > 0 {
 		return ExitViolation
 	}

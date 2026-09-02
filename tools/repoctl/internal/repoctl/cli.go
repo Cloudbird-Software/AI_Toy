@@ -19,7 +19,7 @@ const usage = "usage: repoctl <coverage|agents-md check|forbidden-refs|exemption
 // Run 执行 repoctl CLI（argv 不含程序名），返回进程退出码。
 func Run(argv []string, stdout, stderr io.Writer) int {
 	if len(argv) == 0 {
-		fmt.Fprintln(stderr, usage)
+		_, _ = fmt.Fprintln(stderr, usage)
 		return ExitInput
 	}
 	cmd, rest := argv[0], argv[1:]
@@ -37,14 +37,14 @@ func Run(argv []string, stdout, stderr io.Writer) int {
 	case "affected":
 		return cliAffected(rest, stdout, stderr)
 	}
-	fmt.Fprintf(stderr, "error: 未知子命令 %q\n%s\n", cmd, usage)
+	_, _ = fmt.Fprintf(stderr, "error: 未知子命令 %q\n%s\n", cmd, usage)
 	return ExitInput
 }
 
 // cliNested 校验二级子命令（agents-md check / exemption audit）后转交实现。
 func cliNested(parent, sub string, argv []string, fn func([]string, io.Writer, io.Writer) int, stdout, stderr io.Writer) int {
 	if len(argv) == 0 || argv[0] != sub {
-		fmt.Fprintf(stderr, "error: %s 须跟子命令 %q\n%s\n", parent, sub, usage)
+		_, _ = fmt.Fprintf(stderr, "error: %s 须跟子命令 %q\n%s\n", parent, sub, usage)
 		return ExitInput
 	}
 	return fn(argv[1:], stdout, stderr)

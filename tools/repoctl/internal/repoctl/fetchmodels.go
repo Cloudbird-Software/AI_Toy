@@ -132,7 +132,7 @@ func sha256File(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
 		return "", err
@@ -145,7 +145,7 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer in.Close()
+	defer func() { _ = in.Close() }()
 	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func copyFile(src, dst string) error {
 		return err
 	}
 	if _, err := io.Copy(out, in); err != nil {
-		out.Close()
+		_ = out.Close() // Copy 错误为主因，关闭损失次生面（尽力）
 		return err
 	}
 	return out.Close()
@@ -169,13 +169,13 @@ func cliFetchModels(args []string, stdout, stderr io.Writer) int {
 	}
 	shaFails, inputErrs, total, err := FetchModels(*manifest, *cache)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
 	for _, m := range append(inputErrs, shaFails...) {
-		fmt.Fprintln(stderr, "fetch-models FAIL: "+m)
+		_, _ = fmt.Fprintln(stderr, "fetch-models FAIL: "+m)
 	}
-	fmt.Fprintf(stdout, "fetch-models: %d/%d 权重就绪 -> %s\n",
+	_, _ = fmt.Fprintf(stdout, "fetch-models: %d/%d 权重就绪 -> %s\n",
 		total-len(shaFails)-len(inputErrs), total, *cache)
 	if len(shaFails) > 0 {
 		return ExitViolation

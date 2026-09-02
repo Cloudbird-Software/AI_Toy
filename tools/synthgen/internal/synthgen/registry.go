@@ -81,7 +81,7 @@ func RegisterGenerator(path, id, version, seedPolicy, outputsManifest string) (G
 	if err != nil {
 		return g, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	if _, err := f.Write(append(data, '\n')); err != nil {
 		return g, err
 	}

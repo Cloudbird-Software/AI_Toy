@@ -74,19 +74,19 @@ func cliAffected(args []string, stdout, stderr io.Writer) int {
 		return ExitInput
 	}
 	if *base == "" {
-		fmt.Fprintln(stderr, "error: --base 必填（如 origin/main）")
+		_, _ = fmt.Fprintln(stderr, "error: --base 必填（如 origin/main）")
 		return ExitInput
 	}
 	assets, err := Affected(*root, *base)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
 	data, err := json.Marshal(assets)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
-	fmt.Fprintln(stdout, string(data))
+	_, _ = fmt.Fprintln(stdout, string(data))
 	return ExitOK
 }

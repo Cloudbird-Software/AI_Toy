@@ -128,7 +128,7 @@ type Report struct {
 // （Go 的 rand.NewSource 只接受 int64，故用 fnv 哈希字符串种子）。
 func seedSource(scriptID string, seed int) rand.Source {
 	h := fnv.New64a()
-	fmt.Fprintf(h, "%d:%s", seed, scriptID)
+	_, _ = fmt.Fprintf(h, "%d:%s", seed, scriptID) // hash.Write 契约：永不返回错误
 	return rand.NewSource(int64(h.Sum64()))
 }
 

@@ -170,20 +170,20 @@ func cliCoverage(args []string, stdout, stderr io.Writer) int {
 	}
 	fails, debts, nAssets, nEntries, err := CheckCoverage(*root)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
 	for _, d := range debts {
-		fmt.Fprintln(stdout, "coverage DEBT: "+d)
+		_, _ = fmt.Fprintln(stdout, "coverage DEBT: "+d)
 	}
 	for _, f := range fails {
-		fmt.Fprintln(stderr, "coverage FAIL: "+f)
+		_, _ = fmt.Fprintln(stderr, "coverage FAIL: "+f)
 	}
 	summary := fmt.Sprintf("coverage: %d 资产 / %d 断言", nAssets, nEntries)
 	if len(debts) > 0 { // 全齐时不出现 DEBT 字样；有欠账才显式计数
 		summary += fmt.Sprintf("（%d DEBT）", len(debts))
 	}
-	fmt.Fprintln(stdout, summary)
+	_, _ = fmt.Fprintln(stdout, summary)
 	if len(fails) > 0 {
 		return ExitViolation
 	}

@@ -28,7 +28,7 @@ const (
 // Run 执行 synthgen CLI（argv 不含程序名），返回进程退出码。
 func Run(argv []string, stdout, stderr io.Writer) int {
 	if len(argv) == 0 {
-		fmt.Fprintln(stderr, "usage: synthgen <register|generate|generate-neg|dist-check> [flags]")
+		_, _ = fmt.Fprintln(stderr, "usage: synthgen <register|generate|generate-neg|dist-check> [flags]")
 		return ExitInput
 	}
 	switch argv[0] {
@@ -41,7 +41,7 @@ func Run(argv []string, stdout, stderr io.Writer) int {
 	case "dist-check":
 		return runDistCheck(argv[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：register、generate、generate-neg、dist-check）\n", argv[0])
+		_, _ = fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：register、generate、generate-neg、dist-check）\n", argv[0])
 		return ExitInput
 	}
 }
@@ -57,15 +57,15 @@ func runRegister(args []string, stdout, stderr io.Writer) int {
 		return ExitInput
 	}
 	if *id == "" || *version == "" || *seedPolicy == "" || *outputsManifest == "" {
-		fmt.Fprintln(stderr, "error: register 需要 --id、--version、--seed-policy、--outputs-manifest")
+		_, _ = fmt.Fprintln(stderr, "error: register 需要 --id、--version、--seed-policy、--outputs-manifest")
 		return ExitInput
 	}
 	g, err := RegisterGenerator(RegistryPath, *id, *version, *seedPolicy, *outputsManifest)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
-	fmt.Fprintf(stdout, "registered %s@%s -> %s\n", g.ID, g.Version, RegistryPath)
+	_, _ = fmt.Fprintf(stdout, "registered %s@%s -> %s\n", g.ID, g.Version, RegistryPath)
 	return ExitOK
 }
 
@@ -79,7 +79,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		return ExitInput
 	}
 	if *id == "" || *n < 1 {
-		fmt.Fprintln(stderr, "error: generate 需要 --id 与 --n ≥ 1")
+		_, _ = fmt.Fprintln(stderr, "error: generate 需要 --id 与 --n ≥ 1")
 		return ExitInput
 	}
 	records, err := LoadRegistry(RegistryPath)
@@ -92,10 +92,10 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
-	fmt.Fprintf(stdout, "batch %s: n=%d train=%d holdout=%d -> %s\n", b.ID, b.N, b.TrainN, b.HoldoutN, dir)
+	_, _ = fmt.Fprintf(stdout, "batch %s: n=%d train=%d holdout=%d -> %s\n", b.ID, b.N, b.TrainN, b.HoldoutN, dir)
 	return ExitOK
 }
 
@@ -116,11 +116,11 @@ func runGenerateNeg(args []string, stdout, stderr io.Writer) int {
 	explicit := map[string]bool{}
 	fs.Visit(func(f *flag.Flag) { explicit[f.Name] = true })
 	if *id == "" || *durationMs < NegFrameMs {
-		fmt.Fprintf(stderr, "error: generate-neg 需要 --id 与 --duration-ms ≥ %d\n", NegFrameMs)
+		_, _ = fmt.Fprintf(stderr, "error: generate-neg 需要 --id 与 --duration-ms ≥ %d\n", NegFrameMs)
 		return ExitInput
 	}
 	if explicit["seed"] && explicit["seed-label"] {
-		fmt.Fprintln(stderr, "error: --seed 与 --seed-label 二选一")
+		_, _ = fmt.Fprintln(stderr, "error: --seed 与 --seed-label 二选一")
 		return ExitInput
 	}
 	if explicit["seed-label"] {
@@ -136,10 +136,10 @@ func runGenerateNeg(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
-	fmt.Fprintf(stdout, "neg-batch %s: n=%d train=%d holdout=%d eval=%d purpose=%s duration=%dms -> %s\n",
+	_, _ = fmt.Fprintf(stdout, "neg-batch %s: n=%d train=%d holdout=%d eval=%d purpose=%s duration=%dms -> %s\n",
 		b.ID, b.N, b.TrainN, b.HoldoutN, b.EvalN, b.Purpose, b.DurationMs, dir)
 	return ExitOK
 }
@@ -153,40 +153,40 @@ func runDistCheck(args []string, stdout, stderr io.Writer) int {
 		return ExitInput
 	}
 	if *batch == "" {
-		fmt.Fprintln(stderr, "error: dist-check 需要 --batch")
+		_, _ = fmt.Fprintln(stderr, "error: dist-check 需要 --batch")
 		return ExitInput
 	}
 	samples, err := readJSONL(filepath.Join(BatchesDir, *batch, "samples.jsonl"))
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
 	if len(samples) == 0 {
-		fmt.Fprintf(stderr, "error: 空批次: %s\n", *batch)
+		_, _ = fmt.Fprintf(stderr, "error: 空批次: %s\n", *batch)
 		return ExitInput
 	}
 	var ref []map[string]any
 	if *reference != "" {
 		if ref, err = readJSONL(*reference); err != nil { // 空 jsonl → 非 nil 空集，仍参与 JS 距离
-			fmt.Fprintf(stderr, "error: %v\n", err)
+			_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 			return ExitInput
 		}
 	}
 	report := Evaluate(samples, ref)
-	fmt.Fprintf(stdout, "batch %s n=%d\n", *batch, report.N)
+	_, _ = fmt.Fprintf(stdout, "batch %s n=%d\n", *batch, report.N)
 	for _, field := range DiversityFields {
 		entry := report.Fields[field]
 		js := ""
 		if entry.JSDistanceBits != nil {
 			js = fmt.Sprintf(" js_ref=%.3f", *entry.JSDistanceBits)
 		}
-		fmt.Fprintf(stdout, "%-8s entropy=%.3fbit cats=%d%s\n", field, entry.EntropyBits, entry.Categories, js)
+		_, _ = fmt.Fprintf(stdout, "%-8s entropy=%.3fbit cats=%d%s\n", field, entry.EntropyBits, entry.Categories, js)
 	}
 	status := "VIOLATION"
 	if report.OK {
 		status = "OK"
 	}
-	fmt.Fprintf(stdout, "single-source share=%.2f (limit %.2f) %s\n", report.SingleSourceShare, SingleSourceLimit, status)
+	_, _ = fmt.Fprintf(stdout, "single-source share=%.2f (limit %.2f) %s\n", report.SingleSourceShare, SingleSourceLimit, status)
 	if report.OK {
 		return ExitOK
 	}

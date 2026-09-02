@@ -134,7 +134,7 @@ func appendKnowledge(line string) func(*testing.T, string) {
 		if err != nil {
 			t.Fatalf("打开知识文件失败: %v", err)
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		if _, err := f.WriteString("\n" + line + "\n"); err != nil {
 			t.Fatalf("追加知识失败: %v", err)
 		}
@@ -587,13 +587,15 @@ func TestManagerAtomicityCrashRecovery(t *testing.T) {
 			newp := mustLoad(t, fixturePack(t, "new", setPackID("fx-crash"), setVersion("0.2.0"),
 				overwriteFile("eval/eval_set.yaml", evalPassYAML+evalPassYAML), setMinPass(0.5)))
 			func() {
-				defer func() { recover() }() // 崩溃仿真：进程即死，不清理
+				defer func() { _ = recover() }() // 崩溃仿真：进程即死，不清理
 				if tc.partial {
 					stg := filepath.Join(root, "staging", "fx-crash")
 					if err := os.MkdirAll(stg, 0o755); err != nil {
 						t.Fatalf("建 staging 失败: %v", err)
 					}
-					os.WriteFile(filepath.Join(stg, manifestName), []byte(`{"pack_id":"fx-crash"`), 0o644)
+					if err := os.WriteFile(filepath.Join(stg, manifestName), []byte(`{"pack_id":"fx-crash"`), 0o644); err != nil {
+						t.Fatalf("写损坏 manifest fixture 失败: %v", err)
+					}
 					return
 				}
 				if err := m.StageInstall(newp, stubClassify); err != nil {

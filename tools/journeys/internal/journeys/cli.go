@@ -20,7 +20,7 @@ const (
 // Main 是 journeys CLI 入口（cmd/journeys 为薄壳），返回进程退出码。
 func Main(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 || args[0] != "run" {
-		fmt.Fprintln(stderr, "usage: journeys run --set golden|core10 [--seeds N] [--driver real|simulated] [--scripts-dir DIR] [--out FILE] [--strict]")
+		_, _ = fmt.Fprintln(stderr, "usage: journeys run --set golden|core10 [--seeds N] [--driver real|simulated] [--scripts-dir DIR] [--out FILE] [--strict]")
 		return ExitConfig
 	}
 	fs := flag.NewFlagSet("run", flag.ContinueOnError)
@@ -32,7 +32,7 @@ func Main(args []string, stdout, stderr io.Writer) int {
 	out := fs.String("out", "", "JSON 报告写入该文件（缺省打印 stdout）")
 	strict := fs.Bool("strict", false, "严格模式：模拟 driver 失败也 exit 1（缺省桩失败阶段化为 SIMULATION-DEBT 不阻断）")
 	fail := func(format string, args ...any) int {
-		fmt.Fprintf(stderr, "error: "+format+"\n", args...)
+		_, _ = fmt.Fprintf(stderr, "error: "+format+"\n", args...)
 		return ExitConfig
 	}
 	if err := fs.Parse(args[1:]); err != nil {
@@ -78,8 +78,8 @@ func Main(args []string, stdout, stderr io.Writer) int {
 	// IR #72：模拟态失败 = 债务而非信号（ADR-0002 同一阶段化哲学），
 	// 不阻断但必须醒目可见；--driver real（spec §8）失败为真失败，自然旧执法。
 	if rep.SimulationDebt && !*strict {
-		fmt.Fprintf(stdout, "SIMULATION-DEBT: %d 旅程失败（driver=simulated 桩噪声，不代表产品行为；--driver real 真管道执法，--strict 可恢复阻断）\n", rep.Summary.Fail)
-		fmt.Fprintf(stdout, "SIMULATION-DEBT-IDS: %s\n", strings.Join(rep.Summary.FailIDs, ","))
+		_, _ = fmt.Fprintf(stdout, "SIMULATION-DEBT: %d 旅程失败（driver=simulated 桩噪声，不代表产品行为；--driver real 真管道执法，--strict 可恢复阻断）\n", rep.Summary.Fail)
+		_, _ = fmt.Fprintf(stdout, "SIMULATION-DEBT-IDS: %s\n", strings.Join(rep.Summary.FailIDs, ","))
 		return ExitOK
 	}
 	return ExitFail

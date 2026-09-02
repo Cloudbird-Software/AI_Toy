@@ -20,7 +20,7 @@ const (
 func Main(args []string, stdout, stderr io.Writer) int {
 	const usage = "用法: toyjudge <calibrate|run> [flags]"
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, usage)
+		_, _ = fmt.Fprintln(stderr, usage)
 		return ExitInput
 	}
 	switch args[0] {
@@ -29,7 +29,7 @@ func Main(args []string, stdout, stderr io.Writer) int {
 	case "run":
 		return runRunCmd(args[1:], stdout, stderr)
 	}
-	fmt.Fprintf(stderr, "toyjudge: 未知子命令 %q\n%s\n", args[0], usage)
+	_, _ = fmt.Fprintf(stderr, "toyjudge: 未知子命令 %q\n%s\n", args[0], usage)
 	return ExitInput
 }
 
@@ -41,7 +41,7 @@ func runCalibrateCmd(args []string, stdout, stderr io.Writer) int {
 	rubricsDir := fs.String("rubrics-dir", "configs/judge/rubrics", "rubric 目录")
 	modelPath := fs.String("model", "configs/judge/model.yaml", "judge 模型配置")
 	fail := func(format string, a ...any) int {
-		fmt.Fprintf(stderr, "calibrate: "+format+"\n", a...)
+		_, _ = fmt.Fprintf(stderr, "calibrate: "+format+"\n", a...)
 		return ExitInput
 	}
 	if fs.Parse(args) != nil {
@@ -70,9 +70,9 @@ func runCalibrateCmd(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail("%v", err)
 	}
-	fmt.Fprintln(stdout, string(data))
+	_, _ = fmt.Fprintln(stdout, string(data))
 	if !rep.Pass {
-		fmt.Fprintf(stderr, "calibrate: min κ=%.4f < %.2f，门禁未达\n", rep.MinKappa, rep.KappaGate)
+		_, _ = fmt.Fprintf(stderr, "calibrate: min κ=%.4f < %.2f，门禁未达\n", rep.MinKappa, rep.KappaGate)
 		return ExitKappaGate
 	}
 	return ExitOK
@@ -88,7 +88,7 @@ func runRunCmd(args []string, stdout, stderr io.Writer) int {
 	rubricsDir := fs.String("rubrics-dir", "configs/judge/rubrics", "rubric 目录")
 	modelPath := fs.String("model", "configs/judge/model.yaml", "judge 模型配置")
 	fail := func(format string, a ...any) int {
-		fmt.Fprintf(stderr, "run: "+format+"\n", a...)
+		_, _ = fmt.Fprintf(stderr, "run: "+format+"\n", a...)
 		return ExitInput
 	}
 	if fs.Parse(args) != nil {
@@ -130,9 +130,9 @@ func runRunCmd(args []string, stdout, stderr io.Writer) int {
 	}
 	summary := fmt.Sprintf("run %s（%s）：%d 对 × %d judge → %s\n", rubric.ID, *mode, pairs, len(judges), dest)
 	if *out != "" {
-		fmt.Fprint(stdout, summary)
+		_, _ = fmt.Fprint(stdout, summary)
 	} else {
-		fmt.Fprint(stderr, summary)
+		_, _ = fmt.Fprint(stderr, summary)
 	}
 	return ExitOK
 }

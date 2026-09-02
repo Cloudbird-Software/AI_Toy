@@ -17,7 +17,7 @@ const (
 // Run 执行 budgets CLI（argv 不含程序名），返回进程退出码。
 func Run(argv []string, stdout, stderr io.Writer) int {
 	if len(argv) == 0 {
-		fmt.Fprintln(stderr, "usage: budgets <check|ledger> [flags]")
+		_, _ = fmt.Fprintln(stderr, "usage: budgets <check|ledger> [flags]")
 		return ExitInput
 	}
 	switch argv[0] {
@@ -26,7 +26,7 @@ func Run(argv []string, stdout, stderr io.Writer) int {
 	case "ledger":
 		return runLedger(argv[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：check、ledger）\n", argv[0])
+		_, _ = fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：check、ledger）\n", argv[0])
 		return ExitInput
 	}
 }
@@ -48,10 +48,10 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
-	fmt.Fprintln(stdout, FormatDebtTable(result, *reportPath))
+	_, _ = fmt.Fprintln(stdout, FormatDebtTable(result, *reportPath))
 	if result.OK {
 		return ExitOK
 	}
@@ -67,7 +67,7 @@ func runLedger(args []string, stdout, stderr io.Writer) int {
 		return ExitInput
 	}
 	if *days < 1 {
-		fmt.Fprintf(stderr, "error: --days 须 ≥ 1，got %d\n", *days)
+		_, _ = fmt.Fprintf(stderr, "error: --days 须 ≥ 1，got %d\n", *days)
 		return ExitInput
 	}
 	entries, err := LoadHistory(*historyPath)
@@ -79,7 +79,7 @@ func runLedger(args []string, stdout, stderr io.Writer) int {
 		}
 		rows, err = ComputeTrends(window)
 		if err == nil {
-			fmt.Fprintln(stdout, FormatTrendTable(rows, *days, len(window)))
+			_, _ = fmt.Fprintln(stdout, FormatTrendTable(rows, *days, len(window)))
 			for _, row := range rows {
 				if row.Red {
 					return ExitViolation
@@ -88,6 +88,6 @@ func runLedger(args []string, stdout, stderr io.Writer) int {
 			return ExitOK
 		}
 	}
-	fmt.Fprintf(stderr, "error: %v\n", err)
+	_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 	return ExitInput
 }

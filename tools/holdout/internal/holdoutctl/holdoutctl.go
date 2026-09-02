@@ -151,7 +151,7 @@ func appendAudit(log, suite, sha, actor, event string) (map[string]string, error
 	if err != nil {
 		return row, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	_, err = f.Write(append(data, '\n'))
 	return row, err
 }

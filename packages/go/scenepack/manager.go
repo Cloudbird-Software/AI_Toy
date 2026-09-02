@@ -192,9 +192,9 @@ func (m *Manager) commitInstallLocked(id string) error {
 	// ——优雅失败 0 残留（T16-G0-02）；崩溃（panic）不走此路，归 Recover 收敛。
 	rollback := func() {
 		if _, err := os.Stat(prev); err == nil {
-			os.Rename(prev, cur)
+			_ = os.Rename(prev, cur) // 尽力回滚：旧版复位失败不外抛——主错误已由外层返回，崩溃残留归 Recover
 		}
-		os.RemoveAll(stg)
+		_ = os.RemoveAll(stg) // 尽力回滚：staging 全弃失败不外抛——主错误已由外层返回，崩溃残留归 Recover
 	}
 	hadOld := false
 	if _, err := os.Stat(cur); err == nil {
@@ -212,7 +212,7 @@ func (m *Manager) commitInstallLocked(id string) error {
 		return fmt.Errorf("scenepack: 新版上位失败: %w", err)
 	}
 	if err := m.step(2); err != nil { // 崩溃点②：新版已完整上位、旧版残 .prev
-		os.Rename(cur, stg) // 回滚：新版退回 staging（随 rollback 弃）
+		_ = os.Rename(cur, stg) // 回滚：新版退回 staging（随 rollback 弃）
 		rollback()
 		return err
 	}
@@ -259,7 +259,7 @@ func (m *Manager) Uninstall(id string) error {
 		m.active = "" // 卸载即回无包基线
 	}
 	if err := m.step(4); err != nil { // 崩溃点：已出注册面、staging 残留（Recover 清）
-		os.RemoveAll(stg) // 优雅失败收口：staging 全弃——0 残留（崩溃态归 Recover）
+		_ = os.RemoveAll(stg) // 优雅失败收口：staging 全弃——0 残留（崩溃态归 Recover）
 		return err
 	}
 	if err := os.RemoveAll(stg); err != nil { // ② 全清

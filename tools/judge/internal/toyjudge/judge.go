@@ -40,7 +40,7 @@ func DeterministicJudge(call PairwiseCall) LevelPair {
 
 func deterministicLevel(call PairwiseCall, t Target) int {
 	h := fnv.New64a()
-	fmt.Fprintf(h, "%s\x00%s\x00%s\x00", call.RubricID, call.Criterion, call.Judge.ConfigSHA256)
+	_, _ = fmt.Fprintf(h, "%s\x00%s\x00%s\x00", call.RubricID, call.Criterion, call.Judge.ConfigSHA256) // hash.Write 契约：永不返回错误
 	h.Write(t.Content)
 	return 1 + int(h.Sum64()%3)
 }

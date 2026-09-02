@@ -90,13 +90,13 @@ func cliForbidden(args []string, stdout, stderr io.Writer) int {
 	}
 	fails, err := CheckForbiddenRefs(*root)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
 	for _, f := range fails {
-		fmt.Fprintln(stderr, "forbidden-refs FAIL: "+f)
+		_, _ = fmt.Fprintln(stderr, "forbidden-refs FAIL: "+f)
 	}
-	fmt.Fprintf(stdout, "forbidden-refs: %d 处违规\n", len(fails))
+	_, _ = fmt.Fprintf(stdout, "forbidden-refs: %d 处违规\n", len(fails))
 	if len(fails) > 0 {
 		return ExitViolation
 	}

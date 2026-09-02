@@ -459,7 +459,7 @@ func synthChunks(text, voice string, seed uint32) []Chunk {
 		n = 1
 	}
 	h := fnv.New32a()
-	fmt.Fprintf(h, "%s\x00%s\x00%d", stripControls(text), stripControls(voice), seed)
+	_, _ = fmt.Fprintf(h, "%s\x00%s\x00%d", stripControls(text), stripControls(voice), seed) // hash.Write 契约：永不返回错误
 	state := h.Sum32()
 	var chunks []Chunk
 	written := 0

@@ -62,13 +62,13 @@ func cliExemption(args []string, stdout, stderr io.Writer) int {
 	}
 	fails, n, err := AuditExemptions(*file)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitInput
 	}
 	for _, f := range fails {
-		fmt.Fprintln(stderr, "exemption audit FAIL: "+f)
+		_, _ = fmt.Fprintln(stderr, "exemption audit FAIL: "+f)
 	}
-	fmt.Fprintf(stdout, "exemption audit: %d 项豁免, %d 过期\n", n, len(fails))
+	_, _ = fmt.Fprintf(stdout, "exemption audit: %d 项豁免, %d 过期\n", n, len(fails))
 	if len(fails) > 0 {
 		return ExitViolation
 	}

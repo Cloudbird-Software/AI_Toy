@@ -448,13 +448,13 @@ func TestT16G002InstallAtomicity(t *testing.T) {
 					return nil
 				}
 				func() {
-					defer func() { recover() }()
+					defer func() { _ = recover() }()
 					_ = m.Install(v2, stubClassify)
 				}()
 				check(newManager(t, root)) // 重启（新进程语义）：启动即恢复
 			case 4: // 全新装阶段间崩溃：staged 未 commit——重启收敛到未装
 				func() {
-					defer func() { recover() }()
+					defer func() { _ = recover() }()
 					if err := m.StageInstall(v2, stubClassify); err != nil {
 						t.Fatalf("stage 失败: %v", err)
 					}
@@ -486,7 +486,7 @@ func TestT16G002InstallAtomicity(t *testing.T) {
 					return nil
 				}
 				func() {
-					defer func() { recover() }()
+					defer func() { _ = recover() }()
 					_ = m.Uninstall(packID)
 				}()
 				check(newManager(t, root))
@@ -498,7 +498,9 @@ func TestT16G002InstallAtomicity(t *testing.T) {
 				if err := os.MkdirAll(stg, 0o755); err != nil {
 					t.Fatalf("建 staging 失败: %v", err)
 				}
-				os.WriteFile(filepath.Join(stg, manifestName), []byte(`{"pack_id":"`+packID), 0o644)
+				if err := os.WriteFile(filepath.Join(stg, manifestName), []byte(`{"pack_id":"`+packID), 0o644); err != nil {
+					t.Fatalf("写损坏 manifest fixture 失败: %v", err)
+				}
 				check(newManager(t, root))
 			}
 		}
