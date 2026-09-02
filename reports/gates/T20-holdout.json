@@ -1,0 +1,47 @@
+{
+  "asset": "T20",
+  "suite": "holdout",
+  "commit": "c6f773342cb30fe187c35d706e706d2f2503860e",
+  "dataset_versions": {},
+  "judge_model": null,
+  "timestamp": "2026-09-02T16:42:33Z",
+  "results": [
+    {
+      "id": "T20-G1-01",
+      "bi": "BI-20.3",
+      "level": "G1",
+      "metric": "sim_real_discrimination_accuracy",
+      "observed": null,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0.75,
+      "verdict": "debt",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT20G101RealismDiscrimination$ ./packages/go/user-sim"
+    },
+    {
+      "id": "T20-G0-01",
+      "bi": "BI-20.3",
+      "level": "G0",
+      "metric": "sim_in_training_count",
+      "observed": null,
+      "evidence_hours": 0,
+      "upper95": 0,
+      "threshold": 0,
+      "verdict": "pass",
+      "statistical_rule": "go_test_exit_code",
+      "evidence": "go test -count=1 -v -run ^TestT20G001SimulatorIsolation$ ./packages/go/user-sim"
+    }
+  ],
+  "summary": {
+    "g0": "pass",
+    "g1": "debt",
+    "g2": "n/a",
+    "fail_ids": [],
+    "not_impl_ids": [],
+    "debt_ids": [
+      "T20-G1-01"
+    ]
+  },
+  "exemptions_applied": []
+}

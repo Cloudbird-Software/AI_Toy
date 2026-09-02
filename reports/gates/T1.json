@@ -1,10 +1,10 @@
 {
   "asset": "T1",
   "suite": "nightly",
-  "commit": "0b12a379bfe8955b16843bd32b75b545ad6a6925",
+  "commit": "c6f773342cb30fe187c35d706e706d2f2503860e",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-09-02T15:45:49Z",
+  "timestamp": "2026-09-02T16:44:15Z",
   "results": [
     {
       "id": "T1-G1-01",
@@ -15,7 +15,7 @@
       "evidence_hours": 0,
       "upper95": 0,
       "threshold": 1,
-      "verdict": "debt",
+      "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
       "evidence": "go test -count=1 -v -run ^TestT1AssertionRegistrationRate$ ./tests/meta"
     },
@@ -65,9 +65,7 @@
     "g2": "n/a",
     "fail_ids": [],
     "not_impl_ids": [],
-    "debt_ids": [
-      "T1-G1-01"
-    ]
+    "debt_ids": []
   },
   "exemptions_applied": []
 }
