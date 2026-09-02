@@ -8,7 +8,7 @@
   → export_to_onnx → 评估(误唤醒/小时、唤醒率、RTF) → reports/
 
 仓库纪律（AGENTS.md，必须遵守）：
-  * datasets/holdout/** 绝对禁止触碰；本脚本不读它。
+  * datasets/ 下的 holdout 目录（受控数据本体）绝对禁止触碰；本脚本不读它。
   * 仓库 datasets/synth/batches/ 下 gen-tneg / gen-kwsadv 批 purpose=eval-only，
     「负样本只供误唤醒评估、永不进训练管道」（manifest note 原文）——因此训练负样本
     与误唤醒评估负样本是两个独立参数（--negatives-dir / --fp-eval-dir），本脚本在日志中
