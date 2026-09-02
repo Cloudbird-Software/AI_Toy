@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,18 +24,20 @@ import (
 )
 
 // Result 单条门禁判定结果（报告 schema 字段照抄规格 §3.1 JSON 块）。
+// Observed 为指针：nil（JSON null）= 未采集（go_test_exit_code 路径无观测标记），
+// 与「实测为 0」显式区分（issue #116：死字段 0 会误导下游趋势分析）。
 type Result struct {
-	ID              string  `json:"id"`
-	BI              string  `json:"bi"`
-	Level           string  `json:"level"`
-	Metric          string  `json:"metric"`
-	Observed        float64 `json:"observed"`
-	EvidenceHours   int     `json:"evidence_hours"`
-	Upper95         float64 `json:"upper95"`
-	Threshold       float64 `json:"threshold"`
-	Verdict         string  `json:"verdict"` // pass | fail | warn(G2) | exempt(G1 豁免) | debt(注册测试 SKIP) | not_implemented(未注册)
-	StatisticalRule string  `json:"statistical_rule"`
-	Evidence        string  `json:"evidence"`
+	ID              string   `json:"id"`
+	BI              string   `json:"bi"`
+	Level           string   `json:"level"`
+	Metric          string   `json:"metric"`
+	Observed        *float64 `json:"observed"`
+	EvidenceHours   int      `json:"evidence_hours"`
+	Upper95         float64  `json:"upper95"`
+	Threshold       float64  `json:"threshold"`
+	Verdict         string   `json:"verdict"` // pass | fail | warn(G2) | exempt(G1 豁免) | debt(注册测试 SKIP) | not_implemented(未注册)
+	StatisticalRule string   `json:"statistical_rule"`
+	Evidence        string   `json:"evidence"`
 }
 
 // Summary 分级汇总：g0/g1 pass|fail、g2 pass|warn、not_implemented（该级门禁全部
@@ -84,7 +87,9 @@ type observation struct {
 // 阶段化）：测试名精确命中 `--- SKIP: <Test>` 行 → debt（部分实现/冷启动，不计
 // pass 不阻断——go test 单测 SKIP 退出码为 0，须靠 -v 输出区分）；退出码非 0 →
 // fail；否则 pass。返回证据命令串、verdict 与合并输出（红灯时供诊断打印）。
-func dispatchGate(root string, m RegEntry) (evidence, verdict, output string) {
+// 观测标记（issue #116）：测试侧 gaterunner.Observe 输出 `GATE-OBSERVE <metric>
+// <value>` 行 → 解析为观测值回填报告 observed（多条取末条——同一门禁只应有一条）。
+func dispatchGate(root string, m RegEntry) (evidence, verdict, output, obsMetric string, observed *float64) {
 	pkg := "./" + filepath.ToSlash(filepath.Dir(m.Source))
 	if pkg == "./." {
 		pkg = "."
@@ -101,7 +106,33 @@ func dispatchGate(root string, m RegEntry) (evidence, verdict, output string) {
 	default:
 		verdict = "fail"
 	}
-	return evidence, verdict, string(out)
+	obsMetric, observed = parseObserve(string(out))
+	return evidence, verdict, string(out), obsMetric, observed
+}
+
+// observePrefix 观测标记行前缀（测试侧经公开包 gaterunner.Observe 输出）。
+const observePrefix = "GATE-OBSERVE "
+
+// parseObserve 从 go test -v 输出提取观测标记：`GATE-OBSERVE <metric> <value>`
+// （metric 须与门禁 metric 一致才采信；多条取末条）。无标记返回 nil（报告落
+// null=未采集，与实测 0 区分）。解析失败静默忽略——标记是增强面不是门禁判据。
+func parseObserve(out string) (metric string, value *float64) {
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(strings.TrimSuffix(line, "\r"))
+		if !strings.HasPrefix(line, observePrefix) {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) != 3 {
+			continue
+		}
+		v, err := strconv.ParseFloat(fields[2], 64)
+		if err != nil {
+			continue
+		}
+		metric, value = fields[1], &v
+	}
+	return metric, value
 }
 
 // skippedTest 判定 go test -v 输出中该顶层测试是否 SKIP：精确匹配 `--- SKIP: <Test>`
@@ -133,11 +164,11 @@ func judge(g Gate, o observation) Result {
 		}
 		if h > 0 {
 			r.StatisticalRule, r.EvidenceHours = "poisson_zero_upper95", h
-			r.Observed = round4(float64(o.k) / float64(h))
+			r.Observed = fp(round4(float64(o.k) / float64(h)))
 			r.Upper95 = round4(evalkit.PoissonUpper95(o.k, h))
 		} else {
 			r.StatisticalRule = "binom_zero_upper95"
-			r.Observed = round4(float64(o.k) / float64(n))
+			r.Observed = fp(round4(float64(o.k) / float64(n)))
 			r.Upper95 = round4(evalkit.BinomUpper95(o.k, n))
 		}
 		r.Verdict = verdictOf(g.Op, r.Upper95, g.Threshold)
@@ -147,22 +178,25 @@ func judge(g Gate, o observation) Result {
 			n = max(g.MinEvidence.n(), 1)
 		}
 		r.StatisticalRule = "wilson_upper95"
-		r.Observed = round4(float64(o.k) / float64(n))
+		r.Observed = fp(round4(float64(o.k) / float64(n)))
 		_, hi := evalkit.Wilson(o.k, n)
 		r.Upper95 = round4(hi)
-		r.Verdict = verdictOf(g.Op, r.Observed, g.Threshold)
+		r.Verdict = verdictOf(g.Op, *r.Observed, g.Threshold)
 	case "eer":
 		r.StatisticalRule = "eer_point_est"
-		r.Observed, r.Upper95, r.Verdict = round4(o.value), round4(o.value), verdictOf(g.Op, o.value, g.Threshold)
+		r.Observed, r.Upper95, r.Verdict = fp(round4(o.value)), round4(o.value), verdictOf(g.Op, o.value, g.Threshold)
 	case "asr":
 		r.StatisticalRule = "asr_mean_best"
-		r.Observed, r.Upper95, r.Verdict = round4(o.value), round4(o.value), verdictOf(g.Op, o.value, g.Threshold)
+		r.Observed, r.Upper95, r.Verdict = fp(round4(o.value)), round4(o.value), verdictOf(g.Op, o.value, g.Threshold)
 	default: // metric
 		r.StatisticalRule = "metric_point"
-		r.Observed, r.Upper95, r.Verdict = round4(o.value), round4(o.value), verdictOf(g.Op, o.value, g.Threshold)
+		r.Observed, r.Upper95, r.Verdict = fp(round4(o.value)), round4(o.value), verdictOf(g.Op, o.value, g.Threshold)
 	}
 	return r
 }
+
+// fp 浮点取址辅助（统计判定路径观测值恒为实测，非 nil）。
+func fp(x float64) *float64 { return &x }
 
 func verdictOf(op string, stat, threshold float64) string {
 	switch op {
@@ -195,7 +229,7 @@ func round4(x float64) float64 { return math.Round(x*1e4) / 1e4 }
 // seedSource 把 commit+id 经 fnv64a 哈希成 int64 随机源（同 journeys 约定）。
 func seed(commit, id string) int64 {
 	h := fnv.New64a()
-	fmt.Fprintf(h, "%s:%s", commit, id)
+	_, _ = fmt.Fprintf(h, "%s:%s", commit, id) // hash.Write 契约：永不返回错误
 	return int64(h.Sum64())
 }
 
@@ -232,8 +266,11 @@ func ExecuteRun(opts RunOpts) (*Report, int, error) {
 	for _, g := range gates {
 		res := Result{ID: g.ID, BI: g.BI, Level: g.Level, Metric: g.Metric, Threshold: round4(g.Threshold)}
 		if m, ok := byID[g.ID]; ok && m.Test != "" && m.Source != "" {
-			evidence, verdict, output := dispatchGate(opts.Root, m)
+			evidence, verdict, output, obsMetric, observed := dispatchGate(opts.Root, m)
 			res.StatisticalRule, res.Evidence, res.Verdict = "go_test_exit_code", evidence, verdict
+			if observed != nil && obsMetric == g.Metric { // 只采信与门禁 metric 一致的观测声明（防串线）
+				res.Observed = observed
+			}
 			if res.Verdict == "fail" {
 				fmt.Fprintf(os.Stderr, "门禁 %s 实跑红（%s）：\n%s", g.ID, evidence, output)
 			}

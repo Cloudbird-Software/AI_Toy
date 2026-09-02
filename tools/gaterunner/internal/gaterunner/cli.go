@@ -12,7 +12,7 @@ import (
 // Main 执行 gaterunner CLI，返回进程退出码。
 func Main(argv []string, stdout, stderr io.Writer) int {
 	if len(argv) == 0 {
-		fmt.Fprintln(stderr, "usage: gaterunner <collect|verify-configs|calibrate|run> [flags]")
+		_, _ = fmt.Fprintln(stderr, "usage: gaterunner <collect|verify-configs|calibrate|run> [flags]")
 		return ExitConfig
 	}
 	switch argv[0] {
@@ -25,7 +25,7 @@ func Main(argv []string, stdout, stderr io.Writer) int {
 	case "run":
 		return cliRun(argv[1:], stdout, stderr)
 	}
-	fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：collect、verify-configs、calibrate、run）\n", argv[0])
+	_, _ = fmt.Fprintf(stderr, "error: 未知子命令 %q（可用：collect、verify-configs、calibrate、run）\n", argv[0])
 	return ExitConfig
 }
 
@@ -44,11 +44,11 @@ func cliCollect(args []string, stdout, stderr io.Writer) int {
 	}
 	rows, err := BuildRegistry(*root, *configDir)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitConfig
 	}
 	if err := EmitRegistry(rows, stdout); err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitConfig
 	}
 	return ExitOK
@@ -63,12 +63,12 @@ func cliVerify(args []string, stdout, stderr io.Writer) int {
 	}
 	violations, total := VerifyConfigs(*configDir, *docsDir)
 	for _, v := range violations {
-		fmt.Fprintln(stderr, "error: "+v)
+		_, _ = fmt.Fprintln(stderr, "error: "+v)
 	}
 	if len(violations) > 0 {
 		return ExitConfig
 	}
-	fmt.Fprintf(stdout, "verify-configs: %d 门禁，0 违反\n", total)
+	_, _ = fmt.Fprintf(stdout, "verify-configs: %d 门禁，0 违反\n", total)
 	return ExitOK
 }
 
@@ -83,15 +83,15 @@ func cliCalibrate(args []string, stdout, stderr io.Writer) int {
 		return ExitConfig
 	}
 	if *asset == "" || *runs < 1 {
-		fmt.Fprintln(stderr, "error: --asset 必填且 --runs 须 ≥ 1")
+		_, _ = fmt.Fprintln(stderr, "error: --asset 必填且 --runs 须 ≥ 1")
 		return ExitConfig
 	}
 	where, err := ExecuteCalibrate(*asset, *runs, *configDir, *commit, *out, stdout)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitConfig
 	}
-	fmt.Fprintf(stdout, "calibrate: 噪声带建议已写入 %s\n", where)
+	_, _ = fmt.Fprintf(stdout, "calibrate: 噪声带建议已写入 %s\n", where)
 	return ExitOK
 }
 
@@ -110,11 +110,11 @@ func cliRun(args []string, stdout, stderr io.Writer) int {
 		return ExitConfig
 	}
 	if *asset == "" {
-		fmt.Fprintln(stderr, "error: --asset 必填")
+		_, _ = fmt.Fprintln(stderr, "error: --asset 必填")
 		return ExitConfig
 	}
 	if *level != "all" && !isValidLevelFlag(*level) || !isValidSuite(*suite) {
-		fmt.Fprintf(stderr, "error: --level 须为 g0|g1|g2|all 且 --suite 须为 ci|nightly|holdout（got %q/%q）\n", *level, *suite)
+		_, _ = fmt.Fprintf(stderr, "error: --level 须为 g0|g1|g2|all 且 --suite 须为 ci|nightly|holdout（got %q/%q）\n", *level, *suite)
 		return ExitConfig
 	}
 	if *report == "reports/gates/<asset>.json" {
@@ -124,30 +124,30 @@ func cliRun(args []string, stdout, stderr io.Writer) int {
 		Commit: *commit, Root: *root, ConfigDir: *configDir, DocsDir: *docsDir,
 		ExemptionsPath: *exemptions, ReportPath: *report})
 	if err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitConfig
 	}
 	if err := EmitReport(rep, *report, stdout); err != nil {
-		fmt.Fprintf(stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error: %v\n", err)
 		return ExitConfig
 	}
 	for _, id := range rep.Summary.FailIDs {
-		fmt.Fprintf(stderr, "红: %s（%s）\n", id, levelOf(rep, id))
+		_, _ = fmt.Fprintf(stderr, "红: %s（%s）\n", id, levelOf(rep, id))
 	}
 	for _, id := range rep.Summary.NotImpl {
-		fmt.Fprintf(stderr, "未实现: %s（%s）\n", id, levelOf(rep, id))
+		_, _ = fmt.Fprintf(stderr, "未实现: %s（%s）\n", id, levelOf(rep, id))
 	}
 	for _, ex := range rep.ExemptionsApplied {
-		fmt.Fprintf(stderr, "豁免: %s\n", ex)
+		_, _ = fmt.Fprintf(stderr, "豁免: %s\n", ex)
 	}
-	fmt.Fprintf(stderr, "gaterunner run: asset=%s suite=%s commit=%s g0=%s g1=%s g2=%s not_impl=%d → exit %d\n",
+	_, _ = fmt.Fprintf(stderr, "gaterunner run: asset=%s suite=%s commit=%s g0=%s g1=%s g2=%s not_impl=%d → exit %d\n",
 		rep.Asset, rep.Suite, rep.Commit, rep.Summary.G0, rep.Summary.G1, rep.Summary.G2,
 		len(rep.Summary.NotImpl), exit)
 	if n := len(rep.Summary.NotImpl); n > 0 {
-		fmt.Fprintf(stderr, "not_implemented: %d 门禁（实现未开始，不计 pass）\n", n)
+		_, _ = fmt.Fprintf(stderr, "not_implemented: %d 门禁（实现未开始，不计 pass）\n", n)
 	}
 	if n := len(rep.Summary.DebtIDs); n > 0 {
-		fmt.Fprintf(stderr, "debt: %d 门禁（部分实现/冷启动，不计 pass 不阻断）\n", n)
+		_, _ = fmt.Fprintf(stderr, "debt: %d 门禁（部分实现/冷启动，不计 pass 不阻断）\n", n)
 	}
 	return exit
 }

@@ -25,7 +25,10 @@ const gateFixMod = "module gatefix\n\ngo 1.23\n"
 // 退出码矩阵（红=测试 fixture 故意失败，与被测门禁语义无关）。
 const gatesFixGo = `package kws
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 // stubGate 占位登记器：Mark 调用文本须与 gaterunner.ScanMarks 扫描正则一致。
 type stubGate struct{}
@@ -36,6 +39,8 @@ var gaterunner = stubGate{}
 
 func TestTXGateGreen(t *testing.T) {
 	gaterunner.Mark(t, "TX", "BI-X.1", "TX-G0-01", "G0")
+	// 观测标记（issue #116）：metric 与门禁声明一致 → run 回填 observed=0.25
+	fmt.Println("GATE-OBSERVE false_wake_per_hour 0.25")
 }
 
 func TestTXGateRed(t *testing.T) {
@@ -331,6 +336,13 @@ func TestRunReportSchema(t *testing.T) {
 			t.Errorf("results[0].%s 类型=%T", k, r0[k])
 		}
 	}
+	if r0["observed"].(float64) != 0.25 {
+		t.Errorf("results[0].observed=%v，须 0.25（GATE-OBSERVE 标记回填，issue #116）", r0["observed"])
+	}
+	r1 := results[1].(map[string]any)
+	if r1["observed"] != nil {
+		t.Errorf("results[1].observed=%v，须 null（无观测标记=未采集，与实测 0 区分）", r1["observed"])
+	}
 	if r0["verdict"] != "pass" || r0["statistical_rule"] != "go_test_exit_code" {
 		t.Errorf("verdict/rule = %v/%v（实跑判定）", r0["verdict"], r0["statistical_rule"])
 	}
@@ -353,7 +365,7 @@ func TestJudgeZeroEventUsesEvalkitPoisson(t *testing.T) {
 		MinEvidence: &MinEvidence{Hours: ptr(6)}}
 
 	r := judge(g, observation{k: 0})
-	if r.Observed != 0 || r.EvidenceHours != 6 {
+	if r.Observed == nil || *r.Observed != 0 || r.EvidenceHours != 6 {
 		t.Fatalf("observed=%v evidence_hours=%d", r.Observed, r.EvidenceHours)
 	}
 	if r.Upper95 < 0.49 || r.Upper95 > 0.501 {

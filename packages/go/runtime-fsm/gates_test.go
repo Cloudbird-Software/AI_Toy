@@ -384,6 +384,8 @@ func TestT14G101OfflineJourney(t *testing.T) {
 	if mean < 0.80 {
 		t.Fatalf("offline_journey_completion_rate=%.4f < 0.80（%d 轮，最差 %.4f）", mean, len(rates), worst)
 	}
+	// 观测标记（issue #116）：真实完成率回填报告 observed（此前恒 0=死字段）
+	gaterunner.Observe(t, "offline_journey_completion_rate", mean)
 	t.Logf("T14-G1-01：3 画像（J09/J17/J18）×%d seed=%d 轮 L2 全程完成率=%.4f（最差 %.4f；"+
 		"rubric 抽评 L4 面后续，#108 刷新）", seeds, len(rates), mean, worst)
 }

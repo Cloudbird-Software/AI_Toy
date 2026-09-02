@@ -6,6 +6,7 @@
 package gaterunner
 
 import (
+	"fmt"
 	"testing"
 
 	internal "github.com/Cloudbird-Software/AI_Toy/tools/gaterunner/internal/gaterunner"
@@ -14,4 +15,13 @@ import (
 // Mark 在门禁测试内登记断言（转发 internal 实现；语义与签名一致）。
 func Mark(t testing.TB, asset, bi, id, level string) {
 	internal.Mark(t, asset, bi, id, level)
+}
+
+// Observe 在门禁测试内声明观测值（issue #116）：输出 `GATE-OBSERVE <metric> <value>`
+// 结构化标记行（stdout 直通面，不用 t.Log——其输出带文件:行号前缀）。gaterunner
+// run 的 go_test_exit_code 路径解析该标记回填报告 observed 字段；metric 须与该门禁
+// configs 声明的 metric 一致才会被采信。无标记时报告 observed=null（未采集）。
+func Observe(t testing.TB, metric string, value float64) {
+	t.Helper()
+	fmt.Printf("GATE-OBSERVE %s %g\n", metric, value)
 }
