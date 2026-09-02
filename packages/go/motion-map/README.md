@@ -1,0 +1,3 @@
+- 做什么：T12 情绪→表情/动作映射（max_idle_gap_s 活跃性契约）
+- 验收文档：docs/gates/assets/T12.md
+- just 命令：just gate T12

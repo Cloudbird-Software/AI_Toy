@@ -1,0 +1,3 @@
+- 做什么：T18 内容管线骨架（实现未落地；T16/T18 规则面实现在 packages/go/scenepack）
+- 验收文档：docs/gates/assets/T16.md
+- just 命令：just test

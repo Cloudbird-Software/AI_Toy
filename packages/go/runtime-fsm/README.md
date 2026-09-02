@@ -1,0 +1,3 @@
+- 做什么：T14 离线运行时：全局档位仲裁器 Arbiter（CompTierMap，只降不升）+ 旅程 FSM
+- 验收文档：docs/gates/assets/T14.md
+- just 命令：just gate T14

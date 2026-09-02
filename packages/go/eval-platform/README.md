@@ -1,0 +1,3 @@
+- 做什么：T1 评测平台骨架（元层实现在 tests/meta：隔离/覆盖度/断言登记率）
+- 验收文档：docs/gates/assets/T1.md
+- just 命令：just gate T1

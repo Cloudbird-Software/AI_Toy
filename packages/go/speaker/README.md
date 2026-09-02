@@ -1,0 +1,3 @@
+- 做什么：T5 声纹骨架（SV 真模型后续落位；当前实现在 packages/go/voiceprint）
+- 验收文档：docs/gates/assets/T5.md
+- just 命令：just gate T5

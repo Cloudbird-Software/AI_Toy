@@ -1,0 +1,3 @@
+- 做什么：T5 声纹与家庭成员识别（说话人嵌入/注册/识别门禁面）
+- 验收文档：docs/gates/assets/T5.md
+- just 命令：just gate T5

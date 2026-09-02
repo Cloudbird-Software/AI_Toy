@@ -1,0 +1,3 @@
+- 做什么：T16 场景包运行时骨架（实现在 packages/go/scenepack；格式演进后续落位）
+- 验收文档：docs/gates/assets/T16.md
+- just 命令：just gate T16

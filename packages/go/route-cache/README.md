@@ -1,0 +1,3 @@
+- 做什么：T15 路由与语义缓存（go 侧）：路由决策 + 缓存相似度阈值 θ 权衡
+- 验收文档：docs/gates/assets/T15.md
+- just 命令：just gate T15

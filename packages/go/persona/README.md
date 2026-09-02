@@ -1,0 +1,3 @@
+- 做什么：T8 人格编译器：角色卡编译确定性 + 越界卡拒绝面
+- 验收文档：docs/gates/assets/T8.md
+- just 命令：just gate T8

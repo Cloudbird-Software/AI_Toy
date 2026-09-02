@@ -1,0 +1,3 @@
+- 做什么：T20 用户模拟器：确定性 + 边界行为 + 拟真度判别（holdout 面待环境）
+- 验收文档：docs/gates/assets/T20.md
+- just 命令：just gate T20

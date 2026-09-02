@@ -1,0 +1,3 @@
+- 做什么：T16+T18 场景包运行时：安装/升级原子性 + 隔离防溢 + 评测集 + 内容安全
+- 验收文档：docs/gates/assets/T16.md
+- just 命令：just gate T16

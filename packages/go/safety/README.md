@@ -1,0 +1,3 @@
+- 做什么：T9 安全层（全项目最硬门禁）：危机识别 fail-closed→家长通知 + 攻击防护 + 安全话术
+- 验收文档：docs/gates/assets/T9.md
+- just 命令：just gate T9

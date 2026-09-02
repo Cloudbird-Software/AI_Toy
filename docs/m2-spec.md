@@ -19,7 +19,8 @@
         user-sim.Driver（journeys driver_mode=real）→ loop 真管道回放（T20 产物禁入训练集）。
 ```
 
-- **loop 扩展面**（#91–#95 施工，M1 结构不动）：Config 新增 `Safety`（必接，取代裸 PreSpeakFunc，
+- **loop 扩展面**（落位 `packages/go/loop`——L1 闭环组装器，IR #87 引入，issue #115 回填路径；
+  #91–#95 施工，M1 结构不动）：Config 新增 `Safety`（必接，取代裸 PreSpeakFunc，
   fail-closed 升级）、`Emo`/`Motion`/`Persona`（可 nil=旁路禁用）；EventKind 尾部追加
   `EvMotion`/`EvSafetyNotify`/`EvEmotionChange`（int8 追加，M1 事件序与既有测试不变）。
 - **包间零 import 纪律延续**（ADR-0004）：六新包互不 import、不 import kws/turntaking/tts/loop；

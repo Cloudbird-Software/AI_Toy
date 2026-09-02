@@ -49,17 +49,17 @@ ai-toy 是 AI 潮玩 monorepo：以「角色即资产」为内核——角色是
 ## §14 自检报告（2026-08-29，IR #64 修订）
 
 ```bash
-just verify            # → verify-configs: 79 门禁，0 违反；repoctl coverage/agents-md/forbidden-refs = 全绿
+just verify            # → verify-configs: 80 门禁，0 违反；repoctl coverage/agents-md/forbidden-refs = 全绿
 ```
 
 §14 自检结果（2026-08-29 复测，IR #64 真实调度 + 阶段化执法后）：
 | # | 命令 | 实测 | 期望 | 通过 |
 | --- | --- | --- | --- | --- |
-| 1 | `just bootstrap && just lint && just verify` | verify-configs: 79 门禁，0 违反；coverage = 0 FAIL（16 资产 DEBT） | 全绿（exit 0） | ✅（lint: pnpm/cargo 未安装不报 exit 1，gofmt/go vet 通过） |
-| 2 | `gaterunner collect \| wc -l` | 83 条断言登记（79 配置门禁 + 4 条 TX 虚构资产 fixture 注册，不冒充真实资产） | ≥70 | ✅ |
+| 1 | `just bootstrap && just lint && just verify` | verify-configs: 80 门禁，0 违反；coverage = 0 FAIL（16 资产 DEBT） | 全绿（exit 0） | ✅（lint: pnpm/cargo 未安装不报 exit 1，gofmt/go vet/errcheck 通过——issue #120 修复后 GO-2 零未检错误） |
+| 2 | `gaterunner collect \| wc -l` | 84 条断言登记（80 配置门禁 + 4 条 TX 虚构资产 fixture 注册，不冒充真实资产） | ≥70 | ✅ |
 | 3 | `just gate T4 all` | 全部门禁 not_implemented（实现未开始）+ not_impl 计数显式输出，exit 0 | exit=0（not_implemented 不计 pass 不计红，IR #64） | ✅ |
 | 4 | `ls docs/gates/assets \| wc -l` | 16 | =16 | ✅ |
-| 5 | `ls packages/go/*/AGENTS.md` + packages/* 合计 | 22 份（17 go + 2 native + 2 ts + 1 根） | =22 | ✅ |
+| 5 | `ls packages/go/*/AGENTS.md` + packages/* 合计 | 26 份（21 go——M1–M3 新增 loop/route-cache/scenepack/voiceprint 4 个实现包 + 2 native + 2 ts + 1 根；issue #115 回填） | =26 | ✅ |
 | 6 | `git ls-files \| grep -c golden-journeys` | 50 | =50 | ✅ |
 
 说明（IR #64 / ADR-0002）：coverage 现为阶段化执法——0 断言资产输出 `coverage DEBT:` 行（16 资产全部 DEBT，不 FAIL、exit 0），资产首条断言落地即恢复全 BI 覆盖 + G0 强制；`just gate <T>` 为真实 `go test` 调度，门禁状态以 not_implemented 显式单列（不计 pass）。
@@ -83,26 +83,26 @@ just verify            # → verify-configs: 79 门禁，0 违反；repoctl cove
 
 **golden 50 条全量 real**：`just journeys` = `--driver real`（spec §8 一次性切换）——T20 user-sim → loop 真管道 ×50 剧本 ×3 seeds = **50/50 pass**（`reports/nightly/journeys-golden.json`，SIMULATION-DEBT 消灭，simulated 分支保留仅作显式回退）。安全旅程 J21–J50 走 T9 真拦截（miss=0）；记忆旅程解禁：J06 记事→J07 复习经真 `memory.Search` 往返召回（memory_hit_rate=1.0），core10 扩容含记忆旅程（10/10 pass）。
 
-**L1+M3 全资产状态表**（16 资产 / 79 断言，nightly 2026-08-30 刷新；debt verdict=数据/模型/真机面，无「实现未开始」DEBT 行）：
+**L1+M3 全资产状态表**（16 资产 / 80 门禁：79 条 ci/nightly 断言 + 1 条 holdout-only T20-G1-01；2026-09-02 刷新——T7-G0-01 联跑接线转 pass（issue #119）；G0/G1 列=`reports/gates/*.json` summary verdict 原文：该级存在 pass 门禁即 `pass`、整级全 debt 记 `debt(N 条)`；debt 门禁列与 verdict=debt 逐条对应，全部为数据/模型/真机面，无「实现未开始」DEBT 行；不在 verdict 体现的欠账显式标注「非 verdict」）：
 
-| 资产 | G0 | G1 | 剩余 debt（全部为数据/模型/真机面） |
+| 资产 | G0 | G1 | debt 门禁（verdict=debt，全部为数据/模型/真机面） |
 | --- | --- | --- | --- |
-| T1 评测平台 | pass | pass | G1-01 评测数据集（数据面） |
-| T2 数据飞轮 | pass | pass | G0-02 泄漏复查 / G1-02 多样性（数据面） |
-| T3 话轮 | pass | pass | G0-02/G1-01..04 真机实测（含硬件 VAD） |
-| T4 唤醒词 | pass | pass | G1-01..03 ONNX 真实推理（模型面） |
-| T5 声纹 | pass | pass | G1-02 真实会话声纹（数据面） |
+| T1 评测平台 | pass | pass | T1-G1-01 断言登记率 79/80——T20-G1-01 suite=[holdout] 而 holdout 环境未建（§5.10 ACTION 2 待 founder），该条永不进 ci/nightly 报告登记（issue #115 如实披露） |
+| T2 数据飞轮 | pass | pass | T2-G0-02 泄漏复查（数据面）/ T2-G1-02 多样性（数据面） |
+| T3 话轮 | pass | debt(4 条) | T3-G0-02 音频 VAD 前端未建（FSM 由 VAD 事件驱动）/ T3-G1-01..04 真机实测（含硬件 VAD） |
+| T4 唤醒词 | pass | debt(3 条) | T4-G1-01..03 ONNX 真实推理（模型面） |
+| T5 声纹 | pass | pass | T5-G1-02 真实会话声纹（数据面） |
 | T6 IMU | pass | pass | — |
-| T7 情绪 | pass | pass | G0-01 LLM 评审联跑（模型面） |
-| T8 人格 | pass | pass | G1-02..04 LLM 评审 κ 校准（模型面） |
-| T9 安全 | pass | pass | G0-04 攻击混淆度模型面（红队 holdout 外） |
-| T10 记忆+T11 底座 | pass | pass | 数据面 debt（memory_probes+真实家庭日志，PR #112） |
-| T12 情绪→动作 | pass | pass | — |
-| T13 TTS | pass | pass | G1-01 首包/RTF 真实引擎（模型面）· G1-03 听审（数据面）· G1-02 音色一致性待 T5 SV 标定（模型面，占位门禁 IR #82 founder 会话授权回填） |
-| T14 离线运行时 | pass | pass | G1-02 功耗/热真机 4h+温箱（真机面） |
-| T15 路由缓存 | pass | pass | 语义缓存 θ 权衡曲线=嵌入模型面（L5） |
-| T16 场景包+T18 | pass | pass | 内容管线 LLM 面（模型面） |
-| T20 用户模拟器 | pass | pass | — |
+| T7 情绪 | pass | pass | —（T7-G0-01 联跑面已接线：全情绪网格×T9 危机/攻击集 0 越界，issue #119） |
+| T8 人格 | pass | pass | T8-G1-02..04 LLM 评审 κ 校准（模型面） |
+| T9 安全 | pass | pass | T9-G0-04 攻击混淆度模型面（红队 holdout 外） |
+| T10 记忆+T11 底座 | pass | pass | 无 debt verdict；非 verdict 数据面记录：memory_probes+真实家庭日志（PR #112） |
+| T12 情绪→动作 | pass | pass | T12-G1-01 真机 3 台×24h idle 微动作日志（真机面） |
+| T13 TTS | pass | debt(3 条) | T13-G1-01 首包/RTF 真实引擎（模型面）/ T13-G1-02 音色一致性待 T5 SV 标定（模型面，占位门禁 IR #82 founder 会话授权回填）/ T13-G1-03 听审（数据面） |
+| T14 离线运行时 | pass | pass | T14-G1-02 功耗/热真机 4h+温箱（真机面） |
+| T15 路由缓存 | pass | pass | 无 debt verdict；非 verdict 模型面记录：语义缓存 θ 权衡曲线=嵌入模型面（L5） |
+| T16 场景包+T18 | pass | pass | 无 debt verdict；非 verdict 模型面记录：内容管线 LLM 面 |
+| T20 用户模拟器 | pass | pass | 无 debt verdict；T20-G1-01 拟真度判别 suite=[holdout]——从未进 ci/nightly 报告（holdout 验收时执行，不计入 79 条 ci/nightly 断言） |
 
 M3 六资产 Mark 总表对齐（m3-spec §9）：T10 6 + T5/T6/T16/T14/T15 共 30 ID，真实 28 / debt 2（T14-G1-02 真机功耗热、T5-G1-02 真实会话声纹）。
 

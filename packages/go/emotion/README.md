@@ -1,0 +1,3 @@
+- 做什么：T7 情绪引擎：10 类情绪状态机（方向正确/连续演化/可恢复/不越界，与 T9/T12 联动）
+- 验收文档：docs/gates/assets/T7.md
+- just 命令：just gate T7

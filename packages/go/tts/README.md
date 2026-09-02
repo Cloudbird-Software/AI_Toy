@@ -1,0 +1,3 @@
+- 做什么：T13 TTS：语音合成档位与首包延迟/音色一致性门禁面
+- 验收文档：docs/gates/assets/T13.md
+- just 命令：just gate T13

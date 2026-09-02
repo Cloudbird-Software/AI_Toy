@@ -64,7 +64,7 @@ jobs:
       - uses: ./.github/actions/setup-go
       - run: go test ./tests/chaos/... -race -count=1
 
-  no-leak: # minhash 交叉 + 拓扑断言
+  no-leak: # holdout 零污染 + 生产引用拓扑断言（T2 防泄漏面实现在 tools/synthgen，issue #115 对齐）
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -72,7 +72,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-go
-      - run: go test ./packages/go/data-flywheel/... -race -count=1 -run LeakAudit
+      - run: go test ./tools/synthgen/... -race -count=1 -run TestT2HoldoutZeroContamination
 
   meta:
     runs-on: ubuntu-latest
@@ -101,7 +101,14 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-go
-      - run: go run ./packages/go/router/cmd/cost_curve --snapshot reports/nightly/d4.json
+      # router 为法典保留骨架（m3-spec §1「M3 不动不删」），cost_curve 未落地前如实标注 debt，
+      # 落地后本守卫自动切回真命令（issue #115：原命令引用空包路径必失败）。
+      - run: |
+          if [ -d packages/go/router/cmd/cost_curve ]; then
+            go run ./packages/go/router/cmd/cost_curve --snapshot reports/nightly/d4.json
+          else
+            echo "::warning::d4-snapshot debt: packages/go/router/cmd/cost_curve 未落地（router 骨架保留，待后续落位）"
+          fi
 
   report: # 汇总单页索引 + 失败摘要（repoctl nightly-index 子命令待后续卡补齐）
     needs: [g0-sweep, synth-holdout, golden-journeys, latency, chaos, no-leak, meta, d4-snapshot]
@@ -112,4 +119,11 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-go
-      - run: go run ./tools/repoctl/cmd/repoctl nightly-index
+      # repoctl nightly-index 子命令未落地（cli.go 命令面无此子命令）——守卫式执行，
+      # 落地后自动切回真命令（issue #115：原命令必失败）。
+      - run: |
+          if grep -q '"nightly-index"' tools/repoctl/internal/repoctl/cli.go; then
+            go run ./tools/repoctl/cmd/repoctl nightly-index
+          else
+            echo "::warning::nightly-index debt: repoctl 子命令未落地（待后续卡补齐）"
+          fi

@@ -1,0 +1,3 @@
+- 做什么：L1 演示闭环组装器：唤醒→对话→出声跨包组装（IR #87；六新包零 import 纪律的组装归口）
+- 验收文档：docs/m3-spec.md §2 + golden journeys
+- just 命令：just journeys

@@ -1,0 +1,3 @@
+- 做什么：T10+T11 记忆图谱：记忆探针事实注册与检索
+- 验收文档：docs/gates/assets/T10.md
+- just 命令：just gate T10

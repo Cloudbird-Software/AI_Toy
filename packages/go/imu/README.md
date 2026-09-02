@@ -1,0 +1,3 @@
+- 做什么：T6 IMU 感知：活动识别 Detector+Guard（泊松/Wilson 统计判定）
+- 验收文档：docs/gates/assets/T6.md
+- just 命令：just gate T6

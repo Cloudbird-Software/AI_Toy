@@ -1,0 +1,3 @@
+- 做什么：T3 话轮管理：打断/接管策略与档位槽（VAD 前端真机面 debt）
+- 验收文档：docs/gates/assets/T3.md
+- just 命令：just gate T3

@@ -1,0 +1,3 @@
+- 做什么：T15 路由骨架（学习型路由后续落位；当前实现在 packages/go/route-cache，m3-spec §1「M3 不动不删」）
+- 验收文档：docs/gates/assets/T15.md
+- just 命令：just gate T15

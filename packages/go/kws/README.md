@@ -1,0 +1,3 @@
+- 做什么：T4 唤醒词（KWS）：唤醒率/公平性/端侧 RTF 门禁面
+- 验收文档：docs/gates/assets/T4.md
+- just 命令：just gate T4

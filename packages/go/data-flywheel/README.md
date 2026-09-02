@@ -1,0 +1,3 @@
+- 做什么：T2 数据飞轮骨架（实现在 tools/synthgen：合成负样本批 + holdout 零污染拓扑断言）
+- 验收文档：docs/gates/assets/T2.md
+- just 命令：just gate T2
