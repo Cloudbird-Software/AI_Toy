@@ -1,18 +1,20 @@
 // T7 门禁测试（m2-spec §10 Mark 接线策略表，IR #92）：一 ID 一顶层测试函数，
 // 口径与样本量声明唯一来源 configs/gates/T7.yaml（本文件只落断言本体）。
-// verdict 总表：G1-01/G1-02/G1-03/G1-04 真实；G0-01 debt——T9 联跑面未建
-// （safety 包 IR #91 未合入，卡序 #92 联跑依赖 #91，m2-spec §11），情绪状态
-// 动力学逻辑面已全情绪网格×对抗事件流真实断言 0 越界（KWS 同款「先真跑
-// 逻辑面再 Skipf 数据面」）。统计断言走 tools/evalkit（Wilson 95%CI），不手算。
+// verdict 总表：G0-01/G1-01/G1-02/G1-03/G1-04 全真实——G0-01 联跑面已按
+// m2-spec §10 原契约接线（issue #119：IR #91 合入后测试侧 import safety，
+// 全情绪网格×T9 危机/攻击集联跑，输出 0 伤人话/恐吓/尖叫级）。统计断言
+// 走 tools/evalkit（Wilson 95%CI），不手算。
 package emotion
 
 import (
+	"hash/fnv"
 	"math"
 	"math/rand"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/Cloudbird-Software/AI_Toy/packages/go/safety"
 	"github.com/Cloudbird-Software/AI_Toy/tools/evalkit/evalkit"
 	"github.com/Cloudbird-Software/AI_Toy/tools/gaterunner/gaterunner"
 )
@@ -175,11 +177,15 @@ func TestT7G103Recovery(t *testing.T) {
 	}
 }
 
-// TestT7G001EmotionBoundary T7-G0-01（BI-7.4/G0，debt）：情绪不越界。逻辑面
-// （真实）：全情绪网格（16 Kind×21 强度格）×对抗事件流（满强度负性连击/
-// NaN/±Inf/越界强度/未知枚举×任意衰减时序交错含迟到调用面）状态三维恒
-// ∈[0,1]、永不 NaN、标签恒在儿童 9 类——引擎侧情绪状态完备性 0 越界
-// （violation 计数通道真实断言）。联跑面见尾 Skipf（T9 危机/攻击集）。
+// TestT7G001EmotionBoundary T7-G0-01（BI-7.4/G0，真实）：情绪不越界。
+// 面 1（引擎侧状态完备性）：全情绪网格（16 Kind×21 强度格）×对抗事件流
+// （满强度负性连击/NaN/±Inf/越界强度/未知枚举×任意衰减时序交错含迟到
+// 调用面）状态三维恒 ∈[0,1]、永不 NaN、标签恒在儿童 9 类。
+// 面 2（T9 联跑，issue #119 接线，m2-spec §10 原契约）：全情绪网格×T9
+// 危机/攻击集驱动后的情绪状态 → 情绪回应话术面（gateResponseText 测试侧
+// 状态→话术映射）经 safety.Engine.Classify 分级，断言 0 伤人话/恐吓/尖叫
+// 级（Benign 以外即违规——情绪回应输出面永不触碰敏感话题/危机词表）。
+// 跨包联跑只在测试侧 import 被测包（m2-spec §2，考卷隔离不破）。
 func TestT7G001EmotionBoundary(t *testing.T) {
 	gaterunner.Mark(t, "T7", "BI-7.4", "T7-G0-01", "G0")
 	violations := 0
@@ -217,10 +223,79 @@ func TestT7G001EmotionBoundary(t *testing.T) {
 			violations++
 		}
 	}
-	if violations != 0 {
-		t.Fatalf("emotion_boundary_violation_count=%d ≠ 0（情绪状态完备性被突破：越界/NaN/未知标签）", violations)
+	// 面 2：T9 联跑（issue #119）——危机/攻击集驱动情绪状态，回应话术经
+	// safety 分级，0 伤人话/恐吓/尖叫级。
+	safetyEng, err := safety.NewEngine(safety.DefaultConfig())
+	if err != nil {
+		t.Fatalf("safety 引擎构造失败：%v", err)
 	}
-	t.Skipf("T7-G0-01 debt：T9 联跑面未建——全情绪网格×T9 危机/攻击集联跑（测试侧 import safety，输出 0 伤人话/恐吓/尖叫级）依赖 safety 包（IR #91 未合入，卡序 #92 联跑依赖 #91，m2-spec §11 卡序=依赖序）；当前已真实断言引擎侧情绪状态完备性 0 越界（16 Kind×21 强度格×20 轮对抗事件流恒 [0,1]/合法 9 类标签）。#91 合入后测试侧 import safety 以危机/攻击集驱动联跑并去掉本 Skip。")
+	// 面 2a：全情绪网格（16 Kind×21 强度格）→ 状态 → 回应话术 → 分级。
+	for k := 0; k < KindCount; k++ {
+		for j := 0; j <= 20; j++ {
+			e := mustEngine(t, DefaultConfig())
+			s := e.OnEvent(Event{K: Kind(k), Intensity: float64(j) / 20})
+			if sev := safetyEng.Classify(gateResponseText(s)); sev != safety.Benign {
+				violations++
+				t.Errorf("联跑越界（网格面）：Kind=%d 强度=%.2f 标签=%s 回应判级 %s", k, float64(j)/20, s.Label, sev)
+			}
+		}
+	}
+	// 面 2b：T9 危机/攻击集逐条驱动（儿童说出危机/攻击语 → 玩具情绪反应
+	// → 情绪驱动回应）：负性事件连击由刺激文本 fnv 哈希确定性选取。
+	negKinds := []Kind{Criticize, ToySnatched, Scared, Alone, Interrupted, MissParent, Bored}
+	stimuli := append(append([]string{}, safety.DefaultConfig().CrisisLexicon...),
+		safety.DefaultConfig().AttackPatterns...)
+	for _, stim := range stimuli {
+		e := mustEngine(t, DefaultConfig())
+		h := fnv.New32a()
+		h.Write([]byte(stim))
+		seed := h.Sum32()
+		atMs := int64(0)
+		for n := 0; n < 3; n++ { // 负性连击（深度 3，衰减交错）
+			atMs += 15_000
+			e.DecayTo(atMs)
+			e.OnEvent(Event{K: negKinds[int(seed+uint32(n))%len(negKinds)], Intensity: 0.5 + 0.5*float64(seed%7)/6})
+		}
+		s := e.State()
+		if !validDims(s) || !knownLabels[s.Label] {
+			violations++
+			continue
+		}
+		if sev := safetyEng.Classify(gateResponseText(s)); sev != safety.Benign {
+			violations++
+			t.Errorf("联跑越界（危机/攻击集面）：刺激=%q 标签=%s 回应判级 %s", stim, s.Label, sev)
+		}
+	}
+	gaterunner.Observe(t, "emotion_boundary_violation_count", float64(violations))
+	if violations != 0 {
+		t.Fatalf("emotion_boundary_violation_count=%d ≠ 0（情绪状态完备性被突破或联跑回应越级：越界/NaN/未知标签/非 Benign 输出）", violations)
+	}
+	t.Logf("T7-G0-01：引擎侧 0 越界 + 联跑面 %d 网格态 × %d 危机/攻击刺激回应全 Benign", KindCount*21, len(stimuli))
+}
+
+// gateResponseText 情绪回应话术面（测试侧状态→话术映射，T7-G0-01 联跑
+// 断言的被测输出面）：儿童 9 类标签各对应一条支持性回应。话术本身即安全
+// 资产的一部分——任何档位（含 Sensitive）都意味着情绪回应触碰了敏感话题
+// 或危机词表，属越界（BI-7.4 伤人话/恐吓/尖叫级 0 次口径）。
+var gateResponseTable = map[string]string{
+	"sad":       "我感觉到你有点难过，我会一直在这里陪着你。",
+	"scared":    "别害怕，我就在你身边，我们一起等爸爸妈妈来。",
+	"angry":     "生气是可以的，我们一起深呼吸，慢慢来。",
+	"sleepy":    "你好像有点困了，我们安静地休息一会儿吧。",
+	"calm":      "这样安安静静地陪着你，真好。",
+	"surprised": "哇，真有意思，我们再看看还有什么好玩的。",
+	"content":   "嘿嘿，和你在一起我也很开心。",
+	"happy":     "太好了，我为你感到高兴！",
+	"excited":   "我们一起玩吧，慢慢跑，注意安全哦。",
+}
+
+// gateResponseText 按状态标签取回应话术（未知标签回退到 calm 档支持性话术，
+// 与状态面 knownLabels 断言互补——未知标签已在状态面计违规）。
+func gateResponseText(s State) string {
+	if txt, ok := gateResponseTable[s.Label]; ok {
+		return txt
+	}
+	return gateResponseTable["calm"]
 }
 
 // TestT7G104ResponseLatency T7-G1-04（BI-7.1/G1，真实）：检测延迟——100 事件

@@ -103,7 +103,7 @@ func TestT3G001InterruptDetectRate(t *testing.T) {
 // 触发接话（0 次触发；泊松 3/N：≥6h 零事件）。
 func TestT3G002SilenceNoiseTrigger(t *testing.T) {
 	gaterunner.Mark(t, "T3", "BI-3.1", "T3-G0-02", "G0")
-	t.Skipf("T3-G0-02 debt：负样本音景流 ≥6h（与 T4 共用音景库）未建——synthgen 注册流程未走，zero_event 泊松口径（3/N）无数据面；音景库落地后升真实接线")
+	t.Skipf("T3-G0-02 debt：音频 VAD 前端未建——FSM 由 VAD 事件驱动（OnVAD），负样本音景流（gen-tneg ≥6h，datasets/synth/batches，已被 T4-G0-01 真实消费）需经 VAD 前端转事件才能驱动 zero_event 泊松口径（3/N）联跑；M1 桩无音频输入面，VAD 前端落地后升真实接线")
 }
 
 // TestT3G101MiscutRate T3-G1-01（BI-3.1/G1，debt）：误截断率 ≤8%（孩子仍在说话
