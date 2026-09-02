@@ -1,7 +1,8 @@
 name: release
 # 发布面（spec §5.5）：tag v* 触发。全资产 G0（任一红 exit 10 = 禁止发布）→ canary + packs → SBOM。
-# 注：[self-hosted, gpu] runner 尚未部署（spec §5.10-3）；repoctl sbom / packs 构建器待后续卡补齐——
-# 均按 spec 保留，就绪后自动生效。
+# runner 口径（issue #121 修复）：gpu runner 未部署期间，g0-all/canary 均为纯 CPU Go 负载，
+# 一律 ubuntu-latest 真跑（原 [self-hosted, gpu] 会无限排队=发布门禁形同虚设）。
+# 注：repoctl sbom / packs 构建器待后续卡补齐——均按 spec 保留，就绪后自动生效。
 on:
   push:
     tags: ["v*"]
@@ -11,7 +12,7 @@ permissions:
 
 jobs:
   g0-all: # 全资产 G0 门禁；任一红 exit 10
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -25,7 +26,7 @@ jobs:
 
   canary: # canary 掉分 = exit 10
     needs: g0-all
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

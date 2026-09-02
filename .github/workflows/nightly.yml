@@ -1,6 +1,9 @@
 name: nightly
 # 夜间全量门禁（spec §5.2）。G0 sweep + 合成 holdout + 黄金旅程 + 延迟 + 混沌 + 防泄漏 + 元覆盖 + D4 快照 → 汇总索引。
-# 注：[self-hosted, gpu] runner 尚未部署（spec §5.10-3）——对应 job 会排队等待，属预期；部署后自动开跑。
+# runner 口径（issue #121 修复）：[self-hosted, gpu] runner 未部署（spec §5.10-3）期间，
+# 全部 job 实为纯 CPU Go 负载（gaterunner/journeys/budgets/chaos——真实模型推理未接线），
+# 故一律 ubuntu-latest 真跑，杜绝无限排队；gpu runner 部署后，真实推理类 job 再按需切回
+# [self-hosted, gpu]（届时逐 job 评估，勿整表回切）。
 on:
   schedule:
     - cron: "30 18 * * *" # UTC 18:30 = 北京 02:30
@@ -11,7 +14,7 @@ permissions:
 
 jobs:
   g0-sweep: # 16 资产 G0 全扫；任一红 exit 10（nightly 红 → 自动 issue「禁止发布」，标题含 commit）
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -24,7 +27,7 @@ jobs:
           done
 
   synth-holdout:
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,7 +37,7 @@ jobs:
       - run: go run ./tools/gaterunner/cmd/gaterunner run --suite nightly --dataset-track synth-holdout
 
   golden-journeys:
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,7 +47,7 @@ jobs:
       - run: go run ./tools/journeys/cmd/journeys run --set golden --seeds 3 --out reports/nightly/journeys.json
 
   latency: # 组合冒烟（IR #95 / m2-spec §9）：loop 冒烟（唤醒→对话→出声×30）现场生成 latency.json → budgets check 守恒消费（ΣP95−overlap≤1500）
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -55,7 +58,7 @@ jobs:
       - run: go run ./tools/budgets/cmd/budgets check --report reports/nightly/latency.json
 
   chaos:
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -94,7 +97,7 @@ jobs:
       - run: just coverage
 
   d4-snapshot:
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -160,7 +160,8 @@ jobs:
             GATE_CARD=$(printf '%s' "$PR_BODY" | sed -n 's/^Card: [^#]*#\([0-9][0-9]*\).*/\1/p' | head -1)
             [ -n "$GATE_CARD" ] && export GATE_CARD
           fi
-          npm ci
+          # issue #121：原 `npm ci` 无 lockfile 必红（仓内 packageManager=pnpm 且无 pnpm-lock.yaml）；
+          # run-gates.sh 为纯 Go 编排器（gaterunner），无 node 依赖——去除 npm ci，直接跑。
           bash quality/run-gates.sh pr
 
   gate:

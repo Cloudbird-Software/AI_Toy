@@ -1,7 +1,8 @@
 name: weekly
 # 周度评测面（spec §5.3）：真实 holdout（受控 sealed-eval）+ judge 重校 + 漂移 + ML 自审 + 数据审计。
-# 注：[self-hosted, gpu] runner 尚未部署（spec §5.10-3）；repoctl drift/ml-test-score/license-ledger
-# 子命令待后续卡补齐——均按 spec 保留，runner/子命令就绪后自动生效。
+# runner 口径（issue #121 修复）：gpu runner 未部署期间，judge-recal 为纯 CPU Go 负载
+# （toyjudge calibrate），ubuntu-latest 真跑；真实模型评测接入后再评估切回 [self-hosted, gpu]。
+# 注：repoctl drift/ml-test-score/license-ledger 子命令待后续卡补齐——均按 spec 保留，就绪后自动生效。
 on:
   schedule:
     - cron: "0 19 * * 0" # 北京周日 03:00
@@ -17,7 +18,7 @@ jobs:
     uses: ./.github/workflows/holdout-eval.yml
 
   judge-recal: # 周度 judge 重校准：κ 回落即 exit 20
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
