@@ -36,12 +36,12 @@ ai-toy 是 AI 潮玩 monorepo：以「角色即资产」为内核——角色是
 | M1 | L1 演示闭环（T4/T3/T13 组装 + 闭环冒烟） | ✅ | PR #84/#85/#86/#88 |
 | M2 | L1 完全体六域（synthgen 负样本/safety/emotion/motion-map/persona/user-sim + budgets 延迟接线） | ✅ | PR #96–#101 |
 
-### §5.10 平台 ACTION（👤 founder 执行，Agent 无权限）
+### §5.10 平台 ACTION（👤 founder 执行，Agent 无权限；#1 经 founder token API 于 issue #121 完成）
 | # | 项 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| 1 | Branch protection `main`：required checks + 线性历史 + 禁 force-push | 👤 待执行 | 当前：admin 合并绕行，建议开启；required checks 列表对应 .github/workflows/* job 名 |
+| 1 | Branch protection `main`：required checks + 线性历史 + 禁 force-push | ✅ | issue #121：required checks = `gate`（ci.yml 聚合门）已开启，线性历史/禁 force-push/禁删除保持；ci.yml 已复启用（原 disabled_manually） |
 | 2 | GitHub Environment `holdout`：required reviewer = founder；secret `HOLDOUT_READ_TOKEN`；runner 标签 `holdout`（网络出口白名单） | 👤 待执行 | workflow 已引用 holdout environment，未创建不会触发 holdout-eval.yml，不阻塞其他路径 |
-| 3 | 自托管 GPU runner 标签 `gpu`（语音评测/TTS/端侧推理） | 👤 待执行 | nightly/weekly/release 的 self-hosted gpu job 会排队等待 runner，创建即可消费 |
+| 3 | 自托管 GPU runner 标签 `gpu`（语音评测/TTS/端侧推理） | 👤 待执行 | issue #121：gpu runner 未部署期间，nightly/weekly/release 的 job 已退回 ubuntu-latest 真跑（纯 CPU Go 负载）；真实推理类 job 落地后再逐 job 切回 [self-hosted, gpu] |
 | 4 | Actions 权限最小化：只读 contents，artifact 90 天保留 | 👤 建议确认 | Org Settings → Actions → General，默认限写，建议切最小权限 |
 | 5 | Dependabot：gomod/pnpm/cargo/github-actions 周更 | ✅ | .github/dependabot.yml 已写入（from initial upload），执行频率 = weekly |
 | 6 | `reports/exemptions.yaml` 初始 + `reports/holdout-audit.jsonl` 初始 | ✅ | PR #47 已写入 |
