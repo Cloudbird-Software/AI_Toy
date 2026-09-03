@@ -9,7 +9,7 @@
 >
 > **2026-09-03 更新（feat/t14-m2-llm，M2）**：LLM 已接真推理（Qwen3-0.6B Q4_K_M GGUF，
 > 自研最小 llama.cpp dlopen 绑定，v0.3.0 ABI，ADR-0012），实测见「LLM（Qwen3-0.6B GGUF）」节。
-> TTS 仍为桩，待补测。
+> TTS 已接真合成（MeloTTS ORT，meloort 装配层，PR #153），对拍与 RTF 见文末「TTS（MeloTTS ORT）」节。
 >
 > **2026-09-03 更新（feat/t14-m2-asr-stream，M2-T14-ASR 换型 PoC，issue #133）**：
 > ASR 换型流式 zipformer（founder 决策），三延迟实测见文末「流式换型实测」节——
@@ -168,3 +168,58 @@ encoder int8 + decoder fp32 + joiner int8；选型与块语义见 ADR-0013）。
   encoder 无报错但缓存数值 3~4 倍畸变、转写全空。经逐元素特征对拍定位后以
   `pcm16ToUnitDomain` 修正（详见 ADR-0013 决策 4）。
 - 不修改 `configs/budgets/latency.yaml`（ASR 段预算划拨仍留 founder 决策）。
+
+## TTS（MeloTTS ORT 真合成，2026-09-04，feat/t13-m2-melo-ort / PR #153）
+
+口径：本机 CPU（4 核 7.4G，进程 nice -n 19）、ONNX Runtime 1.29.0、
+`go test ./packages/go/tts -run 'TestMelo' -v`，三档句长各 10 次取 P50/P95；
+前端=查表 g2p + 确定性噪声（splitmix64+Box-Muller），推理面=ORT 会话 Run
+（`packages/go/tts/meloort`，yalue/onnxruntime_go v1.35.0）。
+数据源：`reports/eval/T13/melotts-rtf-go.json`（n=30，Go 全链）；Python 基线
+`reports/eval/T13/melotts-rtf.json`（n=20，intra_op=4）。
+
+| 档 | 句例 | RTF P50 / P95 | 推理 P50（infer_ms） |
+|---|---|---|---|
+| 短（≈7 字） | 你好呀。 | 0.826 / 0.909 | 745 ms |
+| 中（≈18 字） | 今天天气真好，我们一起去公园玩吧。 | 0.789 / 0.829 | 2437 ms |
+| 长（≈40 字） | 从前有一只小兔子… | 0.779 / 0.893 | 5034 ms |
+| **全量 n=30** | — | **0.791 / 0.893**（max 0.909） | 2383 ms |
+
+- 30/30 全部 RTF<1（实时可合成）；对照 Python ORT intra_op=4 同机 rtf_p50=0.457：
+  线程减半（Go intra_op=2）+ nice 19，RTF 升至 ~0.79 属预期口径差。
+- 闭环 wav：`reports/eval/T13/samples/melotts-zh-goort-{0,1}.wav`。
+- 对拍（会话级）：3 句 Go/Python ORT 逐样本 max_abs ≤7.3e-06、SNR ≥95 dB、
+  Pearson r=1.0；前端结构符号一致率 1.000。
+
+### 延迟预算缺口（如实陈述）
+
+1. **tts_first P50 200ms / P95 280ms（BI-13.2 首包≤300ms）**：非流式整段出语义下
+   first_packet≈infer_ms（短句 745ms、长句 5.0s）→ **缺口 3.7×~25×**。
+   消解路径=流式导出（ADR-0008 债务⑤）或分句+预合成缓存（路径 C 架构），
+   非装配层可解。
+2. **RTF≤0.5（T13-G1-01 端侧线）**：本机 intra_op=2 + nice 19 口径 P50=0.791 未达
+   （Python intra_op=4 基线 0.457 贴线）；目标硬件真机 500 句实测归 T13-G1-01
+   门禁 debt，维持不变。
+
+## 全链 E2E 组装（VAD→ASR→LLM→TTS，2026-09-04）
+
+以下汇总四段真模型实测数字（均为本机 4 核 7.4G 开发机口径，非目标端侧）：
+
+| 段 | 模型/引擎 | 关键指标 | 备注 |
+|---|---|---|---|
+| VAD | Silero VAD v5 ONNX | RTF P50=0.0038 / P95=0.0046 | 可忽略（≈260× 实时富余） |
+| ASR | sherpa-onnx streaming zipformer 双语 int8（ADR-0013） | RTF P50=0.121 / P95=0.149；定稿延迟 26/30ms；首字延迟 1350/1376ms | 话轮级定稿≤2s ✓、RTF≤0.5 ✓ |
+| LLM | Qwen3-0.6B Q4_K_M GGUF（ADR-0012） | 生成吞吐 29.53 tok/s；TTFT ≈0.35s；单句回复 0.7~2.3s；RSS ≈869MB | cgo 申报待批 |
+| TTS | MeloTTS ORT 真合成（PR #153） | RTF P50=0.791 / P95=0.893；推理 P50 2383ms；对拍 max_abs ≤7.3e-06 | tts_first 首包缺口 3.7×~25×；RTF≤0.5 未达（debt） |
+
+### 结论
+
+- **计算面分段全部真模型落地**：VAD/ASR/LLM/TTS 四段均已有 ONNX/GGUF 真权重 +
+   Go 推理代码 + 单元测试/对拍证据。
+- **体验面瓶颈 = TTS 首包（非流式整段出）**：短句 first_packet≈745ms、长句≈5.0s，
+  远超 BI-13.2 首包≤300ms。根因=当前 MeloTTS 导出为整段 wav，无流式接口；
+  消解路径已登记 ADR-0008 债务⑤（流式导出）或分句+PhraseCache 预合成。
+- **不改 `configs/budgets/latency.yaml`**：TTS 段预算划拨仍留 founder 决策；
+  T13-G1-01 RTF≤0.5 维持 debt（真机 500 句实测后复评）。
+- issue #133 验收第 2 条「全链路端侧延迟实测报告」补齐；后续待 T14 M2 全链
+   E2E 联调（VAD→ASR→LLM→TTS 端到端墙钟）后统一验收。
