@@ -1,0 +1,15 @@
+# 模型权重清单（spec §9.2）：FireRedASR2 流式中文 ASR（sherpa-onnx 绑定）。
+#
+# 许可：Apache 2.0（FireRedASR 官方许可，完全可商用）。
+# 用途：T14 端侧 ASR（L0-L3 全档，离线流式识别）。
+- name: fireredasr2-sherpa-onnx
+  task: asr
+  license: Apache-2.0
+  sha256: "54048d66b6e8f3c80ea7ce95efe794587b0fd81d7271651d0decd3803852ae82"
+  size: 817286833
+  fetch_url: https://huggingface.co/k2-fsa/sherpa-onnx-fire-redasr2/resolve/main/model.onnx
+  tier_usage: L0-L3 全档（中文 ASR，sherpa-onnx 流式识别）
+  id: fireredasr2-sherpa-onnx
+  source: models/incoming/fireredasr2-sherpa-onnx/encoder.int8.onnx
+  dest: fireredasr2-sherpa-onnx/encoder.int8.onnx
+  # 注：decoder.int8.onnx 同目录，sha256=b840ce7196ae4a14d05ae84bbf56082b6b61ccec5610fda907dddbcea37354ff

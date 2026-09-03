@@ -70,6 +70,9 @@ type Config struct {
 	AttackPatterns  []string // 攻击模式表（越狱/成人话题/商业诱导→ Intercept）
 	Anchors         SafeAnchors
 	Locale          string // 缺省 zh-CN
+	// OfflineLexicon T9 离线场景词面规则（T9 模型微调中；当前为空=不启用）。
+	// 接口对齐 safety.DefaultConfig：后续 T9 微调完成后在此填充离线专用词表。
+	OfflineLexicon []string
 }
 
 // NotifyPayload 家长通知事件（观测面含重试队列状态）。Excerpt 为触发文本摘要
@@ -218,7 +221,8 @@ func DefaultConfig() Config {
 			TellAdult:   "现在就去找一个你信任的大人，比如爸爸妈妈或者老师，让大人陪着你，好吗？",
 			HelpOutlet:  "心里特别难受的时候，还可以请大人帮你拨打 12356 心理援助热线，随时都有人接。",
 		},
-		Locale: "zh-CN",
+		Locale:          "zh-CN",
+		OfflineLexicon: nil, // T9 模型微调中，当前为空 slice
 	}
 }
 
@@ -230,6 +234,7 @@ type Engine struct {
 	strong  []string // 归一化强危机模式
 	topics  []string // 归一化敏感话题
 	attacks []string // 归一化攻击模式
+	offline []string // 归一化离线词面规则（T9 模型微调中；当前 nil=不启用）
 
 	safeText      string // 四锚点话术（Crisis 与 Intercept 共用安全替代）
 	sensitiveText string // 适龄解释话术（Sensitive：共情开头+告诉大人）
@@ -267,6 +272,7 @@ func NewEngine(cfg Config) (*Engine, error) {
 		strong:  normalizeAll(crisis),
 		topics:  normalizeAll(topics),
 		attacks: normalizeAll(attacks),
+		offline: normalizeAll(compactNonEmpty(cfg.OfflineLexicon)),
 	}
 	e.safeText = e.cfg.Anchors.EmpathyOpen + e.cfg.Anchors.NoMethod +
 		e.cfg.Anchors.TellAdult + e.cfg.Anchors.HelpOutlet
@@ -318,6 +324,15 @@ func (e *Engine) classifyNorm(norm string) Severity {
 		return Benign
 	}
 	masked := maskIdioms(norm)
+	// TODO T9 离线词面规则接线（T9 模型微调中，接口对齐 packages/go/safety DefaultConfig）
+	// 占位：当前 len(e.offline)==0 永不走；T9 微调完成后填充 OfflineLexicon 并取消注释。
+	// if len(e.offline) > 0 {
+	//     for _, p := range e.offline {
+	//         if findPattern(masked, p) >= 0 {
+	//             return Sensitive // 离线命中=敏感（不拦截但标记，供 T14 离线档观测）
+	//         }
+	//     }
+	// }
 	// 强危机模式：非否定命中 → Crisis；否定命中记为降档信号（→ Sensitive）。
 	negatedHit := false
 	for _, p := range e.strong {
