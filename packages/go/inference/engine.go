@@ -21,7 +21,9 @@ const (
 	VADVoiceEnd
 )
 
-// ASREngine 自动语音识别接口（FireRedASR2 真推理实现见 asr.go；M1 桩保留作 fallback）。
+// ASREngine 自动语音识别接口（流式 StreamingZipformer 主实现见
+// asr_streaming_zipformer.go；FireRedASR2 非流式备选实现见 asr.go；
+// 各自的 M1 桩保留作 fallback）。
 type ASREngine interface {
 	// Recognize 识别音频流文本（stream 为完整音频字节）。
 	Recognize(stream []byte) (string, error)

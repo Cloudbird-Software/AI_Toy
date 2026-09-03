@@ -10,6 +10,10 @@
 > **2026-09-03 更新（feat/t14-m2-llm，M2）**：LLM 已接真推理（Qwen3-0.6B Q4_K_M GGUF，
 > 自研最小 llama.cpp dlopen 绑定，v0.3.0 ABI，ADR-0012），实测见「LLM（Qwen3-0.6B GGUF）」节。
 > TTS 仍为桩，待补测。
+>
+> **2026-09-03 更新（feat/t14-m2-asr-stream，M2-T14-ASR 换型 PoC，issue #133）**：
+> ASR 换型流式 zipformer（founder 决策），三延迟实测见文末「流式换型实测」节——
+> 定稿延迟 ≤2s 与 RTF ≤0.5 两条验收线均达成；选型记录 ADR-0013（原 ADR-0012 重编号）。
 
 ## 测试环境
 
@@ -115,3 +119,52 @@ libllama.so.0.3.0）、Qwen3 ChatML 非思考模板 + 贪心解码、`go test ./
    升级给 founder（M2 正式排期时），同第 3 条不动 configs/budgets。
 6. **LLM 内存面**：进程 RSS ≈869MB，与 VAD/ASR/TTS 同进程部署时需按机器内存档
    （本机 7.4G 可容纳；更低端目标硬件待 founder 定档）。
+
+## 流式换型实测（2026-09-03，feat/t14-m2-asr-stream，issue #133）
+
+口径：本机 CPU（4 核 7.4G，进程 nice -n 19）、ONNX Runtime 1.29.0、intra-op=2
+（默认，T3 对齐口径）、`go test ./packages/go/inference -run 'TestASRStreaming' -v`，
+各 10 次取 P50/P95；音频 = `test_wavs/1.wav`（16kHz PCM16，5.10s）。
+模型 = sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20（Apache-2.0，
+encoder int8 + decoder fp32 + joiner int8；选型与块语义见 ADR-0013）。
+
+三延迟定义（流式引擎 `StreamingZipformer`，消费方按 40ms 块喂入）：
+
+- **首字延迟**：音频起点（t0）到首个非 blank token 出现的墙钟（实时节奏口径 =
+  按墙钟节拍喂入，模拟麦克风流；尽速口径 = 不等节拍，纯计算面）。
+- **RTF**：整句识别总墙钟 / 音频时长（尽速喂入）。
+- **定稿延迟（endpointing 后）**：端点（话轮尾）触发 `Finish()` 到最终文本可用的
+  墙钟——流式下文本已随音频增量产出，定稿仅刷新尾块（≤320ms 音频的零填充解码）。
+
+| 指标（10 次） | 流式 zipformer int8 | 非流式 FireRedASR2 int8（对照） |
+|---|---|---|
+| RTF P50 / P95 | **0.121 / 0.149** | 0.984~1.008 / 1.042~1.072 |
+| 首字延迟 P50 / P95（实时节奏） | **1350 / 1376 ms** | 不可用（整句解码，无中间文本） |
+| 首字延迟 P50（尽速，纯计算面） | 128 ms | — |
+| 定稿延迟 P50 / P95（Finish） | **26 / 30 ms**（实时节奏口径） | 4.3~5.1s（= 全句墙钟，intra-op=4 口径） |
+
+补充：intra-op=4 时流式 RTF 反升至 P50=0.250（块级小推理线程争抢），
+维持默认 2 线程口径；非流式首字/定稿两栏按定义不存在/等同全句墙钟。
+
+### 验收线结论（如实报）
+
+1. **话轮级定稿延迟 ≤2s：达成**（26ms，缺口消除；非流式为 4.3~5.1s）。
+2. **RTF ≤0.5：达成**（P50=0.121、P95=0.149，约为非流式 1/8）。
+3. **首字延迟 1350ms（<2s 但贴线）**：下限是模型块缓冲——首块须攒满 390ms，
+   首个非 blank token 出现于第 4 块（≈1.35s 音频处），计算占比 <50ms。
+   再压须换更小首块的导出档或更小模型，本 PoC 不追求（正式换型时再议）。
+
+### 正确性锚点与取舍
+
+- 1.wav Go 全链输出 `这是第一种第二种叫呃与▁ALWAYS▁ALWAYS什么意思啊` 与 Python ORT
+  流式原型、FireRedASR2 非流式 golden **三方逐字一致**（`TestASRStreamingGoldenTranscript`）。
+- 8 条测试 wav：7 条 16kHz 全部出合理中英混文本（8k.wav 重采样口径外跳过）；
+  增量部分文本前缀单调（`TestASRStreamingIncrementalMonotonic`）。
+- **精度口径注记**：流式模型对重口音条目与 FireRed 有词级差异（3-sichuan
+  「自己就是在那个…情节…戏演得特别好」→「纸巾就是在那个…清洁…是演的特别好」），
+  正式换型前建议以 T2 数据飞轮真实儿童语音做一次双模型 WER 对比（M2 收口项）。
+- **量纲陷阱（实测踩坑）**：本模型为 icefall 归一化波形（[-1,1]）裸 log-mel 口径，
+  与 FireRedASR2 的 int16 量纲相差 2·ln32768≈20.7 的 log-mel 偏移；错喂量纲时
+  encoder 无报错但缓存数值 3~4 倍畸变、转写全空。经逐元素特征对拍定位后以
+  `pcm16ToUnitDomain` 修正（详见 ADR-0013 决策 4）。
+- 不修改 `configs/budgets/latency.yaml`（ASR 段预算划拨仍留 founder 决策）。

@@ -1,0 +1,22 @@
+# 模型权重清单（spec §9.2）：T14 流式中文 ASR 换型（M2-T14-ASR，issue #133）。
+#
+# 许可：Apache-2.0（HF 仓库 license 标签核验，可商用）。
+# 用途：T14 端侧流式 ASR 主实现（StreamingZipformer，ORT Go 直驱）；
+#       FireRedASR2（fireredasr2-sherpa-onnx）保留为备选实现。
+- name: streaming-zipformer-zh-en-2023-02-20
+  task: asr-streaming
+  license: Apache-2.0
+  sha256: "8fa764187a261844f859d7143ebaa563af5d10adfece4c18a8f414c88cba2a9b"
+  size: 181895032
+  fetch_url: https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/resolve/main/encoder-epoch-99-avg-1.int8.onnx
+  tier_usage: T14 话轮级流式识别（中英双语，transducer 贪心；RTF P50=0.121 @4核CPU int8）
+  id: streaming-zipformer-zh-en-2023-02-20
+  source: models/incoming/streaming-zipformer-zh-en-2023-02-20/encoder-epoch-99-avg-1.int8.onnx
+  dest: streaming-zipformer-zh-en-2023-02-20/encoder-epoch-99-avg-1.int8.onnx
+  # 注：同目录 decoder-epoch-99-avg-1.onnx（fp32，13,876,452B，
+  #   sha256=2e3b5ec371f8899ee6acd829fd753ba45772df57a91bdf37cde3136354e7db7d）、
+  #   joiner-epoch-99-avg-1.int8.onnx（3,228,404B，
+  #   sha256=1ed689c5ed19dbaa725d9d191bb4822b5f4855a39e1ffd28cbc1f340d25b2ee0）、
+  #   tokens.txt（56,317B，sha256=a8e0e4ec53810e433789b54a5c0134a7eaa2ffca595a6334d54c00da858841d3）。
+  # 基座 pfluo/k2fsa-zipformer-chinese-english-mixed（Apache-2.0），
+  # icefall pruned_transducer_stateless7_streaming 训练；选型理由见 ADR-0013。
