@@ -99,33 +99,61 @@ func (f *fbank) compute(pcm []float32) ([]float32, int, error) {
 	numFrames := 1 + (len(pcm)-fbankFrameLength)/fbankFrameShift
 	feats := make([]float32, 0, numFrames*fbankNumBins)
 	for fr := 0; fr < numFrames; fr++ {
-		frame := f.frame
-		copy(frame[:fbankFrameLength], pcm[fr*fbankFrameShift:])
-		for i := fbankFrameLength; i < fbankFFTSize; i++ {
-			frame[i] = 0
-		}
-		f.processWindow(frame)
-		f.runFFT(frame)
-		// 功率谱：[re0, re_N/2, re1, im1, ...] → p[k]=|X_k|²（kaldi 无 1/N 归一化）
-		pow := f.pow
-		pow[0] = frame[0] * frame[0]
-		pow[fbankFFTSize/2] = frame[1] * frame[1]
-		for i := 1; i < fbankFFTSize/2; i++ {
-			re, im := frame[2*i], frame[2*i+1]
-			pow[i] = re*re + im*im
-		}
-		for _, bin := range f.melBins {
-			var e float32
-			for j, w := range bin.w {
-				e += w * pow[bin.first+j]
-			}
-			if e < fbankFloatEps {
-				e = fbankFloatEps
-			}
-			feats = append(feats, float32(math.Log(float64(e))))
-		}
+		f.frameFeat(pcm[fr*fbankFrameShift:], &feats)
 	}
 	return feats, numFrames, nil
+}
+
+// frameFeat 单帧窗口（≥400 样本）→ 加窗/FFT/mel，80 维特征 append 到 feats
+// （compute 与 fbankStream.push 共用路径，保证流式与整批特征逐位一致）。
+func (f *fbank) frameFeat(win []float32, feats *[]float32) {
+	frame := f.frame
+	copy(frame[:fbankFrameLength], win)
+	for i := fbankFrameLength; i < fbankFFTSize; i++ {
+		frame[i] = 0
+	}
+	f.processWindow(frame)
+	f.runFFT(frame)
+	// 功率谱：[re0, re_N/2, re1, im1, ...] → p[k]=|X_k|²（kaldi 无 1/N 归一化）
+	pow := f.pow
+	pow[0] = frame[0] * frame[0]
+	pow[fbankFFTSize/2] = frame[1] * frame[1]
+	for i := 1; i < fbankFFTSize/2; i++ {
+		re, im := frame[2*i], frame[2*i+1]
+		pow[i] = re*re + im*im
+	}
+	for _, bin := range f.melBins {
+		var e float32
+		for j, w := range bin.w {
+			e += w * pow[bin.first+j]
+		}
+		if e < fbankFloatEps {
+			e = fbankFloatEps
+		}
+		*feats = append(*feats, float32(math.Log(float64(e))))
+	}
+}
+
+// fbankStream 流式 fbank 帧发射器（与 compute 同分帧口径：25ms 窗/10ms 移/snip_edges，
+// 帧不补零——尾帧不足 400 样本时保留待后续样本）。单线程驱动。
+type fbankStream struct {
+	fb  *fbank
+	buf []float32 // 帧起点对齐的未消费样本
+}
+
+func newFbankStream(fb *fbank) *fbankStream { return &fbankStream{fb: fb} }
+
+// push 追加 PCM 样本，把新完成帧的特征 append 到 feats，返回新增帧数。
+func (s *fbankStream) push(pcm []float32, feats *[]float32) int {
+	s.buf = append(s.buf, pcm...)
+	n := 0
+	for len(s.buf) >= fbankFrameLength {
+		s.fb.frameFeat(s.buf, feats)
+		copy(s.buf, s.buf[fbankFrameShift:]) // memmove 语义滑出一帧移
+		s.buf = s.buf[:len(s.buf)-fbankFrameShift]
+		n++
+	}
+	return n
 }
 
 // processWindow 对 400 点帧做 remove_dc_offset → preemphasize → povey 加窗。

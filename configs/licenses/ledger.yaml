@@ -74,6 +74,16 @@ entries:
     usage: packages/go/memory (T16 英文故事结构学习语料)
     note: 数据集，无权重文件
 
+  - id: streaming-zipformer-zh-en-2023-02-20
+    name: sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20
+    license: Apache-2.0
+    source: https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20
+    files: encoder-epoch-99-avg-1.int8.onnx(181,895,032B) + decoder-epoch-99-avg-1.onnx(13,876,452B) + joiner-epoch-99-avg-1.int8.onnx(3,228,404B) + tokens.txt(56,317B)
+    usage: packages/go/inference (T14 流式 ASR 主实现，M2-T14-ASR 换型 PoC，issue #133；FireRedASR2 保留备选)
+    sha256: "8fa764187a261844f859d7143ebaa563af5d10adfece4c18a8f414c88cba2a9b"
+    manifest: models/manifests/t14-streaming-zipformer.yaml
+    provenance: 基座 pfluo/k2fsa-zipformer-chinese-english-mixed（Apache-2.0），icefall pruned_transducer_stateless7_streaming 训练；decoder/joiner/tokens sha256 见 manifest
+
 # 工具链（仅开发/导出宿主机 import 时依赖，不入产品分发包）：
 # tools/tts/export_melotts_onnx.py 与 gen_melo_phoneme_table.py 运行所需——
 #   torch(BSD-style) torchaudio(BSD-style) onnx(MIT) onnxruntime(MIT)
