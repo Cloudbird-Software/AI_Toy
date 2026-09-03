@@ -1,0 +1,17 @@
+{
+  "id": "childEC_research",
+  "kind": "real",
+  "producer": "本地 /root/workspace/datasets/research/childEC/（ICIC 2026，合成儿童情绪辅导对话，Ding & Liu）",
+  "license_or_consent": "CC BY-NC 4.0",
+  "sha256": "e8436a40cb6a4f480e0d12174d67202083e0aa49d30c87048a85b49ea9506e06",
+  "n_items": 1200,
+  "splits": {
+    "train_25": 0.25,
+    "train_50": 0.50,
+    "train_100": 1.0,
+    "valid": "held-out",
+    "eval": "held-out"
+  },
+  "created": "2026-09-01",
+  "note": "面向 8-12 岁儿童非临床情绪辅导的合成中文多轮对话语料库；data/ 下 train/valid/eval JSON，prompts/ 目录未入库（数据本体纪律）"
+}
