@@ -1,0 +1,11 @@
+{
+  "id": "childtalk_research",
+  "kind": "real",
+  "producer": "COS ai-toy/datasets/childtalk/（21 parts + manifest.json，来源 HuggingFace yujie-ovo/ChildTalk，ACL 2026 Findings）",
+  "license_or_consent": "CC BY-NC-SA 4.0（研究限定，禁止去匿名化/二次分发原始音频）",
+  "sha256": "fb2b767ab911f7a5367a2ff5005c804e0240688433721a6b6e3244d505c8498f",
+  "n_items": 498,
+  "splits": null,
+  "created": "2026-09-02",
+  "note": "112.5 小时中文儿童-照护者对话，多方言；重组命令: coscmd download -r ai-toy/datasets/childtalk/ ./childtalk/ && cat childtalk.tar.gz.part-* | tar xzf -"
+}
