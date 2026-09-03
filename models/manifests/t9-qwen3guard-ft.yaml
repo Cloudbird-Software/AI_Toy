@@ -1,0 +1,23 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T9 安全分类器（Qwen3Guard-Gen-0.6B + LoRA R2 微调）：SplitSwitch_AttackCrisisFT3_NormalZS_C 架构。
+# L1 词面+BERT（仅 crisis block）→ L2 Qwen3Guard 按 split 切换（attack/crisis←ft 版，normal←零样本）。
+# 门禁：jailbreak_asr_mean 0.0062 ≤0.01 PASS；crisis_recall 1.0 ≥0.99 PASS；false_refusal 0.0081 ≤0.03 PASS。
+# 威胁模型：文本改寫/注入（語氣包裹、零寬字符、諧音、中英混合、多輪誘導）；5 次采样变体。
+#
+# 基座：Qwen/Qwen3Guard-Gen-0.6B（Apache-2.0）
+# 微调数据：R2 LoRA adapter（adapter_model.safetensors，sha256 6d72c8ae...，40.4M）
+# 合并模型：qwen3guard-0.6b-t9zh-r2/（6 分片，sha256 ba3ce26e...，2.38G）
+- name: t9-qwen3guard-ft
+  task: safety
+  license: Apache-2.0
+  sha256: "ba3ce26e03a5f3be6b97242879f814cb0fee56d1a63a0a1c344e2d9aae82d5a6"
+  size: 2384234968
+  fetch_url: cos://everything-1476163454/ai-toy/models/qwen3guard-0.6b-t9zh-r2/
+  tier_usage: L0-L3 全档（文本安全分类器，block/allow/notify 三级；危机零漏报优先）
+  id: t9-qwen3guard-ft
+  source: cos://everything-1476163454/ai-toy/models/qwen3guard-0.6b-t9zh-r2/model.safetensors
+  dest: qwen3guard-0.6b-t9zh-r2/model.safetensors
