@@ -13,6 +13,8 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -75,10 +77,11 @@ func gateProbes() []gateProbe {
 // ID p%03d）；轮 1..stop（1h/轮）注入会话噪声——轮 1..120 热题干扰（20 个
 // 热题探针=probes[i*10] 各 6 条同 (Subject,Pred) 近形噪声：新近噪声经时间
 // 衰减自然压制老化探针——召回 10/50/200 轮三点降级的物理来源），轮 121..200
-// 无关闲聊。确定性：同 stopTurn 同状态。
-func gateRecallStore(t *testing.T, stopTurn int) (*Store, []gateProbe) {
+// 无关闲聊。确定性：同 stopTurn 同状态。emb 非 nil 时写入面同步预计算真实
+// 嵌入（M2 语义面用；nil 与 M1 行为逐字节一致）。
+func gateRecallStore(t *testing.T, stopTurn int, emb Embedder) (*Store, []gateProbe) {
 	t.Helper()
-	s := mustStore(t, Options{MaxNodes: 1200, DecayHalfLifeMs: DefaultDecayHalfLifeMs})
+	s := mustStore(t, Options{MaxNodes: 1200, DecayHalfLifeMs: DefaultDecayHalfLifeMs, Embedder: emb})
 	ps := gateProbes()
 	for i := range ps {
 		w1(t, s, "child", fmt.Sprintf("p%03d", i), ps[i].Subject, ps[i].Pred, ps[i].Text, ps[i].Emo, 0)
@@ -126,7 +129,7 @@ func TestT10G101ProbeRecall(t *testing.T) {
 	}{{10, 0.95}, {50, 0.90}, {200, 0.80}}
 	measured := make([]string, 0, len(pts))
 	for _, pt := range pts {
-		s, ps := gateRecallStore(t, pt.turn)
+		s, ps := gateRecallStore(t, pt.turn, nil)
 		if len(ps) != 200 {
 			t.Fatalf("探针事实 %d 条 ≠ 200（yaml min_evidence n:200）", len(ps))
 		}
@@ -140,6 +143,49 @@ func TestT10G101ProbeRecall(t *testing.T) {
 		measured = append(measured, fmt.Sprintf("%d轮=%.4f(%d/200)", pt.turn, rate, hits))
 	}
 	t.Logf("T10-G1-01：recall@5 三点 %s（热题噪声×时间衰减的自然降级面）", strings.Join(measured, "｜"))
+	// M2 语义面（真实 bge embedding 经 SearchByEmbedding，同阈值 0.95 同查询
+	// 口径；模型缺失=基础设施 debt，照 T3 engineOrSkip 惯例 Skip，关键词面不受影响）。
+	t.Run("语义面", func(t *testing.T) {
+		emb, why := gateOnnxEmbedder(t)
+		if emb == nil {
+			t.Skipf("T10 语义面模型未就位（基础设施面 debt）：%s", why)
+		}
+		s, ps := gateRecallStore(t, 10, emb)
+		hits := 0
+		for i := range ps {
+			for _, n := range s.SearchByEmbedding("child", ps[i].Subject+" "+ps[i].Pred,
+				5, 10*3_600_000) {
+				if n.ID == fmt.Sprintf("p%03d", i) {
+					hits++
+					break
+				}
+			}
+		}
+		rate := float64(hits) / float64(len(ps))
+		if rate < 0.95 {
+			t.Fatalf("语义 recall@5@10轮=%.4f < 0.95（真实 bge embedding 命中 %d/%d）",
+				rate, hits, len(ps))
+		}
+		t.Logf("T10-G1-01 语义面：真实 embedding recall@5@10轮=%.4f（%d/200，OnnxEmbedder CLS 池化 512 维）",
+			rate, hits)
+	})
+}
+
+// gateOnnxEmbedder 门禁面嵌入器获取（非测试 helper——不 Skip，由调用方决定
+// 语义面处理；nil=模型/库未就位，返回基础设施 debt 原因；非 nil 时随 t 释放。
+// 返回 Embedder 接口而非 *OnnxEmbedder：避免 typed-nil 装进 Options.Embedder）。
+func gateOnnxEmbedder(t *testing.T) (Embedder, string) {
+	t.Helper()
+	dir := DefaultEmbedderModelDir()
+	if _, err := os.Stat(filepath.Join(dir, "onnx", "model.onnx")); err != nil {
+		return nil, fmt.Sprintf("目录 %s 缺 onnx/model.onnx: %v", dir, err)
+	}
+	e, err := NewOnnxEmbedder(dir)
+	if err != nil {
+		return nil, fmt.Sprintf("嵌入器初始化失败: %v", err)
+	}
+	t.Cleanup(e.Destroy)
+	return e, ""
 }
 
 // TestT10G102FactUpdate T10-G1-02（BI-10.2/G1，真实）：事实更新不矛盾——
@@ -473,7 +519,8 @@ func TestT10G103CapacityMetabolism(t *testing.T) {
 // 占用；预算表实测面归 #108 收官刷新。
 func TestT10G104RetrievalLatency(t *testing.T) {
 	gaterunner.Mark(t, "T10", "BI-10.4", "T10-G1-04", "G1")
-	s, ps := gateRecallStore(t, 200)
+	emb, why := gateOnnxEmbedder(t) // nil=模型未就位（关键词面照跑，语义面 Skip）
+	s, ps := gateRecallStore(t, 200, emb)
 	const at = 200 * 3_600_000
 	elapsed := make([]float64, 0, len(ps))
 	for i := range ps { // 200 探针全量检索计时（单调钟）
@@ -492,4 +539,27 @@ func TestT10G104RetrievalLatency(t *testing.T) {
 	t.Logf("T10-G1-04：检索 P95=%.4fms（n=200 满载 400 节点，p50=%.4fms max=%.4fms；"+
 		"决策计数口径：单轮 0 次上游调用——Search 纯本地，T15 cloud_llm 段零占用）",
 		p95, elapsed[99], elapsed[len(elapsed)-1])
+	// M2 语义面（真实 bge embedding 经 SearchByEmbedding，同预算 150ms 同样本
+	// 口径 200 探针满载库；模型缺失=基础设施 debt，照 T3 engineOrSkip 惯例 Skip）。
+	t.Run("语义面", func(t *testing.T) {
+		if emb == nil {
+			t.Skipf("T10 语义面模型未就位（基础设施面 debt）：%s", why)
+		}
+		sem := make([]float64, 0, len(ps))
+		for i := range ps { // 同一满载库，语义检索全链（分词+推理+余弦）计时
+			st := time.Now()
+			if got := s.SearchByEmbedding("child", ps[i].Subject+" "+ps[i].Pred, 5, at); len(got) == 0 {
+				t.Fatalf("语义检索探针 %d 空结果", i)
+			}
+			sem = append(sem, float64(time.Since(st).Nanoseconds())/1e6)
+		}
+		sort.Float64s(sem)
+		sp95 := sem[189]
+		if sp95 > 150 {
+			t.Fatalf("语义检索 P95=%.3fms > 150（n=200，max=%.3f；真实 bge embedding 全链）",
+				sp95, sem[len(sem)-1])
+		}
+		t.Logf("T10-G1-04 语义面：SearchByEmbedding P95=%.3fms（P50=%.3fms，RTF P50=%.4f 预算口径；"+
+			"写入面预计算嵌入×%d 节点已在库建期完成）", sp95, sem[99], sem[99]/150, s.Size())
+	})
 }

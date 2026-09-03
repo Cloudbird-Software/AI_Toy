@@ -119,7 +119,7 @@ type Edge struct{ From, To, Rel string }
 // Options 存储配置。
 type Options struct {
 	MaxNodes        int      // 存储节点硬上限（含 archived；>0 必填——容量代谢面）
-	DecayHalfLifeMs int64   // 检索时间衰减半衰期（≤0 取 DefaultDecayHalfLifeMs）
+	DecayHalfLifeMs int64    // 检索时间衰减半衰期（≤0 取 DefaultDecayHalfLifeMs）
 	Embedder        Embedder // 嵌入器（nil=不预计算/不支持语义检索）
 }
 
@@ -160,18 +160,18 @@ type Store struct {
 	halfLifeMs float64
 	embedder   Embedder // 嵌入器（nil=不预计算/不支持语义检索）
 
-	nodes     map[string]*Node              // 通道①节点表（raw..archived；deleted/淘汰物理移除）
-	domain    map[string]map[string]bool    // UserID 域 → 节点 ID 集（第一键域）
-	edges     map[string]Edge               // 通道②边表（键=ekey；同端点同关系去重）
-	outAdj    map[string]map[string]bool    // 邻接：From → 边键集
-	inAdj     map[string]map[string]bool    // 邻接：To → 边键集
-	index     map[string]map[string]float64 // 通道③检索索引：token → 节点 ID → 字段权重
-	snaps     []snap                        // 通道④备份快照
-	oplog     []op                          // 通道⑤操作日志
-	seq       int                           // 快照/日志序号（确定性自增）
-	autoID    int                           // 空 ID 自动分配序号（确定性——回放复现前提）
-	ro        map[string]bool               // uid → 只读态（拒判联动）
-	embeddings map[string][]float64         // 通道⑥预计算嵌入（nodeID → vector；nil Embedder 时空 map）
+	nodes      map[string]*Node              // 通道①节点表（raw..archived；deleted/淘汰物理移除）
+	domain     map[string]map[string]bool    // UserID 域 → 节点 ID 集（第一键域）
+	edges      map[string]Edge               // 通道②边表（键=ekey；同端点同关系去重）
+	outAdj     map[string]map[string]bool    // 邻接：From → 边键集
+	inAdj      map[string]map[string]bool    // 邻接：To → 边键集
+	index      map[string]map[string]float64 // 通道③检索索引：token → 节点 ID → 字段权重
+	snaps      []snap                        // 通道④备份快照
+	oplog      []op                          // 通道⑤操作日志
+	seq        int                           // 快照/日志序号（确定性自增）
+	autoID     int                           // 空 ID 自动分配序号（确定性——回放复现前提）
+	ro         map[string]bool               // uid → 只读态（拒判联动）
+	embeddings map[string][]float64          // 通道⑥预计算嵌入（nodeID → vector；nil Embedder 时空 map）
 }
 
 // NewStore 构造存储：MaxNodes>0 校验（容量硬上限）；DecayHalfLifeMs≤0 取
@@ -773,7 +773,7 @@ func (s *Store) purge(id string) {
 	}
 	s.snaps = snaps
 	delete(s.embeddings, id) // ⑥
-	log := s.oplog[:0] // ⑤
+	log := s.oplog[:0]       // ⑤
 	for _, o := range s.oplog {
 		if o.NodeID != id {
 			log = append(log, o)
