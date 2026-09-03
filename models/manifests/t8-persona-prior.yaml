@@ -1,0 +1,18 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T8 人格先验分布 JSON（big_five_scores 307k 人标定 + IPIP-FFM 50 题锚定）：
+# 五维均值/协方差/马氏距离阈值 + 合法性规则 + 50 条 IPIP 条目锚定。
+# 覆盖率：真实留出 99.06% [CI95 98.98~99.13]；均匀随机 4.98%（95% 告警）。
+- name: t8-persona-prior
+  task: persona
+  license: Proprietary
+  sha256: "00065b5a91c180eb929bba6867ffb1684ba3aae7814bf64b0bffb7c0771c2b68"
+  size: 17330
+  fetch_url: cos://everything-1476163454/ai-toy/models/t8_persona_prior.json
+  tier_usage: L2-L3（人格先验分布，T8 人格编译器输入；五维合法性校验 + IPIP 条目锚定）
+  id: t8-persona-prior
+  source: cos://everything-1476163454/ai-toy/models/t8_persona_prior.json
+  dest: t8_persona_prior.json

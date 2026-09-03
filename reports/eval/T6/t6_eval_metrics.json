@@ -1,0 +1,581 @@
+{
+  "meta": {
+    "fs": 50,
+    "window_samples": 128,
+    "window_s": 2.56,
+    "overlap": 0.5,
+    "channels": [
+      "total_acc_x",
+      "total_acc_y",
+      "total_acc_z",
+      "body_acc_x",
+      "body_acc_y",
+      "body_acc_z",
+      "gyro_x",
+      "gyro_y",
+      "gyro_z"
+    ],
+    "channel_unit": {
+      "total_acc": "g, specific force incl. gravity (posture cue)",
+      "body_acc": "g, gravity-removed (dynamics)",
+      "gyro": "rad/s"
+    },
+    "input_norm": "none (physical units; BN adapts)",
+    "augmentation": "random SO(3) rotation applied jointly to all 3-vectors (training only)",
+    "classes": [
+      "stationary",
+      "holding",
+      "walking",
+      "run_jump"
+    ],
+    "classes_cn": [
+      "静止",
+      "持握",
+      "行走",
+      "跑跳"
+    ],
+    "trained_on": [
+      "uci",
+      "motion",
+      "pamap"
+    ],
+    "onnx_parity_max_abs_diff": 3.5762786865234375e-07
+  },
+  "results": {
+    "single_uci": {
+      "acc_mean": 0.9183721413721413,
+      "acc_ci95": [
+        0.9043485793485794,
+        0.932103257103257
+      ],
+      "balanced_acc_mean": 0.9075712302187293,
+      "balanced_acc_ci95": [
+        0.8926250320976535,
+        0.9219653738489725
+      ],
+      "majority_baseline": 0.5620235620235621,
+      "recall": {
+        "stationary": {
+          "mean": 0.9950510624734871,
+          "ci95": [
+            0.9900497512437811,
+            0.998868909512761
+          ]
+        },
+        "walking": {
+          "mean": 0.8200913979639717,
+          "ci95": [
+            0.7903669311437854,
+            0.8483622096185223
+          ]
+        }
+      },
+      "name": "single_uci",
+      "n_train": 5305,
+      "n_test": 1443,
+      "train_classes": [
+        "stationary",
+        "walking"
+      ],
+      "test_classes": [
+        "stationary",
+        "walking"
+      ],
+      "confusion": [
+        [
+          807,
+          0,
+          4,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          114,
+          0,
+          518,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_acc": 0.9966887417218543
+    },
+    "single_motion": {
+      "acc_mean": 0.9896005985267035,
+      "acc_ci95": [
+        0.9864180478821363,
+        0.992633517495396
+      ],
+      "balanced_acc_mean": 0.9839677347583641,
+      "balanced_acc_ci95": [
+        0.9779794318663462,
+        0.9897948491713139
+      ],
+      "majority_baseline": 0.4712246777163904,
+      "recall": {
+        "stationary": {
+          "mean": 0.9956051504585756,
+          "ci95": [
+            0.9921576752874172,
+            0.9983801514443335
+          ]
+        },
+        "walking": {
+          "mean": 0.9887195252694443,
+          "ci95": [
+            0.9837067209775967,
+            0.9930317913974996
+          ]
+        },
+        "run_jump": {
+          "mean": 0.9675785285470725,
+          "ci95": [
+            0.9495970087245533,
+            0.9836458129098317
+          ]
+        }
+      },
+      "name": "single_motion",
+      "n_train": 15416,
+      "n_test": 4344,
+      "train_classes": [
+        "stationary",
+        "walking",
+        "run_jump"
+      ],
+      "test_classes": [
+        "stationary",
+        "walking",
+        "run_jump"
+      ],
+      "confusion": [
+        [
+          1861,
+          0,
+          8,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          2024,
+          19
+        ],
+        [
+          0,
+          0,
+          14,
+          414
+        ]
+      ],
+      "val_acc": 0.9994378864530635
+    },
+    "single_pamap": {
+      "acc_mean": 0.8095666068222622,
+      "acc_ci95": [
+        0.7956912028725314,
+        0.8236983842010772
+      ],
+      "balanced_acc_mean": 0.8129176287815658,
+      "balanced_acc_ci95": [
+        0.7964697958922311,
+        0.8291407978700069
+      ],
+      "majority_baseline": 0.3910233393177738,
+      "recall": {
+        "stationary": {
+          "mean": 0.8916566242198496,
+          "ci95": [
+            0.8734142344038777,
+            0.9089310599229444
+          ]
+        },
+        "holding": {
+          "mean": 0.7799182112384735,
+          "ci95": [
+            0.7503184309736586,
+            0.8064545561572874
+          ]
+        },
+        "walking": {
+          "mean": 0.7056379045627789,
+          "ci95": [
+            0.6723671201308355,
+            0.7383009465356135
+          ]
+        },
+        "run_jump": {
+          "mean": 0.8744577751051608,
+          "ci95": [
+            0.8263407966675345,
+            0.9197592592592593
+          ]
+        }
+      },
+      "name": "single_pamap",
+      "n_train": 6620,
+      "n_test": 2785,
+      "train_classes": [
+        "stationary",
+        "holding",
+        "walking",
+        "run_jump"
+      ],
+      "test_classes": [
+        "stationary",
+        "holding",
+        "walking",
+        "run_jump"
+      ],
+      "confusion": [
+        [
+          971,
+          105,
+          13,
+          0
+        ],
+        [
+          56,
+          614,
+          117,
+          0
+        ],
+        [
+          51,
+          167,
+          523,
+          0
+        ],
+        [
+          6,
+          5,
+          10,
+          147
+        ]
+      ],
+      "val_acc": 0.831081081081081
+    },
+    "cross_to_uci": {
+      "acc_mean": 0.9981093579978237,
+      "acc_ci95": [
+        0.9970076169749728,
+        0.9990478781284005
+      ],
+      "balanced_acc_mean": 0.9982351860451254,
+      "balanced_acc_ci95": [
+        0.9972361949161087,
+        0.9990802090775851
+      ],
+      "majority_baseline": 0.5531828073993471,
+      "recall": {
+        "stationary": {
+          "mean": 0.9970551030211968,
+          "ci95": [
+            0.9952598463489554,
+            0.9985312207370183
+          ]
+        },
+        "walking": {
+          "mean": 0.9994152690690539,
+          "ci95": [
+            0.9984577183342092,
+            1.0
+          ]
+        }
+      },
+      "name": "cross_to_uci",
+      "n_train": 32128,
+      "n_test": 7352,
+      "train_classes": [
+        "stationary",
+        "holding",
+        "walking",
+        "run_jump"
+      ],
+      "test_classes": [
+        "stationary",
+        "walking"
+      ],
+      "confusion": [
+        [
+          4055,
+          0,
+          12,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          3283,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_acc": 0.873608017817372
+    },
+    "cross_to_motion": {
+      "acc_mean": 0.9309906680904406,
+      "acc_ci95": [
+        0.9277113607874089,
+        0.9342123589767398
+      ],
+      "balanced_acc_mean": 0.7670109166496606,
+      "balanced_acc_ci95": [
+        0.7599630108482808,
+        0.7738411937721695
+      ],
+      "majority_baseline": 0.4613491805562004,
+      "recall": {
+        "stationary": {
+          "mean": 0.9992886994656529,
+          "ci95": [
+            0.9987086038563511,
+            0.9997030430406221
+          ]
+        },
+        "walking": {
+          "mean": 0.9913214550871698,
+          "ci95": [
+            0.9893792315747358,
+            0.9929908982976048
+          ]
+        },
+        "run_jump": {
+          "mean": 0.3104225953961588,
+          "ci95": [
+            0.2894182045976825,
+            0.3303327294138962
+          ]
+        }
+      },
+      "name": "cross_to_motion",
+      "n_train": 17941,
+      "n_test": 21539,
+      "train_classes": [
+        "stationary",
+        "holding",
+        "walking",
+        "run_jump"
+      ],
+      "test_classes": [
+        "stationary",
+        "walking",
+        "run_jump"
+      ],
+      "confusion": [
+        [
+          9930,
+          0,
+          7,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          22,
+          0,
+          9494,
+          61
+        ],
+        [
+          0,
+          0,
+          1397,
+          628
+        ]
+      ],
+      "val_acc": 0.8997389033942559
+    },
+    "cross_to_pamap": {
+      "acc_mean": 0.27430701671545943,
+      "acc_ci95": [
+        0.2660307866654075,
+        0.2831263575408443
+      ],
+      "balanced_acc_mean": 0.2530313270667058,
+      "balanced_acc_ci95": [
+        0.2406619815107898,
+        0.2666199023856265
+      ],
+      "majority_baseline": 0.4017376522806686,
+      "recall": {
+        "stationary": {
+          "mean": 0.6267278142132663,
+          "ci95": [
+            0.6122172839812315,
+            0.640552918892407
+          ]
+        },
+        "holding": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "walking": {
+          "mean": 0.037119305058246135,
+          "ci95": [
+            0.030469045645822927,
+            0.044018895724417625
+          ]
+        },
+        "run_jump": {
+          "mean": 0.34827818899531077,
+          "ci95": [
+            0.3002615922402018,
+            0.39785831562681084
+          ]
+        }
+      },
+      "name": "cross_to_pamap",
+      "n_train": 28891,
+      "n_test": 10589,
+      "train_classes": [
+        "stationary",
+        "walking",
+        "run_jump"
+      ],
+      "test_classes": [
+        "stationary",
+        "holding",
+        "walking",
+        "run_jump"
+      ],
+      "confusion": [
+        [
+          2666,
+          0,
+          1046,
+          542
+        ],
+        [
+          2043,
+          0,
+          501,
+          464
+        ],
+        [
+          2637,
+          0,
+          109,
+          210
+        ],
+        [
+          222,
+          0,
+          20,
+          129
+        ]
+      ],
+      "val_acc": 0.9948041566746603
+    },
+    "final_all": {
+      "acc_mean": 0.9938450660928373,
+      "acc_ci95": [
+        0.9910851521672303,
+        0.9963110974485091
+      ],
+      "balanced_acc_mean": 0.9911882362776208,
+      "balanced_acc_ci95": [
+        0.9854273677724544,
+        0.9957975060712437
+      ],
+      "majority_baseline": 0.46633876421764525,
+      "recall": {
+        "stationary": {
+          "mean": 0.9972611148560857,
+          "ci95": [
+            0.9940531896796897,
+            0.9993464265601802
+          ]
+        },
+        "walking": {
+          "mean": 0.9921166260967471,
+          "ci95": [
+            0.9869696195524899,
+            0.9960861056751468
+          ]
+        },
+        "run_jump": {
+          "mean": 0.9841869678800295,
+          "ci95": [
+            0.9677253418292845,
+            0.9962267697545751
+          ]
+        }
+      },
+      "name": "final_all",
+      "n_train": 39480,
+      "n_test": 3253,
+      "train_classes": [
+        "stationary",
+        "holding",
+        "walking",
+        "run_jump"
+      ],
+      "test_classes": [
+        "stationary",
+        "walking",
+        "run_jump"
+      ],
+      "confusion": [
+        [
+          1479,
+          0,
+          4,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          1505,
+          10
+        ],
+        [
+          0,
+          0,
+          4,
+          249
+        ]
+      ],
+      "val_acc": 0.9938518290808485
+    }
+  }
+}

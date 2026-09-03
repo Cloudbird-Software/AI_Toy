@@ -1,0 +1,745 @@
+{
+  "schema_version": "1.0",
+  "generated": "2026-09-02",
+  "purpose": "人格参数合法性校验先验：五维分布 + 马氏距离经验阈值（防极端组合）",
+  "traits": [
+    "openness",
+    "conscientiousness",
+    "extraversion",
+    "agreeableness",
+    "neuroticism"
+  ],
+  "scale": {
+    "range": [
+      0,
+      1
+    ],
+    "definition": "IPIP 大五维度分，0=极低 1=极高（数据粒度 1/300）"
+  },
+  "source": {
+    "distribution": "big_five_scores.csv (307,313 人, MIT, automoto/big-five-data)",
+    "calibration_rows": 245850,
+    "holdout_rows": 61463,
+    "item_anchors": "BIG5/data.csv (19,719 行 IPIP-FFM 50 题逐题, 抽样 10,000 校验)",
+    "note": "IPIP-FFM-data.zip(1,015,342 行) 未下载到位；条目锚定用 19,719 行版替代"
+  },
+  "prior": {
+    "mean": {
+      "openness": 0.733926,
+      "conscientiousness": 0.70194,
+      "extraversion": 0.672302,
+      "agreeableness": 0.696752,
+      "neuroticism": 0.574222
+    },
+    "std": {
+      "openness": 0.087702,
+      "conscientiousness": 0.107408,
+      "extraversion": 0.10868,
+      "agreeableness": 0.093635,
+      "neuroticism": 0.125754
+    },
+    "covariance": [
+      [
+        0.007692,
+        -0.000424,
+        0.002316,
+        0.00131,
+        -0.000406
+      ],
+      [
+        -0.000424,
+        0.011537,
+        0.00183,
+        0.003156,
+        -0.006266
+      ],
+      [
+        0.002316,
+        0.00183,
+        0.011811,
+        0.000637,
+        -0.005773
+      ],
+      [
+        0.00131,
+        0.003156,
+        0.000637,
+        0.008767,
+        -0.001994
+      ],
+      [
+        -0.000406,
+        -0.006266,
+        -0.005773,
+        -0.001994,
+        0.015814
+      ]
+    ],
+    "correlation": [
+      [
+        1.0,
+        -0.045,
+        0.243,
+        0.1596,
+        -0.0368
+      ],
+      [
+        -0.045,
+        1.0,
+        0.1568,
+        0.3139,
+        -0.4639
+      ],
+      [
+        0.243,
+        0.1568,
+        1.0,
+        0.0626,
+        -0.4224
+      ],
+      [
+        0.1596,
+        0.3139,
+        0.0626,
+        1.0,
+        -0.1693
+      ],
+      [
+        -0.0368,
+        -0.4639,
+        -0.4224,
+        -0.1693,
+        1.0
+      ]
+    ],
+    "quantiles": {
+      "openness": {
+        "q0.005": 0.496666666666667,
+        "q0.01": 0.523333333333333,
+        "q0.05": 0.586666666666667,
+        "q0.25": 0.673333333333333,
+        "q0.5": 0.736666666666667,
+        "q0.75": 0.796666666666667,
+        "q0.95": 0.873333333333333,
+        "q0.99": 0.92,
+        "q0.995": 0.933333333333333
+      },
+      "conscientiousness": {
+        "q0.005": 0.413333333333333,
+        "q0.01": 0.44,
+        "q0.05": 0.52,
+        "q0.25": 0.63,
+        "q0.5": 0.703333333333333,
+        "q0.75": 0.776666666666667,
+        "q0.95": 0.873333333333333,
+        "q0.99": 0.93,
+        "q0.995": 0.946666666666667
+      },
+      "extraversion": {
+        "q0.005": 0.37,
+        "q0.01": 0.4,
+        "q0.05": 0.483333333333333,
+        "q0.25": 0.6,
+        "q0.5": 0.68,
+        "q0.75": 0.75,
+        "q0.95": 0.84,
+        "q0.99": 0.89,
+        "q0.995": 0.906666666666667
+      },
+      "agreeableness": {
+        "q0.005": 0.406666666666667,
+        "q0.01": 0.44,
+        "q0.05": 0.53,
+        "q0.25": 0.64,
+        "q0.5": 0.703333333333333,
+        "q0.75": 0.763333333333333,
+        "q0.95": 0.836666666666667,
+        "q0.99": 0.88,
+        "q0.995": 0.896666666666667
+      },
+      "neuroticism": {
+        "q0.005": 0.28,
+        "q0.01": 0.303333333333333,
+        "q0.05": 0.373333333333333,
+        "q0.25": 0.483333333333333,
+        "q0.5": 0.57,
+        "q0.75": 0.66,
+        "q0.95": 0.79,
+        "q0.99": 0.87,
+        "q0.995": 0.893333333333333
+      }
+    }
+  },
+  "mahalanobis": {
+    "m2_thresholds_train": {
+      "q0.9": 9.393280882825113,
+      "q0.95": 11.589410618771575,
+      "q0.99": 17.194119275314,
+      "q0.995": 19.847581863051552
+    },
+    "chi2_df5_reference": {
+      "q0.9": 9.24,
+      "q0.95": 11.07,
+      "q0.99": 15.09
+    },
+    "note": "分数有界非正态，阈值以训练集经验分位为准；χ² 仅作参照"
+  },
+  "validity_rule": {
+    "reject": "任一维越硬界 [0,1]",
+    "alert": "M² > q0.99（训练集最极端 ~1% 组合，触发告警）",
+    "warn": "M² > q0.95",
+    "ok": "M² ≤ q0.95 且全部维度在硬界内",
+    "marginal_flag": "任一维越 [q0.005, q0.995]（提示哪一维偏离，不算告警）"
+  },
+  "coverage_holdout_and_synth": {
+    "real_holdout_20pct": {
+      "n": 61463,
+      "in_region_rate": 0.9906285082081903,
+      "alert_rate": 0.009371491791809707,
+      "reject_rate": 0.0,
+      "ci95": [
+        0.9898475505588729,
+        0.9913281161023705
+      ]
+    },
+    "uniform_random_0_1": {
+      "n": 50000,
+      "in_region_rate": 0.04976,
+      "alert_rate": 0.95024,
+      "reject_rate": 0.0,
+      "ci95": [
+        0.04796,
+        0.05164
+      ]
+    },
+    "gaussian_fit_clipped": {
+      "n": 50000,
+      "in_region_rate": 0.99668,
+      "alert_rate": 0.00332,
+      "reject_rate": 0.0,
+      "ci95": [
+        0.9962,
+        0.99718
+      ]
+    },
+    "extreme_examples": {
+      "all_min": {
+        "vector": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "mahalanobis2": 277.73,
+        "level": 2
+      },
+      "all_max": {
+        "vector": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "mahalanobis2": 72.36,
+        "level": 2
+      },
+      "highN_lowC": {
+        "vector": [
+          0.5,
+          0.05,
+          0.5,
+          0.5,
+          0.99
+        ],
+        "mahalanobis2": 45.84,
+        "level": 2
+      },
+      "all_extreme_high": {
+        "vector": [
+          0.99,
+          0.99,
+          0.99,
+          0.99,
+          0.99
+        ],
+        "mahalanobis2": 68.2,
+        "level": 2
+      }
+    }
+  },
+  "bootstrap_ci95": {
+    "mean": {
+      "openness": [
+        0.7335565270151138,
+        0.7342538482136768
+      ],
+      "conscientiousness": [
+        0.7015395918920799,
+        0.7023929191241299
+      ],
+      "extraversion": [
+        0.6718837861839766,
+        0.672715702325269
+      ],
+      "agreeableness": [
+        0.6963732550335487,
+        0.6971584868822372
+      ],
+      "neuroticism": [
+        0.5737282401193046,
+        0.5746851033828242
+      ]
+    },
+    "std": {
+      "openness": [
+        0.087466817224213,
+        0.08794838139700434
+      ],
+      "conscientiousness": [
+        0.10714853392959492,
+        0.10769153527741675
+      ],
+      "extraversion": [
+        0.10840308671953539,
+        0.10898105702540485
+      ],
+      "agreeableness": [
+        0.09334674303855314,
+        0.09392701290899111
+      ],
+      "neuroticism": [
+        0.12544404644321377,
+        0.12605780025090688
+      ]
+    },
+    "corr": {
+      "openness~conscientiousness": [
+        -0.04883435415904849,
+        -0.04085662848722975
+      ],
+      "openness~extraversion": [
+        0.23906798486252395,
+        0.2466702419433911
+      ],
+      "openness~agreeableness": [
+        0.15529442626850368,
+        0.16333863499161005
+      ],
+      "openness~neuroticism": [
+        -0.040487819498610335,
+        -0.032590053485959
+      ],
+      "conscientiousness~extraversion": [
+        0.1528964993511291,
+        0.16079768649476425
+      ],
+      "conscientiousness~agreeableness": [
+        0.30995503109622524,
+        0.3176417226881848
+      ],
+      "conscientiousness~neuroticism": [
+        -0.46732436676084843,
+        -0.4606708819865334
+      ],
+      "extraversion~agreeableness": [
+        0.05847567468704595,
+        0.06669419412646777
+      ],
+      "extraversion~neuroticism": [
+        -0.4255470346670564,
+        -0.41874173674096704
+      ],
+      "agreeableness~neuroticism": [
+        -0.17377699965750237,
+        -0.16508912284720756
+      ]
+    }
+  },
+  "item_anchors": [
+    {
+      "item_id": "O1",
+      "trait": "openness",
+      "text": "I have a rich vocabulary.",
+      "key_sign": 1,
+      "rest_correlation": 0.536
+    },
+    {
+      "item_id": "O2",
+      "trait": "openness",
+      "text": "I have difficulty understanding abstract ideas.",
+      "key_sign": -1,
+      "rest_correlation": 0.507
+    },
+    {
+      "item_id": "O3",
+      "trait": "openness",
+      "text": "I have a vivid imagination.",
+      "key_sign": 1,
+      "rest_correlation": 0.463
+    },
+    {
+      "item_id": "O4",
+      "trait": "openness",
+      "text": "I am not interested in abstract ideas.",
+      "key_sign": -1,
+      "rest_correlation": 0.441
+    },
+    {
+      "item_id": "O5",
+      "trait": "openness",
+      "text": "I have excellent ideas.",
+      "key_sign": 1,
+      "rest_correlation": 0.521
+    },
+    {
+      "item_id": "O6",
+      "trait": "openness",
+      "text": "I do not have a good imagination.",
+      "key_sign": -1,
+      "rest_correlation": 0.46
+    },
+    {
+      "item_id": "O7",
+      "trait": "openness",
+      "text": "I am quick to understand things.",
+      "key_sign": 1,
+      "rest_correlation": 0.436
+    },
+    {
+      "item_id": "O8",
+      "trait": "openness",
+      "text": "I use difficult words.",
+      "key_sign": 1,
+      "rest_correlation": 0.466
+    },
+    {
+      "item_id": "O9",
+      "trait": "openness",
+      "text": "I spend time reflecting on things.",
+      "key_sign": 1,
+      "rest_correlation": 0.271
+    },
+    {
+      "item_id": "O10",
+      "trait": "openness",
+      "text": "",
+      "key_sign": 1,
+      "rest_correlation": 0.589
+    },
+    {
+      "item_id": "C1",
+      "trait": "conscientiousness",
+      "text": "I am always prepared.",
+      "key_sign": 1,
+      "rest_correlation": 0.55
+    },
+    {
+      "item_id": "C2",
+      "trait": "conscientiousness",
+      "text": "I leave my belongings around.",
+      "key_sign": -1,
+      "rest_correlation": 0.476
+    },
+    {
+      "item_id": "C3",
+      "trait": "conscientiousness",
+      "text": "I pay attention to details.",
+      "key_sign": 1,
+      "rest_correlation": 0.351
+    },
+    {
+      "item_id": "C4",
+      "trait": "conscientiousness",
+      "text": "I make a mess of things.",
+      "key_sign": -1,
+      "rest_correlation": 0.531
+    },
+    {
+      "item_id": "C5",
+      "trait": "conscientiousness",
+      "text": "I get chores done right away.",
+      "key_sign": 1,
+      "rest_correlation": 0.565
+    },
+    {
+      "item_id": "C6",
+      "trait": "conscientiousness",
+      "text": "I often forget to put things back in their proper place.",
+      "key_sign": -1,
+      "rest_correlation": 0.545
+    },
+    {
+      "item_id": "C7",
+      "trait": "conscientiousness",
+      "text": "I like order.",
+      "key_sign": 1,
+      "rest_correlation": 0.453
+    },
+    {
+      "item_id": "C8",
+      "trait": "conscientiousness",
+      "text": "I shirk my duties.",
+      "key_sign": -1,
+      "rest_correlation": 0.46
+    },
+    {
+      "item_id": "C9",
+      "trait": "conscientiousness",
+      "text": "I follow a schedule.",
+      "key_sign": 1,
+      "rest_correlation": 0.54
+    },
+    {
+      "item_id": "C10",
+      "trait": "conscientiousness",
+      "text": "",
+      "key_sign": 1,
+      "rest_correlation": 0.422
+    },
+    {
+      "item_id": "E1",
+      "trait": "extraversion",
+      "text": "I am the life of the party.",
+      "key_sign": 1,
+      "rest_correlation": 0.627
+    },
+    {
+      "item_id": "E2",
+      "trait": "extraversion",
+      "text": "I don't talk a lot.",
+      "key_sign": -1,
+      "rest_correlation": 0.646
+    },
+    {
+      "item_id": "E3",
+      "trait": "extraversion",
+      "text": "I feel comfortable around people.",
+      "key_sign": 1,
+      "rest_correlation": 0.65
+    },
+    {
+      "item_id": "E4",
+      "trait": "extraversion",
+      "text": "I keep in the background.",
+      "key_sign": -1,
+      "rest_correlation": 0.686
+    },
+    {
+      "item_id": "E5",
+      "trait": "extraversion",
+      "text": "I start conversations.",
+      "key_sign": 1,
+      "rest_correlation": 0.715
+    },
+    {
+      "item_id": "E6",
+      "trait": "extraversion",
+      "text": "I have little to say.",
+      "key_sign": -1,
+      "rest_correlation": 0.571
+    },
+    {
+      "item_id": "E7",
+      "trait": "extraversion",
+      "text": "I talk to a lot of different people at parties.",
+      "key_sign": 1,
+      "rest_correlation": 0.7
+    },
+    {
+      "item_id": "E8",
+      "trait": "extraversion",
+      "text": "I don't like to draw attention to myself.",
+      "key_sign": -1,
+      "rest_correlation": 0.518
+    },
+    {
+      "item_id": "E9",
+      "trait": "extraversion",
+      "text": "I don't mind being the center of attention.",
+      "key_sign": 1,
+      "rest_correlation": 0.584
+    },
+    {
+      "item_id": "E10",
+      "trait": "extraversion",
+      "text": "",
+      "key_sign": -1,
+      "rest_correlation": 0.639
+    },
+    {
+      "item_id": "A1",
+      "trait": "agreeableness",
+      "text": "I feel little concern for others.",
+      "key_sign": -1,
+      "rest_correlation": 0.374
+    },
+    {
+      "item_id": "A2",
+      "trait": "agreeableness",
+      "text": "I am interested in people.",
+      "key_sign": 1,
+      "rest_correlation": 0.526
+    },
+    {
+      "item_id": "A3",
+      "trait": "agreeableness",
+      "text": "I insult people.",
+      "key_sign": -1,
+      "rest_correlation": 0.341
+    },
+    {
+      "item_id": "A4",
+      "trait": "agreeableness",
+      "text": "I sympathize with others' feelings.",
+      "key_sign": 1,
+      "rest_correlation": 0.689
+    },
+    {
+      "item_id": "A5",
+      "trait": "agreeableness",
+      "text": "I am not interested in other people's problems.",
+      "key_sign": -1,
+      "rest_correlation": 0.605
+    },
+    {
+      "item_id": "A6",
+      "trait": "agreeableness",
+      "text": "I have a soft heart.",
+      "key_sign": 1,
+      "rest_correlation": 0.513
+    },
+    {
+      "item_id": "A7",
+      "trait": "agreeableness",
+      "text": "I am not really interested in others.",
+      "key_sign": -1,
+      "rest_correlation": 0.623
+    },
+    {
+      "item_id": "A8",
+      "trait": "agreeableness",
+      "text": "I take time out for others.",
+      "key_sign": 1,
+      "rest_correlation": 0.551
+    },
+    {
+      "item_id": "A9",
+      "trait": "agreeableness",
+      "text": "I feel others' emotions.",
+      "key_sign": 1,
+      "rest_correlation": 0.636
+    },
+    {
+      "item_id": "A10",
+      "trait": "agreeableness",
+      "text": "",
+      "key_sign": 1,
+      "rest_correlation": 0.408
+    },
+    {
+      "item_id": "N1",
+      "trait": "neuroticism",
+      "text": "I get stressed out easily.",
+      "key_sign": 1,
+      "rest_correlation": 0.649
+    },
+    {
+      "item_id": "N2",
+      "trait": "neuroticism",
+      "text": "I am relaxed most of the time.",
+      "key_sign": -1,
+      "rest_correlation": 0.49
+    },
+    {
+      "item_id": "N3",
+      "trait": "neuroticism",
+      "text": "I worry about things.",
+      "key_sign": 1,
+      "rest_correlation": 0.561
+    },
+    {
+      "item_id": "N4",
+      "trait": "neuroticism",
+      "text": "I seldom feel blue.",
+      "key_sign": -1,
+      "rest_correlation": 0.33
+    },
+    {
+      "item_id": "N5",
+      "trait": "neuroticism",
+      "text": "I am easily disturbed.",
+      "key_sign": 1,
+      "rest_correlation": 0.498
+    },
+    {
+      "item_id": "N6",
+      "trait": "neuroticism",
+      "text": "I get upset easily.",
+      "key_sign": 1,
+      "rest_correlation": 0.687
+    },
+    {
+      "item_id": "N7",
+      "trait": "neuroticism",
+      "text": "I change my mood a lot.",
+      "key_sign": 1,
+      "rest_correlation": 0.649
+    },
+    {
+      "item_id": "N8",
+      "trait": "neuroticism",
+      "text": "I have frequent mood swings.",
+      "key_sign": 1,
+      "rest_correlation": 0.69
+    },
+    {
+      "item_id": "N9",
+      "trait": "neuroticism",
+      "text": "I get irritated easily.",
+      "key_sign": 1,
+      "rest_correlation": 0.641
+    },
+    {
+      "item_id": "N10",
+      "trait": "neuroticism",
+      "text": "",
+      "key_sign": 1,
+      "rest_correlation": 0.61
+    }
+  ],
+  "item_scale_validation": {
+    "cronbach_alpha": {
+      "openness": 0.795,
+      "conscientiousness": 0.8114,
+      "extraversion": 0.8924,
+      "agreeableness": 0.8305,
+      "neuroticism": 0.8669
+    },
+    "n_items": 50,
+    "note": "计分方向由逐维 PCA 首成分载荷符号实证确定"
+  },
+  "behavior_hints": {
+    "openness": {
+      "high": "爱尝试新玩法/新故事，接受非常规交互",
+      "low": "偏好熟悉套路与重复玩法"
+    },
+    "conscientiousness": {
+      "high": "守规则、能完成多步任务，适合任务/收集类玩法",
+      "low": "易中断跳步，引导要短且即时反馈"
+    },
+    "extraversion": {
+      "high": "主动发起互动、语音多、喜爱热闹与表演式玩法",
+      "low": "安静陪伴式互动，避免强迫社交"
+    },
+    "agreeableness": {
+      "high": "合作、分享、在意角色感受，适合协作剧情",
+      "low": "竞争/对抗玩法接受度高，剧情冲突容忍度高"
+    },
+    "neuroticism": {
+      "high": "对突发刺激/负面反馈敏感，需柔和的失败处理与安抚",
+      "low": "情绪稳定，可接受较强挑战与惊吓元素"
+    }
+  }
+}

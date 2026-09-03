@@ -1,0 +1,18 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T6 IMU 活动识别模型（1D-CNN，30,692 参数）：三库统一 50Hz/2.56s/9ch [total_acc,body_acc,gyro]
+# UCI HAR + MotionSense + PAMAP2 手部 IMU 混训，输出 4 类 [静止, 持握, 行走, 跑跳]。
+# 单库 UCI 0.918 / MotionSense 0.990 / PAMAP 0.810；跨库 →UCI 0.998 / →MotionSense 0.931 / →PAMAP2 0.274（佩带位置域差）。
+- name: t6-har
+  task: imu
+  license: Proprietary
+  sha256: "8cf1a1c678ed317124d172fafc0943918c6cd47a711fc04db7ba097769087212"
+  size: 124262
+  fetch_url: cos://everything-1476163454/ai-toy/models/t6_har.onnx
+  tier_usage: L2-L3（IMU 活动识别，端侧姿态/动作分类；跨库泛化含 PAMAP2 手部域差）
+  id: t6-har
+  source: cos://everything-1476163454/ai-toy/models/t6_har.onnx
+  dest: t6_har.onnx
