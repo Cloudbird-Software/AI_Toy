@@ -1,4 +1,4 @@
-# ADR-0007 T16/T18 内容管线：TinyStories 角色 + 中文 synthgen 合成设计
+# ADR-0010 T16/T18 内容管线：TinyStories 角色 + 中文 synthgen 合成设计
 状态：proposed 2026-09-03（IR #134，规格=issue-134.md）
 背景：T16 场景包需要故事内容。商用可用的中文儿童故事语料缺位；TinyStories（CDLA-Sharing 1.0）提供 219MB 英语儿童故事结构学习语料，可直接用于故事结构/叙述节奏建模，但不能直接充当中文内容。
 决策：TinyStories 仅作为英语故事结构学习语料（角色：结构先验），不直接进入中文场景包内容；中文故事内容通过 tools/synthgen 合成管线生成（LLM 生成 + 溯源戳 + 8:2 synth-holdout 切分）。T20 模拟器产物明确禁止进入任何训练/微调/合成 Holdout 集（AGENTS.md 红线）。
