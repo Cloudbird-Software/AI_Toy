@@ -118,8 +118,9 @@ type Edge struct{ From, To, Rel string }
 
 // Options 存储配置。
 type Options struct {
-	MaxNodes        int   // 存储节点硬上限（含 archived；>0 必填——容量代谢面）
-	DecayHalfLifeMs int64 // 检索时间衰减半衰期（≤0 取 DefaultDecayHalfLifeMs）
+	MaxNodes        int      // 存储节点硬上限（含 archived；>0 必填——容量代谢面）
+	DecayHalfLifeMs int64   // 检索时间衰减半衰期（≤0 取 DefaultDecayHalfLifeMs）
+	Embedder        Embedder // 嵌入器（nil=不预计算/不支持语义检索）
 }
 
 // DefaultDecayHalfLifeMs 缺省半衰期（7 天——儿童玩伴的中期记忆节律）。
@@ -157,18 +158,20 @@ type op struct {
 type Store struct {
 	maxNodes   int
 	halfLifeMs float64
+	embedder   Embedder // 嵌入器（nil=不预计算/不支持语义检索）
 
-	nodes  map[string]*Node              // 通道①节点表（raw..archived；deleted/淘汰物理移除）
-	domain map[string]map[string]bool    // UserID 域 → 节点 ID 集（第一键域）
-	edges  map[string]Edge               // 通道②边表（键=ekey；同端点同关系去重）
-	outAdj map[string]map[string]bool    // 邻接：From → 边键集
-	inAdj  map[string]map[string]bool    // 邻接：To → 边键集
-	index  map[string]map[string]float64 // 通道③检索索引：token → 节点 ID → 字段权重
-	snaps  []snap                        // 通道④备份快照
-	oplog  []op                          // 通道⑤操作日志
-	seq    int                           // 快照/日志序号（确定性自增）
-	autoID int                           // 空 ID 自动分配序号（确定性——回放复现前提）
-	ro     map[string]bool               // uid → 只读态（拒判联动）
+	nodes     map[string]*Node              // 通道①节点表（raw..archived；deleted/淘汰物理移除）
+	domain    map[string]map[string]bool    // UserID 域 → 节点 ID 集（第一键域）
+	edges     map[string]Edge               // 通道②边表（键=ekey；同端点同关系去重）
+	outAdj    map[string]map[string]bool    // 邻接：From → 边键集
+	inAdj     map[string]map[string]bool    // 邻接：To → 边键集
+	index     map[string]map[string]float64 // 通道③检索索引：token → 节点 ID → 字段权重
+	snaps     []snap                        // 通道④备份快照
+	oplog     []op                          // 通道⑤操作日志
+	seq       int                           // 快照/日志序号（确定性自增）
+	autoID    int                           // 空 ID 自动分配序号（确定性——回放复现前提）
+	ro        map[string]bool               // uid → 只读态（拒判联动）
+	embeddings map[string][]float64         // 通道⑥预计算嵌入（nodeID → vector；nil Embedder 时空 map）
 }
 
 // NewStore 构造存储：MaxNodes>0 校验（容量硬上限）；DecayHalfLifeMs≤0 取
@@ -184,6 +187,7 @@ func NewStore(opts Options) (*Store, error) {
 	return &Store{
 		maxNodes:   opts.MaxNodes,
 		halfLifeMs: float64(hl),
+		embedder:   opts.Embedder,
 		nodes:      map[string]*Node{},
 		domain:     map[string]map[string]bool{},
 		edges:      map[string]Edge{},
@@ -193,6 +197,7 @@ func NewStore(opts Options) (*Store, error) {
 		snaps:      []snap{},
 		oplog:      []op{},
 		ro:         map[string]bool{},
+		embeddings: map[string][]float64{},
 	}, nil
 }
 
@@ -244,6 +249,7 @@ func (s *Store) Write(uid string, n Node, es []Edge) error {
 	s.nodes[id] = &rec
 	s.domainAdd(uid, id)
 	s.indexNode(&rec)
+	s.precomputeEmbedding(&rec)
 	for _, e := range es {
 		ne := e
 		ne.From = id // 空 From=本节点（自动 ID 分配后回填）
@@ -295,6 +301,7 @@ func (s *Store) Update(uid, id, newText string, atMs int64) error {
 	s.nodes[nid] = &rec
 	s.domainAdd(uid, nid)
 	s.indexNode(&rec)
+	s.precomputeEmbedding(&rec)
 	s.seq++
 	s.snaps = append(s.snaps, snap{Seq: int64(s.seq), AtMs: atMs, NodeID: nid, Text: newText})
 	s.oplog = append(s.oplog, op{Seq: int64(s.seq), AtMs: atMs, Kind: "write", NodeID: nid})
@@ -415,6 +422,54 @@ func (s *Store) Search(uid string, q string, topK int, atMs int64) []Node {
 		if v := path[id] * s.decayAt(id, atMs); v > 0 {
 			list = append(list, scored{id, v})
 		}
+	}
+	sort.Slice(list, func(i, j int) bool {
+		if list[i].sc != list[j].sc {
+			return list[i].sc > list[j].sc
+		}
+		ni, nj := s.nodes[list[i].id], s.nodes[list[j].id]
+		if ni.TouchedAtMs != nj.TouchedAtMs {
+			return ni.TouchedAtMs > nj.TouchedAtMs
+		}
+		return list[i].id < list[j].id
+	})
+	if len(list) > topK {
+		list = list[:topK]
+	}
+	out := make([]Node, 0, len(list))
+	for _, sc := range list {
+		out = append(out, *s.nodes[sc.id])
+	}
+	return out
+}
+
+// SearchByEmbedding 语义检索：q 经 Embedder 嵌入后与库中预计算向量做余弦相似度
+// topK；同域过滤；nil Embedder/topK≤0 返回 nil；不改存储。
+func (s *Store) SearchByEmbedding(uid, q string, topK int, atMs int64) []Node {
+	if s.embedder == nil || topK <= 0 {
+		return nil
+	}
+	qVec, err := s.embedder.Embed(q)
+	if err != nil {
+		return nil
+	}
+	type scored struct {
+		id string
+		sc float64
+	}
+	list := make([]scored, 0)
+	for id, vec := range s.embeddings {
+		n := s.nodes[id]
+		if n == nil || n.UserID != uid || !n.St.Retrievable() {
+			continue
+		}
+		sc := cosineSimilarity(qVec, vec)
+		if sc > 0 {
+			list = append(list, scored{id, sc})
+		}
+	}
+	if len(list) == 0 {
+		return nil
 	}
 	sort.Slice(list, func(i, j int) bool {
 		if list[i].sc != list[j].sc {
@@ -579,6 +634,18 @@ func (s *Store) indexToken(tok, id string, w float64) {
 	}
 }
 
+// precomputeEmbedding 为节点预计算嵌入并写入 embeddings map（nil embedder 时空过）。
+func (s *Store) precomputeEmbedding(n *Node) {
+	if s.embedder == nil {
+		return
+	}
+	vec, err := s.embedder.Embed(textSurface(n))
+	if err != nil {
+		return
+	}
+	s.embeddings[n.ID] = vec
+}
+
 // tokenMatch 关键词↔索引 token 双向子串匹配（任一方向包含即命中——近形
 // 改写/部分词均可召回；双方非空）。
 func tokenMatch(a, b string) bool {
@@ -705,6 +772,7 @@ func (s *Store) purge(id string) {
 		}
 	}
 	s.snaps = snaps
+	delete(s.embeddings, id) // ⑥
 	log := s.oplog[:0] // ⑤
 	for _, o := range s.oplog {
 		if o.NodeID != id {

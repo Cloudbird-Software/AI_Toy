@@ -57,6 +57,21 @@ entries:
     usage: packages/go/inference (GGUF 推理后端，M2 接入)
     note: 代码依赖，无权重文件
 
+  - id: bge-small-zh-v1.5
+    name: bge-small-zh-v1.5
+    license: MIT
+    source: models/incoming/bge-small-zh-v1.5/model.safetensors
+    usage: packages/go/memory (T10 嵌入检索底座)
+    sha256: "354763b9b1357bc9c44f62c6be2276321081ed2567773608c0d0785b61d5a026"
+    manifest: models/manifests/bge-small-zh.yaml
+
+  - id: TinyStories
+    name: TinyStories
+    license: CDLA-Sharing 1.0
+    source: https://huggingface.co/datasets/roneneldan/TinyStories
+    usage: packages/go/memory (T16 英文故事结构学习语料)
+    note: 数据集，无权重文件
+
 # 工具链（仅开发/导出宿主机 import 时依赖，不入产品分发包）：
 # tools/tts/export_melotts_onnx.py 与 gen_melo_phoneme_table.py 运行所需——
 #   torch(BSD-style) torchaudio(BSD-style) onnx(MIT) onnxruntime(MIT)
