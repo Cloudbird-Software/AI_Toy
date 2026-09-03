@@ -1,0 +1,22 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T13 端侧离线 TTS（issue #132 / W3-2，ADR-0008）：myshell-ai/MeloTTS-Chinese 官方
+# checkpoint（207,770,124B，sha256 见下注）经 tools/tts/export_melotts_onnx.py 导出
+# 单 ONNX 图（音素序列+显式噪声张量→44.1kHz 波形，opset 17，批维固定 1）。
+# 上游 checkpoint.pth sha256=a74e9eadffff065c75eb6dfa040efa72cad23e72cfea70d39190bc174fb97093。
+# 对拍（PyTorch vs onnxruntime 同输入）与 RTF 实测：reports/eval/T13/。
+# 红线合规：仅官方音色 ZH（spk id 1）；儿童音色偏好经语速参数化（voice ID @rate=），
+# 禁克隆任何真实儿童声音。
+- name: t13-melotts-zh
+  task: tts
+  license: MIT
+  sha256: "c73eb94d181255a2eaf78b871f4c57c546579900b98757893016e2b533f6bdbf"
+  size: 170372099
+  fetch_url: https://huggingface.co/myshell-ai/MeloTTS-Chinese
+  tier_usage: L2 端侧离线合成主通道（L3 仅缓存补偿源；ONNX 导出物，端侧档位）
+  id: t13-melotts-zh
+  source: /root/workspace/datasets/models/melotts-zh/onnx/melotts-zh.onnx
+  dest: t13_melotts_zh.onnx

@@ -1,0 +1,27 @@
+# License 台账（AGENTS.md「无 license 台账的新依赖」执法面；审计项，季度审计）。
+# 建于 W3-T13（issue #132，此前仓库无此文件——首批条目=T13 两个模型权重与
+# tools/tts 导出工具链的 import 时依赖）。
+models:
+  - name: t13-melotts-zh
+    license: MIT
+    source: https://huggingface.co/myshell-ai/MeloTTS-Chinese
+    code: https://github.com/myshell-ai/MeloTTS
+    files: checkpoint.pth(207,770,124B) + config.json + melo/ 推理代码 + opencpop-strict.txt
+    used_as: T13 端侧离线 TTS（ONNX 导出基座；manifest t13-melotts-zh）
+    provenance: datasets/LICENSE-LEDGER.md W3-2
+  - name: t13-indextts-1.5
+    license: Apache-2.0
+    source: https://huggingface.co/IndexTeam/IndexTTS-1.5
+    files: gpt.pth + dvae.pth + bigvgan_generator.pth + bpe.model + unigram_12000.vocab + config.yaml（bigvgan_discriminator.pth 未取）
+    used_as: T13 云端高质量 TTS（自部署服务权重；manifest t13-indextts-1.5）
+    provenance: datasets/LICENSE-LEDGER.md W3-3
+# 工具链（仅开发/导出宿主机 import 时依赖，不入产品分发包）：
+# tools/tts/export_melotts_onnx.py 与 gen_melo_phoneme_table.py 运行所需——
+#   torch(BSD-style) torchaudio(BSD-style) onnx(MIT) onnxruntime(MIT)
+#   transformers(Apache-2.0) numpy(BSD-3) librosa(ISF) soundfile(BSD-3)
+#   scipy(BSD-3) jieba(MIT) pypinyin(MIT) cn2an(MIT)
+# （mecab/unidic-lite/pykakasi/num2words/g2p_en 等仅上游未 stub 模块需要；
+#   stub 后非依赖，不装也能跑通中文面。）
+red_lines:
+  - 禁克隆任何真实儿童声音：两模型均仅官方/自备音色白名单；端侧儿童音色偏好
+    经 voice ID 语速参数化过渡（ADR-0008 §4）；声纹用途按季度审计。

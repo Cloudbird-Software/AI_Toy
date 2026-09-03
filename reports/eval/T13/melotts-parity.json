@@ -1,0 +1,122 @@
+{
+  "onnx": "/root/workspace/datasets/models/melotts-zh/onnx/melotts-zh.onnx",
+  "opset": 17,
+  "torch": "2.4.1+cpu",
+  "sampling_default": "ns=0.6 nsw=0.8 sdp=0.2 speed=1.0",
+  "faithfulness": [
+    {
+      "text": "你好呀，我是小云。",
+      "mel_len": 135,
+      "samples": 69120,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rmse": 0.0,
+      "snr_db": Infinity,
+      "pearson_r": 1.0
+    },
+    {
+      "text": "今天我们一起搭积木好不好？",
+      "mel_len": 201,
+      "samples": 102912,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rmse": 0.0,
+      "snr_db": Infinity,
+      "pearson_r": 1.0
+    },
+    {
+      "text": "从前有一只小兔子，它住在森林里。",
+      "mel_len": 248,
+      "samples": 126976,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rmse": 0.0,
+      "snr_db": Infinity,
+      "pearson_r": 1.0
+    },
+    {
+      "text": "一二三四五，上山打老虎。",
+      "mel_len": 205,
+      "samples": 104960,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rmse": 0.0,
+      "snr_db": Infinity,
+      "pearson_r": 1.0
+    },
+    {
+      "text": "小猫咪，毛茸茸，看见老鼠喵喵叫。",
+      "mel_len": 262,
+      "samples": 134144,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rmse": 0.0,
+      "snr_db": Infinity,
+      "pearson_r": 0.9999999999999999
+    }
+  ],
+  "pytorch_vs_onnx": [
+    {
+      "samples": 69120,
+      "max_abs": 1.1714175343513489e-05,
+      "mean_abs": 2.5520664693425625e-07,
+      "rmse": 8.470299900245464e-07,
+      "snr_db": 88.46540917363367,
+      "pearson_r": 0.9999999992892137,
+      "text": "你好呀，我是小云。",
+      "torch_samples": 69120,
+      "onnx_samples": 69120
+    },
+    {
+      "samples": 102912,
+      "max_abs": 5.614710971713066e-06,
+      "mean_abs": 7.399564793516043e-08,
+      "rmse": 1.8980583528981323e-07,
+      "snr_db": 102.0519440092542,
+      "pearson_r": 0.9999999999688316,
+      "text": "今天我们一起搭积木好不好？",
+      "torch_samples": 102912,
+      "onnx_samples": 102912
+    },
+    {
+      "samples": 126976,
+      "max_abs": 3.2782554626464844e-06,
+      "mean_abs": 1.1556737469467468e-07,
+      "rmse": 2.498657659388551e-07,
+      "snr_db": 108.70770055576428,
+      "pearson_r": 0.9999999999933423,
+      "text": "从前有一只小兔子，它住在森林里。",
+      "torch_samples": 126976,
+      "onnx_samples": 126976
+    },
+    {
+      "samples": 104960,
+      "max_abs": 2.637505531311035e-06,
+      "mean_abs": 8.465243423723382e-08,
+      "rmse": 1.8980838914414604e-07,
+      "snr_db": 103.7707309567372,
+      "pearson_r": 0.9999999999790168,
+      "text": "一二三四五，上山打老虎。",
+      "torch_samples": 104960,
+      "onnx_samples": 104960
+    },
+    {
+      "samples": 134144,
+      "max_abs": 5.550682544708252e-06,
+      "mean_abs": 1.3223376130375917e-07,
+      "rmse": 2.9005719275697293e-07,
+      "snr_db": 104.39329913334763,
+      "pearson_r": 0.9999999999818225,
+      "text": "小猫咪，毛茸茸，看见老鼠喵喵叫。",
+      "torch_samples": 134144,
+      "onnx_samples": 134144
+    }
+  ],
+  "ort_deterministic": true,
+  "verdict": {
+    "max_abs_worst": 1.1714175343513489e-05,
+    "min_snr_db": 88.46540917363367,
+    "faithfulness_max_abs": 0.0,
+    "ort_deterministic": true
+  }
+}

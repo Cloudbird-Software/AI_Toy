@@ -1,0 +1,86 @@
+{
+  "gojson": "/tmp/go-phonemes.json",
+  "onnx": "/root/workspace/datasets/models/melotts-zh/onnx/melotts-zh.onnx",
+  "sentences": [
+    {
+      "text": "你好呀，我是小云。",
+      "go_phone_len": 16,
+      "ref_phone_len": 16,
+      "phone_agreement": 1.0,
+      "exact_match": false,
+      "tone_match": false,
+      "first_divergence": {
+        "index": 0,
+        "go": "n",
+        "ref": "n",
+        "go_tone": 3,
+        "ref_tone": 2
+      }
+    },
+    {
+      "text": "今天我们一起搭积木好不好？",
+      "go_phone_len": 25,
+      "ref_phone_len": 25,
+      "phone_agreement": 1.0,
+      "exact_match": false,
+      "tone_match": false,
+      "first_divergence": {
+        "index": 8,
+        "go": "y",
+        "ref": "y",
+        "go_tone": 1,
+        "ref_tone": 4
+      }
+    },
+    {
+      "text": "一二三四五，上山打老虎。",
+      "go_phone_len": 22,
+      "ref_phone_len": 22,
+      "phone_agreement": 1.0,
+      "exact_match": false,
+      "tone_match": false,
+      "first_divergence": {
+        "index": 17,
+        "go": "l",
+        "ref": "l",
+        "go_tone": 3,
+        "ref_tone": 2
+      }
+    },
+    {
+      "text": "从前有一只小兔子，它住在森林里。",
+      "go_phone_len": 30,
+      "ref_phone_len": 30,
+      "phone_agreement": 1.0,
+      "exact_match": false,
+      "tone_match": false,
+      "first_divergence": {
+        "index": 6,
+        "go": "y",
+        "ref": "y",
+        "go_tone": 1,
+        "ref_tone": 4
+      }
+    },
+    {
+      "text": "小猫咪，毛茸茸，看见老鼠喵喵叫。",
+      "go_phone_len": 29,
+      "ref_phone_len": 29,
+      "phone_agreement": 1.0,
+      "exact_match": false,
+      "tone_match": false,
+      "first_divergence": {
+        "index": 9,
+        "go": "r",
+        "ref": "r",
+        "go_tone": 1,
+        "ref_tone": 2
+      }
+    }
+  ],
+  "summary": {
+    "n": 5,
+    "exact_match": 0,
+    "mean_phone_agreement": 1.0
+  }
+}
