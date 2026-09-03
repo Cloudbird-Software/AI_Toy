@@ -1,0 +1,21 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T5 声纹模型（GPU 路线）：CAM++ pretrained + LoRA 式轻调（全量 utts，lorafull）。
+# 3D-Speaker 官方 trials EER 14.93%（cross_device），远超 ≤5% 门槛。
+# 零样本 20.17%，冻结 backbone 不可行；轻调在所有真实域指标上优于零样本，但数据规模（127 spk vs 官方 10k）
+# 是根本瓶颈。判定 no-solution-v2。
+#
+# 门禁结论：EER 14.93% > 5% FAIL；陌生人拒判 max 口径 73.3% < 90% FAIL；家庭复测 PASS。
+- name: t5-campplus-sv
+  task: sv
+  license: Proprietary
+  sha256: "9c99e7c2f011172a9d14483591f3a20aefd96e20c5bbfaf5eafa5b8f07349ef1"
+  size: 28312566
+  fetch_url: cos://everything-1476163454/ai-toy/models/t5_campplus_sv.onnx
+  tier_usage: L2-L3（声纹识别，CAM++ LoRA全量微调；EER 14.93% no-solution-v2，数据规模瓶颈）
+  id: t5-campplus-sv
+  source: cos://everything-1476163454/ai-toy/models/t5_campplus_sv.onnx
+  dest: t5_campplus_sv.onnx
