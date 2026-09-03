@@ -1,0 +1,70 @@
+{
+  "toy_classes": {
+    "0": {
+      "en": "stationary",
+      "zh": "静止"
+    },
+    "1": {
+      "en": "holding",
+      "zh": "持握"
+    },
+    "2": {
+      "en": "walking",
+      "zh": "行走"
+    },
+    "3": {
+      "en": "run_jump",
+      "zh": "跑跳"
+    },
+    "4": {
+      "en": "throwing",
+      "zh": "抛掷",
+      "note": "三库均无对应源活动，未训练；模型为 4 类输出，抛掷为后续扩展位"
+    }
+  },
+  "source_maps": {
+    "uci-har": {
+      "labels_file": "activity_labels.txt",
+      "map": {
+        "1 WALKING": "walking",
+        "2 WALKING_UPSTAIRS": "walking",
+        "3 WALKING_DOWNSTAIRS": "walking",
+        "4 SITTING": "stationary",
+        "5 STANDING": "stationary",
+        "6 LAYING": "stationary"
+      },
+      "unmapped": {}
+    },
+    "motion-sense": {
+      "map": {
+        "sit": "stationary",
+        "std": "stationary",
+        "wlk": "walking",
+        "dws": "walking",
+        "ups": "walking",
+        "jog": "run_jump"
+      },
+      "unmapped": {}
+    },
+    "pamap2-protocol": {
+      "map": {
+        "1 lying": "stationary",
+        "2 sitting": "stationary",
+        "3 standing": "stationary",
+        "16 vacuum cleaning": "holding",
+        "17 ironing": "holding",
+        "4 walking": "walking",
+        "7 Nordic walking": "walking",
+        "12 ascending stairs": "walking",
+        "13 descending stairs": "walking",
+        "5 running": "run_jump"
+      },
+      "unmapped": {
+        "0 transient": "剔除",
+        "6 cycling": "手部IMU不可见，剔除",
+        "24 可选活动(足球等)": "未对应玩具类",
+        "9/10/11/18/19/20": "Protocol 未出现"
+      }
+    }
+  }
+}
