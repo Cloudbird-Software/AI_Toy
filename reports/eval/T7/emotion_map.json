@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "task": "W2-T7 情绪引擎双通道（issue #130）",
+    "date": "2026-09-02",
+    "t7_label_set_source": "AI_Toy/packages/go/emotion/emotion.go DefaultConfig LabelTable（V×A 3×3 标签带，9 类，只读参考）",
+    "t7_labels": ["sad", "scared", "angry", "sleepy", "calm", "surprised", "content", "happy", "excited"],
+    "sensevoice4_labels": ["HAPPY", "SAD", "ANGRY", "NEUTRAL"],
+    "notes": [
+      "sleepy 在 GoEmotions 27 类中无来源类（Reddit 语料无'困倦'细粒度标注）：文本通道不覆盖 sleepy，由状态机上下文（时间/交互史）与语音通道低唤醒特征兜底——已写入 EVAL_REPORT 通道边界。",
+      "SenseVoice emo 查询位词表实际保留 25005 FEARFUL/25006 DISGUSTED/25007 SURPRISED/25008 OTHER，但发布权重训练只出 4+1 类（HAPPY/SAD/ANGRY/NEUTRAL/EMO_UNKNOWN）；FEARFUL/DISGUSTED 仅作 CREMA-D DIS/FEA runner-up 落点分析，不作生产输出。"
+    ]
+  },
+  "goemotions27_to_t7": {
+    "_order_note": "GoEmotions 官方标签表按字母序，索引 0-26 为 27 情绪类，27=neutral（simplified 分片实测索引一致）",
+    "admiration":  {"t7": "content",   "V": "+", "A": "mid",  "rationale": "对他人肯定性正评价，唤醒中低，满足向", "alternates": ["happy"]},
+    "amusement":   {"t7": "happy",     "V": "+", "A": "mid",  "rationale": "被逗乐，正性中唤醒", "alternates": ["excited"]},
+    "anger":       {"t7": "angry",     "V": "-", "A": "high", "rationale": "同型映射", "alternates": []},
+    "annoyance":   {"t7": "angry",     "V": "-", "A": "mid",  "rationale": "低强度愤怒，负性他责族", "alternates": []},
+    "approval":    {"t7": "content",   "V": "+", "A": "low",  "rationale": "认可/满意，低唤醒正性", "alternates": ["happy"]},
+    "caring":      {"t7": "content",   "V": "+", "A": "low",  "rationale": "关爱温和正性低唤醒", "alternates": ["happy"]},
+    "confusion":   {"t7": "surprised", "V": "±", "A": "mid",  "rationale": "认知失衡，最接近低强度惊讶；非情绪核心类，映射保守", "alternates": ["calm"]},
+    "curiosity":   {"t7": "happy",     "V": "+", "A": "mid",  "rationale": "探究兴趣，温和正性参与", "alternates": ["content"]},
+    "desire":      {"t7": "excited",   "V": "+", "A": "high", "rationale": "渴望=高唤醒期待正性", "alternates": ["happy"]},
+    "disappointment": {"t7": "sad",    "V": "-", "A": "low",  "rationale": "预期落空，负性低唤醒", "alternates": []},
+    "disapproval": {"t7": "angry",     "V": "-", "A": "mid",  "rationale": "他责性负评价，愤怒族", "alternates": ["sad"]},
+    "disgust":     {"t7": "angry",     "V": "-", "A": "high", "rationale": "负性高唤醒他向情绪，粗粒度并入愤怒（同 CREMA-D DIS 落点分析一致）", "alternates": ["sad"]},
+    "embarrassment": {"t7": "sad",     "V": "-", "A": "mid",  "rationale": "负性自我意识情绪", "alternates": ["surprised"]},
+    "excitement":  {"t7": "excited",   "V": "+", "A": "high", "rationale": "同型映射", "alternates": ["happy"]},
+    "fear":        {"t7": "scared",    "V": "-", "A": "high", "rationale": "同型映射", "alternates": []},
+    "gratitude":   {"t7": "content",   "V": "+", "A": "low",  "rationale": "被助后温和满足", "alternates": ["happy"]},
+    "grief":       {"t7": "sad",       "V": "-", "A": "low",  "rationale": "重度悲伤", "alternates": []},
+    "joy":         {"t7": "happy",     "V": "+", "A": "mid",  "rationale": "同型映射", "alternates": ["excited"]},
+    "love":        {"t7": "happy",     "V": "+", "A": "mid",  "rationale": "亲密正性", "alternates": ["content"]},
+    "nervousness": {"t7": "scared",    "V": "-", "A": "high", "rationale": "恐惧族低强度", "alternates": []},
+    "optimism":    {"t7": "happy",     "V": "+", "A": "mid",  "rationale": "期待正性", "alternates": ["content"]},
+    "pride":       {"t7": "happy",     "V": "+", "A": "mid",  "rationale": "正性自我评价，中唤醒", "alternates": ["content"]},
+    "realization": {"t7": "surprised", "V": "±", "A": "mid",  "rationale": "顿悟=突发认知更新，惊讶族", "alternates": ["calm"]},
+    "relief":      {"t7": "content",   "V": "+", "A": "low",  "rationale": "负性解除后低唤醒正性", "alternates": ["calm"]},
+    "remorse":     {"t7": "sad",       "V": "-", "A": "low",  "rationale": "自责负性低唤醒", "alternates": []},
+    "sadness":     {"t7": "sad",       "V": "-", "A": "low",  "rationale": "同型映射", "alternates": []},
+    "surprise":    {"t7": "surprised", "V": "±", "A": "high", "rationale": "同型映射", "alternates": []},
+    "neutral":     {"t7": "calm",      "V": "0", "A": "low",  "rationale": "中性→平静带", "alternates": []}
+  },
+  "goemotions_multi_label_priority": ["scared", "angry", "sad", "surprised", "excited", "happy", "content", "calm"],
+  "goemotions_priority_rationale": "多标签样本归一化 tie-break：儿童陪伴场景要求漏报负性情绪代价高于误报，负性族优先；GoEmotions 标签集为无序去重集合，不存在可靠'主标签'顺序",
+  "cremad_to_sensevoice4": {
+    "ANG": "ANGRY",
+    "HAP": "HAPPY",
+    "SAD": "SAD",
+    "NEU": "NEUTRAL",
+    "DIS": null,
+    "FEA": null,
+    "_note": "主评测口径=4 类（NEU/HAP/SAD/ANG）仅在映射非空的 5349 条上计算；DIS(1271)/FEA(1271) 无发布权重对应类，单独报 raw/forced 落点与 FEARFUL/DISGUSTED runner-up 分析"
+  },
+  "jl_corpus_to_sensevoice4": {
+    "happy": "HAPPY",
+    "excited": "HAPPY",
+    "sad": "SAD",
+    "apologetic": "SAD",
+    "angry": "ANGRY",
+    "neutral": "NEUTRAL",
+    "_excluded": "anxious/assertive/concerned/encouraging 无四类稳定归属，不进训练评测",
+    "_note": "excited→HAPPY、apologetic→SAD 为唤醒向粗粒度合并，ADR 留痕"
+  },
+  "sensevoice4_to_t7": {
+    "HAPPY": "happy",
+    "SAD": "sad",
+    "ANGRY": "angry",
+    "NEUTRAL": "calm",
+    "EMO_UNKNOWN": "calm",
+    "_note": "EMO_UNKNOWN（raw 口径）生产语义=无情绪信号→回退 calm 带，交由状态机融合；不能映射为中性标签以外的强标签"
+  }
+}

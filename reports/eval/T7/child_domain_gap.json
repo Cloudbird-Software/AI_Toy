@@ -1,0 +1,491 @@
+{
+  "t5_sv": {
+    "child": {
+      "n": 198,
+      "forced_dist": {
+        "HAPPY": 189,
+        "NEUTRAL": 9
+      },
+      "strong_emotion_rate": {
+        "rate": 0.9545454545454546,
+        "ci95": [
+          0.9242424242424242,
+          0.9797979797979798
+        ],
+        "n": 198
+      },
+      "emo_unknown_rate": 0.0
+    },
+    "adult": {
+      "n": 220,
+      "forced_dist": {
+        "ANGRY": 16,
+        "HAPPY": 94,
+        "NEUTRAL": 110
+      },
+      "strong_emotion_rate": {
+        "rate": 0.5,
+        "ci95": [
+          0.43636363636363634,
+          0.5681818181818182
+        ],
+        "n": 220
+      },
+      "emo_unknown_rate": 0.0
+    },
+    "elder": {
+      "n": 154,
+      "forced_dist": {
+        "HAPPY": 3,
+        "NEUTRAL": 37,
+        "SAD": 114
+      },
+      "strong_emotion_rate": {
+        "rate": 0.7532467532467533,
+        "ci95": [
+          0.6818181818181818,
+          0.8181818181818182
+        ],
+        "n": 154
+      },
+      "emo_unknown_rate": 0.0
+    },
+    "common5_template_paired": {
+      "note": "昵称归一为<NAME>后按模板配对（非精确同文）；bootstrap 组级重采样",
+      "n_templates_shared": 1,
+      "n_child_clips": 18,
+      "n_adult_clips": 20,
+      "strong_rate_child": {
+        "rate": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ]
+      },
+      "strong_rate_adult": {
+        "rate": 0.95,
+        "ci95": [
+          0.85,
+          1.0
+        ]
+      },
+      "delta_child_minus_adult": {
+        "point": 0.05157999999999996,
+        "ci95": [
+          0.0,
+          0.15000000000000002
+        ]
+      },
+      "per_template_dist": {
+        "大家好，我叫<NAME>，很高兴认识你们。": {
+          "child_forced": {
+            "HAPPY": 18
+          },
+          "adult_forced": {
+            "ANGRY": 1,
+            "HAPPY": 18,
+            "NEUTRAL": 1
+          }
+        }
+      }
+    }
+  },
+  "t4_kws": {
+    "fairness_child": {
+      "n": 1440,
+      "forced_dist": {
+        "ANGRY": 125,
+        "HAPPY": 1088,
+        "NEUTRAL": 168,
+        "SAD": 59
+      },
+      "strong_emotion_rate": {
+        "rate": 0.8694444444444445,
+        "ci95": [
+          0.8520659722222222,
+          0.8868055555555555
+        ],
+        "n": 1440
+      },
+      "emo_unknown_rate": 0.02013888888888889,
+      "augs": {
+        "child4st": 720,
+        "child6st": 720
+      },
+      "by_style": {
+        "calm": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 15,
+            "HAPPY": 194,
+            "NEUTRAL": 31
+          }
+        },
+        "excited": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 23,
+            "HAPPY": 211,
+            "NEUTRAL": 6
+          }
+        },
+        "playful": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 9,
+            "HAPPY": 218,
+            "NEUTRAL": 13
+          }
+        },
+        "shout": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 61,
+            "HAPPY": 173,
+            "NEUTRAL": 6
+          }
+        },
+        "sleepy": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 1,
+            "HAPPY": 119,
+            "NEUTRAL": 69,
+            "SAD": 51
+          }
+        },
+        "whiny": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 16,
+            "HAPPY": 173,
+            "NEUTRAL": 43,
+            "SAD": 8
+          }
+        }
+      }
+    },
+    "fairness_adult": {
+      "n": 1440,
+      "forced_dist": {
+        "ANGRY": 92,
+        "HAPPY": 345,
+        "NEUTRAL": 851,
+        "SAD": 152
+      },
+      "strong_emotion_rate": {
+        "rate": 0.3888888888888889,
+        "ci95": [
+          0.3638888888888889,
+          0.41388888888888886
+        ],
+        "n": 1440
+      },
+      "emo_unknown_rate": 0.034722222222222224,
+      "augs": {
+        "adult3st": 720,
+        "adultflat": 720
+      },
+      "by_style": {
+        "calm": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 6,
+            "HAPPY": 40,
+            "NEUTRAL": 193,
+            "SAD": 1
+          }
+        },
+        "excited": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 11,
+            "HAPPY": 114,
+            "NEUTRAL": 115
+          }
+        },
+        "playful": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 7,
+            "HAPPY": 96,
+            "NEUTRAL": 136,
+            "SAD": 1
+          }
+        },
+        "shout": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 56,
+            "HAPPY": 72,
+            "NEUTRAL": 112
+          }
+        },
+        "sleepy": {
+          "n": 240,
+          "forced_dist": {
+            "HAPPY": 1,
+            "NEUTRAL": 139,
+            "SAD": 100
+          }
+        },
+        "whiny": {
+          "n": 240,
+          "forced_dist": {
+            "ANGRY": 12,
+            "HAPPY": 22,
+            "NEUTRAL": 156,
+            "SAD": 50
+          }
+        }
+      }
+    },
+    "delta_child_minus_adult": {
+      "point": 0.48055555555555557,
+      "ci95": [
+        0.4493055555555556,
+        0.5118055555555555
+      ]
+    },
+    "delta_by_style": {
+      "calm": {
+        "child_rate": 0.8625,
+        "adult_rate": 0.18333333333333332,
+        "delta_ci95": [
+          0.6125,
+          0.7458333333333333
+        ]
+      },
+      "excited": {
+        "child_rate": 0.9375,
+        "adult_rate": 0.49166666666666664,
+        "delta_ci95": [
+          0.375,
+          0.5166666666666666
+        ]
+      },
+      "playful": {
+        "child_rate": 0.9375,
+        "adult_rate": 0.42916666666666664,
+        "delta_ci95": [
+          0.43750000000000006,
+          0.5791666666666666
+        ]
+      },
+      "shout": {
+        "child_rate": 0.9583333333333334,
+        "adult_rate": 0.49166666666666664,
+        "delta_ci95": [
+          0.4,
+          0.5333333333333334
+        ]
+      },
+      "sleepy": {
+        "child_rate": 0.7083333333333334,
+        "adult_rate": 0.42083333333333334,
+        "delta_ci95": [
+          0.2,
+          0.37083333333333335
+        ]
+      },
+      "whiny": {
+        "child_rate": 0.8125,
+        "adult_rate": 0.31666666666666665,
+        "delta_ci95": [
+          0.4166666666666667,
+          0.5708333333333333
+        ]
+      }
+    }
+  },
+  "t7_audio": {
+    "n": 1200,
+    "pairing_note": "aug 配对键=(emo,text) 精确同文；instruction_v2 全配对，pitch±2st 部分配对",
+    "per_intended_forced_dist": {
+      "anger": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 79,
+          "HAPPY": 31,
+          "NEUTRAL": 7,
+          "SAD": 3
+        }
+      },
+      "calm": {
+        "n": 120,
+        "forced_dist": {
+          "HAPPY": 8,
+          "NEUTRAL": 92,
+          "SAD": 20
+        }
+      },
+      "disgust": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 11,
+          "HAPPY": 43,
+          "NEUTRAL": 30,
+          "SAD": 36
+        }
+      },
+      "excitement": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 6,
+          "HAPPY": 99,
+          "NEUTRAL": 14,
+          "SAD": 1
+        }
+      },
+      "fear": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 4,
+          "HAPPY": 26,
+          "NEUTRAL": 59,
+          "SAD": 31
+        }
+      },
+      "frustration": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 6,
+          "HAPPY": 8,
+          "NEUTRAL": 13,
+          "SAD": 93
+        }
+      },
+      "joy": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 2,
+          "HAPPY": 110,
+          "NEUTRAL": 4,
+          "SAD": 4
+        }
+      },
+      "loneliness": {
+        "n": 120,
+        "forced_dist": {
+          "NEUTRAL": 53,
+          "SAD": 67
+        }
+      },
+      "sadness": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 2,
+          "NEUTRAL": 27,
+          "SAD": 91
+        }
+      },
+      "surprise": {
+        "n": 120,
+        "forced_dist": {
+          "ANGRY": 12,
+          "HAPPY": 59,
+          "NEUTRAL": 40,
+          "SAD": 9
+        }
+      }
+    },
+    "by_aug": {
+      "instruction_v2": {
+        "n": 300,
+        "forced_dist": {
+          "ANGRY": 31,
+          "HAPPY": 108,
+          "NEUTRAL": 67,
+          "SAD": 94
+        },
+        "emo_unknown_rate": 0.0
+      },
+      "none": {
+        "n": 300,
+        "forced_dist": {
+          "ANGRY": 27,
+          "HAPPY": 106,
+          "NEUTRAL": 81,
+          "SAD": 86
+        },
+        "emo_unknown_rate": 0.0
+      },
+      "pitch+2st": {
+        "n": 300,
+        "forced_dist": {
+          "ANGRY": 40,
+          "HAPPY": 87,
+          "NEUTRAL": 103,
+          "SAD": 70
+        },
+        "emo_unknown_rate": 0.0
+      },
+      "pitch-2st": {
+        "n": 300,
+        "forced_dist": {
+          "ANGRY": 24,
+          "HAPPY": 83,
+          "NEUTRAL": 88,
+          "SAD": 105
+        },
+        "emo_unknown_rate": 0.006666666666666667
+      }
+    },
+    "aug_paired_shift": {
+      "instruction_v2": {
+        "n_pairs": 300,
+        "dHAPPY": [
+          0.007106,
+          -0.03999999999999998,
+          0.053333333333333344
+        ],
+        "dSAD": [
+          0.026404666666666663,
+          -0.020000000000000018,
+          0.07333333333333336
+        ],
+        "dANGRY": [
+          0.013584,
+          -0.016666666666666677,
+          0.04666666666666666
+        ]
+      },
+      "pitch+2st": {
+        "n_pairs": 300,
+        "dHAPPY": [
+          -0.03649533333333333,
+          -0.0733333333333333,
+          0.0
+        ],
+        "dSAD": [
+          -0.04665799999999999,
+          -0.08333333333333334,
+          -0.013333333333333308
+        ],
+        "dANGRY": [
+          0.033223333333333334,
+          0.006666666666666668,
+          0.06
+        ]
+      },
+      "pitch-2st": {
+        "n_pairs": 300,
+        "dHAPPY": [
+          -0.10328866666666668,
+          -0.15000000000000002,
+          -0.05666666666666664
+        ],
+        "dSAD": [
+          0.057019999999999994,
+          0.016666666666666663,
+          0.1
+        ],
+        "dANGRY": [
+          3.333333333333326e-05,
+          -0.026666666666666672,
+          0.026666666666666672
+        ]
+      }
+    }
+  }
+}

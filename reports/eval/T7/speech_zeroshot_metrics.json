@@ -1,0 +1,327 @@
+{
+  "n_4class": 4900,
+  "n_dis_fea": 2542,
+  "raw": {
+    "per_class_recall_bootstrap": {
+      "NEUTRAL": {
+        "n": 1087,
+        "recall": 0.062557497700092,
+        "ci95": [
+          0.04875804967801288,
+          0.07727690892364306
+        ]
+      },
+      "HAPPY": {
+        "n": 1271,
+        "recall": 0.003147128245476003,
+        "ci95": [
+          0.0007867820613690008,
+          0.006294256490952006
+        ]
+      },
+      "SAD": {
+        "n": 1271,
+        "recall": 0.1880409126671912,
+        "ci95": [
+          0.16601101494885917,
+          0.21007081038552322
+        ]
+      },
+      "ANGRY": {
+        "n": 1271,
+        "recall": 0.01809598741148702,
+        "ci95": [
+          0.011014948859166011,
+          0.025963808025177025
+        ]
+      }
+    },
+    "macro": {
+      "macro_recall": 0.06796038150606154,
+      "ci95": [
+        0.060862516999083786,
+        0.07462067902733381
+      ]
+    },
+    "pred_dist": {
+      "ANGRY": 23,
+      "DISGUSTED": 1,
+      "EMO_UNKNOWN": 4531,
+      "HAPPY": 4,
+      "NEUTRAL": 75,
+      "SAD": 266
+    }
+  },
+  "forced": {
+    "per_class_recall_bootstrap": {
+      "NEUTRAL": {
+        "n": 1087,
+        "recall": 0.7424103035878565,
+        "ci95": [
+          0.7157313707451702,
+          0.7672493100275989
+        ]
+      },
+      "HAPPY": {
+        "n": 1271,
+        "recall": 0.5452399685287176,
+        "ci95": [
+          0.5184893784421715,
+          0.5719905586152636
+        ]
+      },
+      "SAD": {
+        "n": 1271,
+        "recall": 0.9071597167584579,
+        "ci95": [
+          0.8906372934697089,
+          0.9228953579858379
+        ]
+      },
+      "ANGRY": {
+        "n": 1271,
+        "recall": 0.7576711250983478,
+        "ci95": [
+          0.7340676632572777,
+          0.7812745869394178
+        ]
+      }
+    },
+    "macro": {
+      "macro_recall": 0.7381202784933449,
+      "ci95": [
+        0.7256586588590606,
+        0.7497398763518898
+      ]
+    },
+    "confusion": {
+      "classes": [
+        "NEUTRAL",
+        "HAPPY",
+        "SAD",
+        "ANGRY"
+      ],
+      "matrix": [
+        [
+          807,
+          3,
+          273,
+          4
+        ],
+        [
+          296,
+          693,
+          149,
+          133
+        ],
+        [
+          109,
+          9,
+          1153,
+          0
+        ],
+        [
+          183,
+          71,
+          54,
+          963
+        ]
+      ]
+    }
+  },
+  "dis_fea_landing": {
+    "DISGUST_forced_dist": {
+      "ANGRY": 138,
+      "HAPPY": 115,
+      "NEUTRAL": 221,
+      "SAD": 797
+    },
+    "FEAR_forced_dist": {
+      "ANGRY": 153,
+      "HAPPY": 171,
+      "NEUTRAL": 143,
+      "SAD": 804
+    },
+    "runner_up": {
+      "fearful_rank_mean": 4.674272226593233,
+      "disgusted_rank_mean": 3.7238394964594805,
+      "surprised_rank_mean": 5.850118017309206,
+      "top1_nonunk_by_gold": {
+        "DISGUST": {
+          "angry": 84,
+          "disgusted": 303,
+          "fearful": 3,
+          "happy": 50,
+          "neutral": 174,
+          "sad": 647,
+          "surprised": 10
+        },
+        "FEAR": {
+          "angry": 126,
+          "disgusted": 20,
+          "fearful": 104,
+          "happy": 117,
+          "neutral": 130,
+          "sad": 749,
+          "surprised": 25
+        }
+      }
+    }
+  },
+  "tau_gate_curve": {
+    "0.0": {
+      "per_class_recall": {
+        "NEUTRAL": {
+          "recall": 0.062557497700092,
+          "n": 1087
+        },
+        "HAPPY": {
+          "recall": 0.003147128245476003,
+          "n": 1271
+        },
+        "SAD": {
+          "recall": 0.1880409126671912,
+          "n": 1271
+        },
+        "ANGRY": {
+          "recall": 0.01809598741148702,
+          "n": 1271
+        }
+      },
+      "macro_recall": 0.06796038150606154,
+      "gated_to_unknown_rate": 0.9248979591836735
+    },
+    "0.5": {
+      "per_class_recall": {
+        "NEUTRAL": {
+          "recall": 0.015639374425023,
+          "n": 1087
+        },
+        "HAPPY": {
+          "recall": 0.0015735641227380016,
+          "n": 1271
+        },
+        "SAD": {
+          "recall": 0.03619197482297404,
+          "n": 1271
+        },
+        "ANGRY": {
+          "recall": 0.0,
+          "n": 1271
+        }
+      },
+      "macro_recall": 0.01335122834268376,
+      "gated_to_unknown_rate": 0.9861224489795918
+    },
+    "1.0": {
+      "per_class_recall": {
+        "NEUTRAL": {
+          "recall": 0.0009199632014719411,
+          "n": 1087
+        },
+        "HAPPY": {
+          "recall": 0.0007867820613690008,
+          "n": 1271
+        },
+        "SAD": {
+          "recall": 0.0007867820613690008,
+          "n": 1271
+        },
+        "ANGRY": {
+          "recall": 0.0,
+          "n": 1271
+        }
+      },
+      "macro_recall": 0.0006233818310524856,
+      "gated_to_unknown_rate": 0.9993877551020408
+    },
+    "1.5": {
+      "per_class_recall": {
+        "NEUTRAL": {
+          "recall": 0.0009199632014719411,
+          "n": 1087
+        },
+        "HAPPY": {
+          "recall": 0.0007867820613690008,
+          "n": 1271
+        },
+        "SAD": {
+          "recall": 0.0,
+          "n": 1271
+        },
+        "ANGRY": {
+          "recall": 0.0,
+          "n": 1271
+        }
+      },
+      "macro_recall": 0.0004266863157102355,
+      "gated_to_unknown_rate": 0.9995918367346939
+    },
+    "2.0": {
+      "per_class_recall": {
+        "NEUTRAL": {
+          "recall": 0.0,
+          "n": 1087
+        },
+        "HAPPY": {
+          "recall": 0.0007867820613690008,
+          "n": 1271
+        },
+        "SAD": {
+          "recall": 0.0,
+          "n": 1271
+        },
+        "ANGRY": {
+          "recall": 0.0,
+          "n": 1271
+        }
+      },
+      "macro_recall": 0.0001966955153422502,
+      "gated_to_unknown_rate": 0.9997959183673469
+    },
+    "3.0": {
+      "per_class_recall": {
+        "NEUTRAL": {
+          "recall": 0.0,
+          "n": 1087
+        },
+        "HAPPY": {
+          "recall": 0.0,
+          "n": 1271
+        },
+        "SAD": {
+          "recall": 0.0,
+          "n": 1271
+        },
+        "ANGRY": {
+          "recall": 0.0,
+          "n": 1271
+        }
+      },
+      "macro_recall": 0.0,
+      "gated_to_unknown_rate": 1.0
+    },
+    "4.0": {
+      "per_class_recall": {
+        "NEUTRAL": {
+          "recall": 0.0,
+          "n": 1087
+        },
+        "HAPPY": {
+          "recall": 0.0,
+          "n": 1271
+        },
+        "SAD": {
+          "recall": 0.0,
+          "n": 1271
+        },
+        "ANGRY": {
+          "recall": 0.0,
+          "n": 1271
+        }
+      },
+      "macro_recall": 0.0,
+      "gated_to_unknown_rate": 1.0
+    }
+  }
+}

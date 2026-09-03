@@ -1,0 +1,274 @@
+{
+  "model": "TF-IDF(word1-2 + char_wb3-5) + LogisticRegression(C=0.5, class_weight=balanced)",
+  "n_train": 43410,
+  "n_val": 5426,
+  "n_test": 5427,
+  "per_class_recall_bootstrap": {
+    "sad": {
+      "n": 345,
+      "recall": 0.5565217391304348,
+      "ci95": [
+        0.5043478260869565,
+        0.6086956521739131
+      ]
+    },
+    "scared": {
+      "n": 98,
+      "recall": 0.7551020408163265,
+      "ci95": [
+        0.6632653061224489,
+        0.8367346938775511
+      ]
+    },
+    "angry": {
+      "n": 819,
+      "recall": 0.5665445665445665,
+      "ci95": [
+        0.5323260073260073,
+        0.6007326007326007
+      ]
+    },
+    "sleepy": {
+      "n": 0,
+      "recall": null,
+      "ci95": null
+    },
+    "calm": {
+      "n": 1606,
+      "recall": 0.5610211706102117,
+      "ci95": [
+        0.5373443337484434,
+        0.5853051058530511
+      ]
+    },
+    "surprised": {
+      "n": 394,
+      "recall": 0.5101522842639594,
+      "ci95": [
+        0.4619289340101523,
+        0.5609137055837563
+      ]
+    },
+    "content": {
+      "n": 1042,
+      "recall": 0.5844529750479847,
+      "ci95": [
+        0.5547024952015355,
+        0.6151631477927063
+      ]
+    },
+    "happy": {
+      "n": 952,
+      "recall": 0.5651260504201681,
+      "ci95": [
+        0.5336134453781513,
+        0.5955882352941176
+      ]
+    },
+    "excited": {
+      "n": 171,
+      "recall": 0.49707602339181284,
+      "ci95": [
+        0.42105263157894735,
+        0.5730994152046783
+      ]
+    }
+  },
+  "macro": {
+    "macro_recall": 0.5744996062781831,
+    "ci95": [
+      0.5558177049186148,
+      0.5931054639578593
+    ],
+    "classes_in_macro": [
+      "sad",
+      "scared",
+      "angry",
+      "calm",
+      "surprised",
+      "content",
+      "happy",
+      "excited"
+    ]
+  },
+  "cohen_kappa": 0.47102138733292664,
+  "confusion_matrix": {
+    "classes": [
+      "angry",
+      "calm",
+      "content",
+      "excited",
+      "happy",
+      "sad",
+      "scared",
+      "surprised"
+    ],
+    "matrix": [
+      [
+        464,
+        157,
+        33,
+        16,
+        40,
+        50,
+        14,
+        45
+      ],
+      [
+        213,
+        901,
+        113,
+        49,
+        67,
+        81,
+        20,
+        162
+      ],
+      [
+        74,
+        161,
+        609,
+        47,
+        63,
+        30,
+        10,
+        48
+      ],
+      [
+        10,
+        27,
+        11,
+        85,
+        20,
+        4,
+        2,
+        12
+      ],
+      [
+        38,
+        127,
+        80,
+        58,
+        538,
+        20,
+        8,
+        83
+      ],
+      [
+        32,
+        48,
+        16,
+        11,
+        9,
+        192,
+        9,
+        28
+      ],
+      [
+        6,
+        7,
+        3,
+        1,
+        0,
+        7,
+        74,
+        0
+      ],
+      [
+        27,
+        78,
+        28,
+        15,
+        23,
+        19,
+        3,
+        201
+      ]
+    ]
+  },
+  "majority_baseline": {
+    "majority_class": "calm",
+    "per_class_recall": {
+      "sad": 0.1391304347826087,
+      "scared": 0.07142857142857142,
+      "angry": 0.1916971916971917,
+      "calm": 0.5610211706102117,
+      "surprised": 0.19796954314720813,
+      "content": 0.15451055662188098,
+      "happy": 0.1334033613445378,
+      "excited": 0.15789473684210525
+    }
+  },
+  "mapping_stats": {
+    "per_source_class": {
+      "neutral": 14219,
+      "admiration": 4130,
+      "approval": 2939,
+      "gratitude": 2662,
+      "annoyance": 2470,
+      "amusement": 2328,
+      "curiosity": 2191,
+      "love": 2086,
+      "disapproval": 2022,
+      "optimism": 1581,
+      "anger": 1567,
+      "joy": 1452,
+      "confusion": 1368,
+      "sadness": 1326,
+      "disappointment": 1269,
+      "realization": 1110,
+      "caring": 1087,
+      "surprise": 1060,
+      "excitement": 853,
+      "disgust": 793,
+      "desire": 641,
+      "fear": 596,
+      "remorse": 545,
+      "embarrassment": 303,
+      "nervousness": 164,
+      "relief": 153,
+      "pride": 111,
+      "grief": 77
+    },
+    "target_dist": {
+      "train": {
+        "sad": 2931,
+        "scared": 726,
+        "angry": 6182,
+        "sleepy": 0,
+        "calm": 12823,
+        "surprised": 3193,
+        "content": 8135,
+        "happy": 8069,
+        "excited": 1351
+      },
+      "validation": {
+        "sad": 345,
+        "scared": 105,
+        "angry": 791,
+        "sleepy": 0,
+        "calm": 1592,
+        "surprised": 362,
+        "content": 1074,
+        "happy": 997,
+        "excited": 160
+      },
+      "test": {
+        "sad": 345,
+        "scared": 98,
+        "angry": 819,
+        "sleepy": 0,
+        "calm": 1606,
+        "surprised": 394,
+        "content": 1042,
+        "happy": 952,
+        "excited": 171
+      }
+    },
+    "ambiguous_multiclass_frac": {
+      "train": 0.12220686477770099,
+      "validation": 0.1172134168816808,
+      "test": 0.11479638842822923
+    }
+  }
+}
