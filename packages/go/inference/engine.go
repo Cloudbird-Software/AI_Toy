@@ -1,6 +1,6 @@
 package inference
 
-// VADEngine 语音活动检测接口（后续 sherpa-onnx Silero VAD 实现）。
+// VADEngine 语音活动检测接口（Silero VAD 真推理实现见 vad.go；M1 桩保留作 fallback）。
 type VADEngine interface {
 	// PushFrame 推送音频帧，返回 VAD 事件（nil=无事件）。
 	PushFrame(data []byte) VADEvent
@@ -21,7 +21,7 @@ const (
 	VADVoiceEnd
 )
 
-// ASREngine 自动语音识别接口（后续 sherpa-onnx FireRedASR2 实现）。
+// ASREngine 自动语音识别接口（FireRedASR2 真推理实现见 asr.go；M1 桩保留作 fallback）。
 type ASREngine interface {
 	// Recognize 识别音频流文本（stream 为完整音频字节）。
 	Recognize(stream []byte) (string, error)
