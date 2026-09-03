@@ -9,3 +9,25 @@
 5. **档间音色一致性（T13-G1-02 占位门禁）**：端（MeloTTS ZH）与云（IndexTTS 官方音色）是两个模型的音色，天然有差——选听感最近官方音色对 + T5 SV 嵌入反验标定后才可判定「无可感知变声」；标定前 G1-02 维持 debt verdict，不提交 reports/gates/T13.json。
 备选否决：CosyVoice 云档（Apache 2.0 合规，留作 IndexTTS 服务化受阻时的备选，接口不变）；端侧跑 IndexTTS（gpt.pth 1.1GB 超端侧档内存预算）；Go 侧内嵌 onnxruntime 绑定（新 cgo 依赖须 founder 批+CI 基建，M2 装配层再议——本包接口化不阻塞）；中文前端移植完整 pypinyin+jieba+tone sandhi（jieba 词表/sandhi 规则量大且 licenses 面待理清，查表法先闭环端到端路径，局限显式声明：多音字取最常用读、无变调、英文 UNK、数字逐位读）。
 后果：T13 具备真实端云双档引擎接入面与确定性合成路径；债务显式入表——① onnxruntime Go 绑定（装配层，M2+founder 批）；② JaBert 韵律特征供给（恒零=韵律降质可听）；③ 中文前端 sandhi/多音字/位级数字；④ 云端服务端部署与 wire 契约实服验证；⑤ 流式导出（当前整段出，首包=全段推理时长，T13-G1-01 端侧≤150ms 需流式/分句达成）；⑥ T13-G1-02 端云音色 SV 标定。L4 合成自然度评审经 tools/judge（锁定模型+pairwise+swap），κ≥0.61 前不自动化。
+
+## 增补（M2 装配层落地，issue #133，2026-09-03）
+
+债务①清偿：新增 `packages/go/tts/meloort`（镜像 T3 `turntaking/vap` 模式——核心包
+tts 保持零外部依赖，装配子包实现 `tts.MeloSession` 并以编译期断言锁定接口；绑定
+yalue/onnxruntime_go + libonnxruntime 1.29.0，进程内全局初始化一次，intra_op=2 与
+T3/T14 口径一致）。与 vap 一处差异：meloort 直接 import tts（MeloIO 是 5 张量+4
+标量的富契约，镜像必漂移；依赖箭头由装配层指向核心，核心零依赖不变——vap 的
+零 import 是为平凡类型镜像，此处不适用）。导出契约校验前置于进 ORT（z_noise 8T
+预留等，错误形状显式拒绝）。
+
+附带修正两处 M1 前端与上游结构差（对拍暴露，`melophone.go`）：① 补
+chinese_mix.g2p 的 `["_"]+phones+["_"]` 首尾边界符（token 数恢复同构 37/55/65）；
+② intersperse pad 位 lang_ids 0（M1 误填 3）。修正后符号面与 Python 逐位一致
+（1.000），声调分歧 92.7–94.6% 一致率全落债务③变调类，维持不动。
+
+证据：会话对拍 Go ORT vs Python ORT 同输入 SNR 95–105dB r=1.0、样本数逐一相等
+（reports/eval/T13/README.md §8）；Go 全链 RTF 三档×10 P50=0.791 / P95=0.893
+（30/30<1，intra_op=2+nice19 开发机口径）——首包预算缺口 3.7×~25× 如实报
+（整段出语义，缺口消解=债务⑤流式/分句，装配层不可解）；RTF≤0.5 门禁线仍归
+T13-G1-01 真机口径（debt 维持）。fixtures 经生成脚本入库（前端张量+噪声+参考
+波形 ≈1.9MB，模型权重不入 git 红线不变）。债务②（JaBert 供给）仍开放。

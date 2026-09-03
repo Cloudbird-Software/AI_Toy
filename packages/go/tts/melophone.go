@@ -106,16 +106,29 @@ func (p *ChinesePhonemizer) Phonemize(text string) (MeloPhonemes, error) {
 	if len(tokens) == 0 {
 		return MeloPhonemes{}, nil
 	}
-	// add_blank：pad 包夹每音素（commons.intersperse 语义 [0,a,0,b,0]）
+	// 上游 chinese_mix.g2p 输出自带首尾边界符（phones=["_"]+phones+["_"]，
+	// tones/language 同步补 0/本语言），给模型起止静音；随后 add_blank。
 	n := len(tokens)
-	tk := make([]int64, 0, 2*n+1)
-	tn := make([]int64, 0, 2*n+1)
-	lg := make([]int64, 0, 2*n+1)
-	tk, tn, lg = append(tk, meloPadID), append(tn, 0), append(lg, meloLangIDZHMixEn)
-	for i := 0; i < n; i++ {
-		tk = append(tk, tokens[i], meloPadID)
-		tn = append(tn, tones[i], 0)
-		lg = append(lg, langs[i], meloLangIDZHMixEn)
+	tk0 := make([]int64, 0, n+2)
+	tn0 := make([]int64, 0, n+2)
+	lg0 := make([]int64, 0, n+2)
+	wrap := func(tk []int64, tn []int64, lg []int64) ([]int64, []int64, []int64) {
+		tk = append([]int64{meloPadID}, tk...)
+		tn = append([]int64{0}, tn...)
+		lg = append([]int64{meloLangIDZHMixEn}, lg...)
+		return append(tk, meloPadID), append(tn, 0), append(lg, meloLangIDZHMixEn)
+	}
+	tk0, tn0, lg0 = wrap(tokens, tones, langs)
+	// add_blank：pad 包夹每音素（commons.intersperse 语义 [0,a,0,b,0]——pad 位
+	// tokens/tones/langs 全为 0，与上游 intersperse 一致）。
+	tk := make([]int64, 0, 2*len(tk0)+1)
+	tn := make([]int64, 0, 2*len(tn0)+1)
+	lg := make([]int64, 0, 2*len(lg0)+1)
+	tk, tn, lg = append(tk, meloPadID), append(tn, 0), append(lg, 0)
+	for i := 0; i < len(tk0); i++ {
+		tk = append(tk, tk0[i], meloPadID)
+		tn = append(tn, tn0[i], 0)
+		lg = append(lg, lg0[i], 0)
 	}
 	return MeloPhonemes{Tokens: tk, Tones: tn, LangIDs: lg}, nil
 }

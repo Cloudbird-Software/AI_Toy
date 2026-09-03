@@ -20,3 +20,6 @@ datasets/manifests/tts_synth.json（synthgen 注册：500 常规+100 对抗句�
 
 ## 实现状态增补（W3-T13，issue #132 / ADR-0008，2026-09-03）
 真引擎接入（M1 桩之上，接口不变）：端侧=MeloSynthesizer（MeloTTS-Chinese ONNX 导出图，MeloSession/Phonemizer 注入；确定性噪声 seed+text+voice 派生；voice ID 参数化 ZH@rate=0.5..2.0，pitch 显式拒绝）；云端=IndexTTSClient（IndexTTS-1.5，POST→chunked PCM，wire 契约 ADR-0008）。中文前端=ChinesePhonemizer 查表法（gen_melo_phoneme_table.py 生成 26698 字表；多音字最常用读/无 sandhi/英文 UNK/数字逐位——局限显式非静默）。导出+对拍+RTF：tools/tts/export_melotts_onnx.py，报告 reports/eval/T13/（PyTorch vs ONNX SNR≥88dB r=1.0；ORT 字节级确定）。门禁状态不变：G0-01 真实 pass；G1-01/G1-03/G1-02 debt（真机 500 句计时/T5 SV 标定/听审面——本机 RTF 为桌面 CPU 参考值非门禁证据）。债务：onnxruntime Go 绑定（装配层，founder 批）、JaBert 韵律特征供给（恒零）、流式导出（整段出，首包=全段时长）、云服务端实服。
+
+## 实现状态增补（M2-T14-TTS，issue #133 / ADR-0008 增补，2026-09-03）
+债务①清偿：packages/go/tts/meloort 装配 melotts-zh.onnx 为 tts.MeloSession（yalue/onnxruntime_go + libonnxruntime 1.29.0，镜像 turntaking/vap 模式；tts 包本体保持零依赖；导出契约校验前置于进 ORT）。附带修正前端两处上游结构差：补 g2p 首尾边界符（token 数与 Python 同构）+ pad 位 lang_ids=0。证据（reports/eval/T13/README.md §8）：会话对拍同输入 SNR 95–105dB r=1.0 样本数逐一相等；符号一致率 1.000（声调分歧全落债务③变调类，92.7–94.6% 一致率）；Go 全链 RTF 三档×10 P50=0.791/P95=0.893（30/30<1，intra_op=2+nice19 开发机口径）——首包预算缺口 3.7×~25× 如实报，消解路径=流式导出/分句缓存（债务⑤）。门禁状态不变：G1-01 真机口径 debt 维持；债务② JaBert 供给仍开放。
