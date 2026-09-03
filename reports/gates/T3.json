@@ -1,10 +1,10 @@
 {
   "asset": "T3",
-  "suite": "nightly",
+  "suite": "ci",
   "commit": "0b12a379bfe8955b16843bd32b75b545ad6a6925",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-09-02T15:45:54Z",
+  "timestamp": "2026-09-03T03:52:47Z",
   "results": [
     {
       "id": "T3-G1-01",
@@ -15,9 +15,9 @@
       "evidence_hours": 0,
       "upper95": 0,
       "threshold": 0.08,
-      "verdict": "debt",
+      "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -v -run ^TestT3G101MiscutRate$ ./packages/go/turntaking"
+      "evidence": "go test -count=1 -v -run ^TestT3G101MiscutRate$ ./packages/go/turntaking/vap"
     },
     {
       "id": "T3-G1-02",
@@ -28,9 +28,9 @@
       "evidence_hours": 0,
       "upper95": 0,
       "threshold": 900,
-      "verdict": "debt",
+      "verdict": "pass",
       "statistical_rule": "go_test_exit_code",
-      "evidence": "go test -count=1 -v -run ^TestT3G102ResponseFirstPacket$ ./packages/go/turntaking"
+      "evidence": "go test -count=1 -v -run ^TestT3G102ResponseFirstPacket$ ./packages/go/turntaking/vap"
     },
     {
       "id": "T3-G0-01",
@@ -87,13 +87,11 @@
   ],
   "summary": {
     "g0": "pass",
-    "g1": "debt",
+    "g1": "pass",
     "g2": "n/a",
     "fail_ids": [],
     "not_impl_ids": [],
     "debt_ids": [
-      "T3-G1-01",
-      "T3-G1-02",
       "T3-G1-03",
       "T3-G1-04",
       "T3-G0-02"

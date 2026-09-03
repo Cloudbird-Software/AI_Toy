@@ -1,0 +1,32 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T3 话轮预测（W3 接入 IR #129）：MaAI MC-VAP 中文 Kyoto 版（噪声鲁双，10hz/20s 上下文）
+# 融合流式 ONNX 导出（CPC encoder×2 + VAP GPT 主干 + 输出头，单文件 24.6MB，opset 17）。
+# 导出与对拍：reports/eval/T3/（Python ORT 对拍官方 Maai 流式参考 1.8e-5 <1e-3；
+# Go ORT golden 对拍 40 帧全绿；eager 2.4e-7）。上游权重不入仓（仅本融合导出物入 models/incoming）。
+#
+# license 台账（AGENTS.md：无 license 台账的新依赖=G0 红线）：
+# - 权重：maai-kyoto/vap_mc_ch_kyoto（HuggingFace）license=MIT，可商用；上游训练语料=
+#   Online Conversation Dataset（京都大学，arXiv:2506.21191），MaAI readme/vap_mc.md 中文
+#   ch_kyoto 节声明。注意：同仓 vap_ch（非 kyoto）为 CC-BY-NC-ND 4.0 不可商用，mono/
+#   mimi 系权重同属该仓——本条目仅用 kyoto 子仓权重。
+# - CPC encoder 权重：facebookresearch CPC_audio 架构（MIT），checkpoint 60k_epoch4-d0f474de
+#   （libri-light 60k 训练，LibriVox 有声书语料，CC-BY-4.0 口径；checkpoint 随 MaAI 管线分发）。
+#   仅训练/导出期依赖，端侧运行时不加载（已融合进 ONNX）。
+# - MaAI 源码（导出脚本 import）：Kyoto University MaAI Development Team，MIT。
+# - ONNX Runtime：C++ 库 MIT（本机 libonnxruntime.so.1.29.0，/usr/local/lib）；
+#   Go 绑定 github.com/yalue/onnxruntime_go v1.35.0 Apache-2.0（go.mod，T5/T14 后续复用同一栈）。
+# - 门禁 harness 测试音频：确定性公式合成（正弦突发，测试内生成，无外部素材/无人声）。
+- name: t3-vap-maai-ch-kyoto-mc
+  task: turntaking
+  license: MIT
+  sha256: "db5a1e8dadf0e8d4828b89639a7e1f03e74fd8ea574a2921d7d8debe66789292"
+  size: 24610358
+  fetch_url: https://hf-mirror.com/maai-kyoto/vap_mc_ch_kyoto/resolve/main/vap_mc_state_dict_ch_kyoto_10hz_20000msec.pt
+  tier_usage: L0-L3 全档（端侧话轮预测，CPU 实时 RTF≈0.10；与 T4 唤醒、T13 TTS 共用会话音频）
+  id: t3-vap-maai-ch-kyoto-mc
+  source: models/incoming/vap_maai_ch_kyoto_mc_10hz.onnx
+  dest: vap_maai_ch_kyoto_mc_10hz.onnx
