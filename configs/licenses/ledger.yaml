@@ -25,7 +25,7 @@ entries:
     name: Qwen3-0.6B GGUF Q4_K_M
     license: Apache-2.0
     source: models/qwen3-0.6b-gguf/Qwen_Qwen3-0.6B-Q4_K_M.gguf
-    usage: packages/go/inference (LLM stub, M2 换 sherpa-onnx/llama.cpp)
+    usage: packages/go/inference (LLM 真推理已接入——Qwen3 ChatML 非思考模板+贪心解码，ADR-0012)
     sha256: "9acfc1e001311f34b4252001b626f2e466d592a42065f66571bff3790d4e1b14"
 
   - id: fireredasr2-sherpa-onnx
@@ -53,8 +53,10 @@ entries:
   - id: llama.cpp
     name: llama.cpp
     license: MIT
-    source: https://github.com/ggerganov/llama.cpp
-    usage: packages/go/inference (GGUF 推理后端，M2 接入)
+    source: https://github.com/ggml-org/llama.cpp
+    usage: packages/go/inference (GGUF 推理后端，已接入——libllama.so.0.3.0 / ggml 0.22.0 装机
+      /usr/local/lib，自研最小 cgo dlopen 绑定 llm_lib.go，ABI 钉 v0.3.0(commit c1d0e7a)；
+      无新增 Go module 依赖)
     note: 代码依赖，无权重文件
 
   - id: bge-small-zh-v1.5
