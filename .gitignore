@@ -31,3 +31,7 @@ reports/tmp/
 
 # agent worktrees（并行卡隔离）
 .wt/
+
+# Python 工具缓存（tools/tts 等）
+__pycache__/
+*.pyc

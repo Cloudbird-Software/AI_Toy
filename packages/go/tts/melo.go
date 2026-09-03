@@ -150,7 +150,7 @@ func (m *MeloSynthesizer) Synthesize(req Request) (AudioStream, error) {
 		Bert:        make([]float32, meloBertChannels*t), // ZH_MIX_EN 恒零槽
 		JaBert:      jaBertOrZeros(ph.JaBert, t),
 		SdpNoise:    make([]float32, meloSdpNoiseCh*t),
-		ZNoise:      make([]float32, meloZChannels*t),
+		ZNoise:      make([]float32, meloZChannels*meloZTimeHeadroom*t), // 图内切到 mel 长度（实测 ~7.5T，预留 8T 上界）
 		NoiseScale:  meloDefaultNoiseScale,
 		NoiseScaleW: meloDefaultNoiseScaleW,
 		LengthScale: float32(1 / rate),

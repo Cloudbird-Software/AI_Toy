@@ -15,7 +15,7 @@ import (
 // ---- 测试注入桩 ----
 
 // tablePhonemizer 确定性测试前端：每 rune 派生 token（控制字符剥离），序列
-// 带 pad 包夹——与 ChinesePhonemizer 输出形态一致但无语义（属性测试用）。
+// 带 pad 交替——与 ChinesePhonemizer 同为 pad 交替形态但无语义（属性测试用）。
 type tablePhonemizer struct{ scale int }
 
 func (p tablePhonemizer) Phonemize(text string) (MeloPhonemes, error) {
@@ -250,7 +250,10 @@ func TestChinesePhonemizerShape(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Phonemize: %v", err)
 	}
-	if len(ph.Tokens) < 8 {
+	// 上游结构（chinese_mix.g2p 首尾边界符 + commons.intersperse(0)）：
+	// [pad,pad,pad, c1,pad, c2,pad, …, cn,pad,pad,pad]——pad 占位在首 3 位、
+	// 尾 3 位与内容间偶数位。
+	if len(ph.Tokens) < 12 {
 		t.Fatalf("音素序列过短：%d（表查失灵？）", len(ph.Tokens))
 	}
 	if len(ph.Tokens) != len(ph.Tones) || len(ph.Tokens) != len(ph.LangIDs) {
@@ -264,16 +267,21 @@ func TestChinesePhonemizerShape(t *testing.T) {
 		if ph.Tones[i] < 0 || ph.Tones[i] > 5 {
 			t.Fatalf("tone %d 越界：%d", i, ph.Tones[i])
 		}
-		if ph.LangIDs[i] != meloLangIDZHMixEn {
-			t.Fatalf("lang %d=%d，须 ZH_MIX_EN(%d)", i, ph.LangIDs[i], meloLangIDZHMixEn)
+		if id != meloPadID && ph.LangIDs[i] != meloLangIDZHMixEn {
+			t.Fatalf("非 pad %d 位 lang=%d，须 ZH_MIX_EN(%d)", i, ph.LangIDs[i], meloLangIDZHMixEn)
 		}
-		if i%2 == 0 && id != meloPadID {
-			t.Fatalf("偶数位须 pad：%d 位=%d", i, id)
+		if ph.LangIDs[i] != 0 && ph.LangIDs[i] != meloLangIDZHMixEn {
+			t.Fatalf("lang %d=%d 越域（0 或 ZH_MIX_EN）", i, ph.LangIDs[i])
+		}
+		inContent := i >= 3 && i <= len(ph.Tokens)-4
+		if (!inContent || i%2 == 0) && id != meloPadID {
+			t.Fatalf("pad 位含非 pad：%d 位=%d", i, id)
 		}
 	}
-	// 首尾 pad（intersperse 语义）
-	if ph.Tokens[0] != meloPadID || ph.Tokens[len(ph.Tokens)-1] != meloPadID {
-		t.Fatal("首尾须 pad")
+	// 首尾 pad（边界符+intersperse 语义）
+	if ph.Tokens[0] != meloPadID || ph.Tokens[1] != meloPadID ||
+		ph.Tokens[len(ph.Tokens)-1] != meloPadID || ph.Tokens[len(ph.Tokens)-2] != meloPadID {
+		t.Fatal("首尾须 pad 包夹（含上游边界符）")
 	}
 }
 
@@ -283,12 +291,14 @@ func TestChinesePhonemizerKnownReading(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Phonemize: %v", err)
 	}
-	// 你=ni3 → [n, i]，好=hao3 → [h, ao]，全部 tone3，pad 包夹。
+	// 你=ni3 → [n, i]，好=hao3 → [h, ao]，全部 tone3。上游结构：首 3 pad +
+	// 音素/pad 交替 + 尾 3 pad（边界符+intersperse）。
 	want := []int64{
-		meloPadID, meloSymbolIDMust("n"), meloPadID,
+		meloPadID, meloPadID, meloPadID,
+		meloSymbolIDMust("n"), meloPadID,
 		meloSymbolIDMust("i"), meloPadID,
 		meloSymbolIDMust("h"), meloPadID,
-		meloSymbolIDMust("ao"), meloPadID,
+		meloSymbolIDMust("ao"), meloPadID, meloPadID, meloPadID,
 	}
 	if len(ph.Tokens) != len(want) {
 		t.Fatalf("token 序列=%v，want %v", ph.Tokens, want)
@@ -298,7 +308,7 @@ func TestChinesePhonemizerKnownReading(t *testing.T) {
 			t.Fatalf("token[%d]=%d want %d（全序列 %v）", i, ph.Tokens[i], want[i], ph.Tokens)
 		}
 	}
-	for _, i := range []int{1, 3, 5, 7} {
+	for _, i := range []int{3, 5, 7, 9} {
 		if ph.Tones[i] != 3 {
 			t.Fatalf("音素 %d 声调=%d，须 3（三声本调）", i, ph.Tones[i])
 		}
@@ -329,11 +339,13 @@ func TestChinesePhonemizerFallbacks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Phonemize: %v", err)
 	}
-	// 1→一(yi1: y i) x→UNK !→!，pad 包夹
+	// 1→一(yi1: y i) x→UNK !→!；首 3 pad + 内容/pad 交替 + 尾 3 pad
 	want := []int64{
-		meloPadID, meloSymbolIDMust("y"), meloPadID, meloSymbolIDMust("i"), meloPadID,
+		meloPadID, meloPadID, meloPadID,
+		meloSymbolIDMust("y"), meloPadID,
+		meloSymbolIDMust("i"), meloPadID,
 		meloSymbolIDMust("UNK"), meloPadID,
-		meloSymbolIDMust("!"), meloPadID,
+		meloSymbolIDMust("!"), meloPadID, meloPadID, meloPadID,
 	}
 	if len(ph.Tokens) != len(want) {
 		t.Fatalf("混合序列=%v，want %v", ph.Tokens, want)
@@ -343,7 +355,7 @@ func TestChinesePhonemizerFallbacks(t *testing.T) {
 			t.Fatalf("token[%d]=%d want %d", i, ph.Tokens[i], want[i])
 		}
 	}
-	if ph.Tones[1] != 1 || ph.Tones[3] != 1 {
+	if ph.Tones[3] != 1 || ph.Tones[5] != 1 {
 		t.Fatalf("一 声调须 1（yi1）：got %v", ph.Tones)
 	}
 }

@@ -100,3 +100,68 @@ python3 tools/tts/export_melotts_onnx.py rtf --json reports/eval/T13/melotts-rtf
 go run ./tools/tts/dumpphonemes < sentences.txt > go.json
 python3 tools/tts/compare_go_frontend.py go.json --json reports/eval/T13/go-frontend-parity.json
 ```
+
+## 8. M2 增补：Go ORT 会话接入（issue #133，2026-09-03）
+
+`packages/go/tts/meloort` 把 melotts-zh.onnx 装配成 `tts.MeloSession`（yalue/
+onnxruntime_go v1.35.0 + libonnxruntime 1.29.0，与 T3 vap/T14 inference 同绑定同
+惯例；intra_op=2 口径）。模型缺失时测试 Skip（基础设施面，惯例照 T3/T14）。
+
+### 8.1 会话级对拍（确定性口径）
+
+`tools/tts/gen_melo_ort_fixtures.py` 存盘 Python 前端张量（tokens/tones/lang_ids/
+ja_bert/噪声，torch seed=1000+i）+ Python ORT 参考波形 → `meloort/testdata/`；
+Go 测试喂同组张量跑真会话，逐样本比对（TestMeloORTGoldenParity）：
+
+| 句 | 样本数 | max_abs | SNR | Pearson r |
+|---|---|---|---|---|
+| 你好呀，我是小云。 | 69120（=参考） | 7.29e-06 | 95.1 dB | 1.000000000 |
+| 今天我们一起搭积木好不好？ | 102912（=参考） | 5.32e-06 | 97.3 dB | 1.000000000 |
+| 从前有一只小兔子，它住在森林里。 | 126976（=参考） | 6.90e-06 | 105.3 dB | 1.000000000 |
+
+对拍口径：会话级——噪声与 BERT 特征为显式输入（Go P1 噪声是 splitmix64 派生、
+生产路径 ja_bert 恒零，均不进本对拍）。Python ORT 1.19.2 生成参考 vs Go ORT
+1.29.0 运行：max_abs≈7e-6（fp32 数值噪声级），样本数逐一相等。同输入两次
+Run 字节一致；错误形状（z_noise 缺 8T 预留等）在进 ORT 前被拒。
+
+### 8.2 前端结构修正 + 结构对拍
+
+对拍暴露两处 M1 前端与上游结构差（本轮修正，`melophone.go`）：① 上游
+`chinese_mix.g2p` 输出自带 `["_"]+phones+["_"]` 首尾边界符，M1 缺失（token 数
+33≠37）；② intersperse 的 pad 位 lang_ids 上游为 0，M1 填了 3。修正后 Go 与
+Python token 数逐一相等（37/55/65），符号一致率 **1.000**（三句）；声调一致率
+0.946/0.927/0.938，分歧全部落在 ADR-0008 债务③变调类（你 3→2 三三变调、
+一 1→4、不 4→5）。JaBert 韵律特征供给（债务②）不变。
+
+### 8.3 Go 全链 RTF（端侧口径续写）
+
+`TestMeloORTRTFBenchmark`（T13_RTF_OUT 门控），短/中/长三档句长各 10 次，
+整链推理面（查表 g2p 前端单独计时：均值 <1ms，查表法无 BERT 负担），
+intra_op=2 + nice 19 + MemoryMax 3G（开发宿主机，非目标端侧硬件）：
+
+| 档 | 句例 | RTF P50 / P95 | 推理 P50 |
+|---|---|---|---|
+| 短（≈7 字） | 你好呀。 | 0.826 / 0.909 | 745 ms |
+| 中（≈18 字） | 今天天气真好，我们一起去公园玩吧。 | 0.789 / 0.829 | 2437 ms |
+| 长（≈40 字） | 从前有一只小兔子… | 0.779 / 0.893 | 5034 ms |
+| **全量 n=30** | — | **0.791 / 0.893**（max 0.909） | 2383 ms |
+
+对照 melotts-rtf.json（Python ORT intra_op=4 同机）：p50 0.457——Go 口径线程减半
+（2 vs 4）+ nice 19，RTF 升至 ~0.79 属预期；30/30 全部 RTF<1（实时可合成）。
+明细：`melotts-rtf-go.json`；试听：`samples/melotts-zh-goort-{0,1}.wav`（Go 全链
+真输出：查表 g2p→确定性噪声→ORT→PCM s16le）。
+
+**预算缺口（如实报，configs/budgets/latency.yaml 未动）**：tts_first P50 200ms /
+P95 280ms（BI-13.2 首包≤300ms）——整段出语义下首包≈全段推理（短句 745ms，
+长句 5s），缺口 3.7×~25×；达成路径=流式导出（债务⑤）或分句+预合成缓存
+（ADR-0008 路径 C），非本轮装配层可解。RTF≤0.5 线：本机 intra_op=2 口径
+0.79 未达（intra_op=4 的 Python 基线 0.46 贴线）；目标硬件实测归 T13-G1-01
+真机口径（维持 debt）。
+
+### 8.4 复现
+
+```bash
+python3 tools/tts/gen_melo_ort_fixtures.py --out packages/go/tts/meloort/testdata/melo-ort-parity
+T13_RTF_OUT=reports/eval/T13/melotts-rtf-go.json T13_SAMPLE_DIR=reports/eval/T13/samples \
+  go test ./packages/go/tts/meloort/ -count=1 -v
+```
