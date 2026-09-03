@@ -3,4 +3,13 @@
 # 消费方：repoctl exemption audit（过期项 exit 20）、gaterunner run --exemptions（G1 fail → exempt）。
 # 空台账 = `[]`（保持 YAML 文档非空，gaterunner 的严格解码器才不会报 EOF）。
 # IR #76 起：冷启动 G1 走 debt verdict（注册测试 t.Skip 通道），不再占用本台账。
-[]
+- id: T3-G1-03
+  reason: 冷启动 debt——真实数据集未就绪，测试走 t.Skip 通道
+  owner: T3
+  expires: 2026-10-03
+  linked_pr: "#129"
+- id: T3-G1-04
+  reason: 冷启动 debt——真实数据集未就绪，测试走 t.Skip 通道
+  owner: T3
+  expires: 2026-10-03
+  linked_pr: "#129"

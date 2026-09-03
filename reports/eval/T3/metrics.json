@@ -1,0 +1,58 @@
+{
+  "asset": "T3",
+  "report": "W3 接入 IR #129：MaAI MC-VAP 中文 Kyoto 版（MIT）融合流式 ONNX 接入评测",
+  "model": {
+    "file": "models/incoming/vap_maai_ch_kyoto_mc_10hz.onnx",
+    "manifest": "models/manifests/t3-vap-maai.yaml",
+    "license": "MIT",
+    "upstream_weights": "maai-kyoto/vap_mc_ch_kyoto (HuggingFace, MIT)",
+    "upstream_training_data": "Online Conversation Dataset (Kyoto Univ., arXiv:2506.21191)",
+    "cpc_encoder": "facebookresearch CPC_audio (MIT code), checkpoint 60k_epoch4-d0f474de (Libri-Light, CC-BY-4.0 data); export-time only, fused into ONNX",
+    "sha256": "db5a1e8dadf0e8d4828b89639a7e1f03e74fd8ea574a2921d7d8debe66789292",
+    "size_bytes": 24610358,
+    "opset": 17,
+    "note": "同仓 vap_ch/mono 权重为 CC-BY-NC-ND 不可商用，未使用"
+  },
+  "parity": {
+    "eager_vs_maai_reference_max_abs_err": 2.384e-07,
+    "ort_py_vs_maai_reference_max_abs_err": 1.842e-05,
+    "ort_py_steps": 300,
+    "go_golden_frames": 40,
+    "go_golden_tol": 0.001,
+    "requirement": "<1e-3",
+    "pass": true
+  },
+  "rtf": {
+    "go_ort_intra2": {"rtf": 0.1022, "p50_ms_per_frame": 9.5, "p95_ms_per_frame": 10.1, "frames": 100, "detection_stage_budget_ms": 100},
+    "python_ort_reference": {"rtf": 0.3631, "ms_per_frame": 36.3},
+    "hardware": "本机 4 核 CPU（无 GPU）；loadavg<2 未启用远端",
+    "latency_budget_note": "预算未变更：VAP 逐帧推理与采集流水线并行，端点判定增量 ≤10ms/帧被 tail_silence 段（T3, P95 600ms）吸收；900ms 全链 P95 的 ASR/LLM/TTS 段与固定硬件 ×3 计时归 M2"
+  },
+  "gates": {
+    "command": "go run ./tools/gaterunner/cmd/gaterunner run --asset T3 --level all --report reports/gates/T3.json",
+    "just_note": "本机无 just 二进制，等效命令如上",
+    "summary": {"g0": "pass", "g1": "pass", "not_impl": 0},
+    "verdicts": {
+      "T3-G0-01": "pass",
+      "T3-G0-02": "debt (≥6h 负样本音景流未建)",
+      "T3-G1-01": "pass (真实模型在环：300 停顿点误截断=0，静音面 200 帧 PNowSystem<0.7)",
+      "T3-G1-02": "pass (真实：端点判定增量 P95 10.1ms ≤100ms；900ms 全链归 M2)",
+      "T3-G1-03": "debt (LLM 对话链 M2)",
+      "T3-G1-04": "debt (自适应静音门限+真实儿童中停顿集 ≥100 未建)"
+    },
+    "honesty_boundary": "G1-01/G1-02 harness 为合成语音代理（确定性公式生成）；真实儿童集（3-6/7-9/10-12 岁分层 ≥300 停顿点）未建，业务阈值外推未验证"
+  },
+  "comparison": {
+    "baseline_note": "英语原版 VAP（Erik Ekstedt）权重未随任务落盘且 Switchboard/LDC 许可链不适配商用；MaAI vap_en 亦 NC。对照改为同 MIT 同架构 ch_kyoto(plain) 消融（唯一变量=噪声鲁棒训练）",
+    "metric": "帧级 VAD 与能量伪真值一致性（评估口径伪真值，非人工标注；5dB 档伪真值自身退化）",
+    "silence_pnowsys_max": {"mc_ch_kyoto_10hz": 0.505, "ch_kyoto_10hz": 0.5189, "lead_threshold": 0.7},
+    "vad_agreement": {
+      "eng_divesh": {"clean": [0.847, 0.813], "20db": [0.86, 0.48], "10db": [0.88, 0.473], "5db": [0.817, 0.783]},
+      "jpn_inoue": {"clean": [0.9, 0.9033], "20db": [0.8967, 0.9033], "10db": [0.8967, 0.3067], "5db": [0.5567, 0.5367]}
+    },
+    "conclusion": "10dB 噪声下 MC 保持 0.88-0.90、plain 崩至 0.31-0.47：噪声鲁棒选型量化成立",
+    "raw": "comparison.json"
+  },
+  "generated": "2026-09-03",
+  "environment": "本机 CPU（4 核/7G），Python 重活经 systemd-run MemoryMax=3G"
+}

@@ -1,0 +1,118 @@
+{
+ "silence_pnowsys_max": {
+  "mc_ch_kyoto_10hz": 0.505,
+  "ch_kyoto_10hz": 0.5189
+ },
+ "eng_divesh_clean": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.8467,
+   "pnow_user_p50": 0.9498,
+   "pnow_user_p95": 0.9888,
+   "per_frame_s": 0.0095
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.8133,
+   "pnow_user_p50": 0.9636,
+   "pnow_user_p95": 0.9959,
+   "per_frame_s": 0.011
+  }
+ },
+ "eng_divesh_20": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.86,
+   "pnow_user_p50": 0.9077,
+   "pnow_user_p95": 0.9794,
+   "per_frame_s": 0.0115
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.48,
+   "pnow_user_p50": 0.9706,
+   "pnow_user_p95": 0.9945,
+   "per_frame_s": 0.0116
+  }
+ },
+ "eng_divesh_10": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.88,
+   "pnow_user_p50": 0.9041,
+   "pnow_user_p95": 0.9837,
+   "per_frame_s": 0.0106
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.4733,
+   "pnow_user_p50": 0.9788,
+   "pnow_user_p95": 0.993,
+   "per_frame_s": 0.0112
+  }
+ },
+ "eng_divesh_5": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.8167,
+   "pnow_user_p50": 0.9526,
+   "pnow_user_p95": 0.9891,
+   "per_frame_s": 0.0109
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.7833,
+   "pnow_user_p50": 0.9625,
+   "pnow_user_p95": 0.9954,
+   "per_frame_s": 0.0111
+  }
+ },
+ "jpn_inoue_clean": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.9,
+   "pnow_user_p50": 0.2944,
+   "pnow_user_p95": 0.9284,
+   "per_frame_s": 0.0105
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.9033,
+   "pnow_user_p50": 0.5636,
+   "pnow_user_p95": 0.9634,
+   "per_frame_s": 0.0105
+  }
+ },
+ "jpn_inoue_20": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.8967,
+   "pnow_user_p50": 0.3452,
+   "pnow_user_p95": 0.9346,
+   "per_frame_s": 0.0108
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.9033,
+   "pnow_user_p50": 0.4882,
+   "pnow_user_p95": 0.939,
+   "per_frame_s": 0.0109
+  }
+ },
+ "jpn_inoue_10": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.8967,
+   "pnow_user_p50": 0.3287,
+   "pnow_user_p95": 0.9042,
+   "per_frame_s": 0.0109
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.3067,
+   "pnow_user_p50": 0.9602,
+   "pnow_user_p95": 0.9881,
+   "per_frame_s": 0.0122
+  }
+ },
+ "jpn_inoue_5": {
+  "mc_ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.5567,
+   "pnow_user_p50": 0.9643,
+   "pnow_user_p95": 0.993,
+   "per_frame_s": 0.0111
+  },
+  "ch_kyoto_10hz": {
+   "vad_agree_vs_energy_truth": 0.5367,
+   "pnow_user_p50": 0.9712,
+   "pnow_user_p95": 0.9955,
+   "per_frame_s": 0.0107
+  }
+ }
+}

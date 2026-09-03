@@ -1,0 +1,11 @@
+# ADR-0007 T3 话轮预测真模型接入：MaAI MC-VAP 中文 Kyoto 版 + 融合流式 ONNX + ORT Go 统一推理栈
+状态：accepted 2026-09-03（IR #129，W3 接入线）
+背景：T3 门禁 G1 面自 M1 起为 debt 桩（无预测语义）。W3 接入线要求零训练成本落地真话轮预测。本地已落盘 MaAI 权重家族，但 license 分层严重：`maai-kyoto/vap_ch`（含 mono/mimi 系全部通用中文权重）为 CC-BY-NC-ND 4.0 不可商用，仅 `vap_ch_kyoto`/`vap_mc_ch_kyoto` 子仓为 MIT；mono 单声道模型（任务卡建议路径）实属 NC 仓。仓库尚无任何 Go 侧 ONNX 推理栈（go.mod 仅 yaml.v3），ADR-0004 备选否决过「直接绑 onnxruntime（无 license 台账）」。
+决策：
+1. **选型 vap_mc_ch_kyoto 10hz/20000msec（MIT）**：MaAI 官方推荐噪声鲁棒版（MC-VAP），中文 MIT 有正式文档记载（readme/vap_mc.md `ch_kyoto` 节，训练语料=Online Conversation Dataset）。对照实测（reports/eval/T3）：10dB 噪声下 VAD 一致性 MC 保持 0.88–0.90、plain ch_kyoto 崩至 0.31–0.47。**否决 mono（NC 仓不可商用）与 plain ch_kyoto（噪声面崩塌）；否决 vap_en/原版 Erik VAP（Switchboard/LDC 许可链不适配商用，且权重未随任务提供）——对照口径改为同 MIT 同架构的 ch_kyoto 消融对照**。
+2. **融合流式 ONNX 导出**：CPC encoder×2 + AR-LSTM hidden + GPT 主干 KV + 输出头融合为单 ONNX（opset 17，24.6MB，全固定形状）：输入=1920 样本滚动窗（320 左上下文+1600 新帧）+hidden×4+mask+KV×28，输出=预测+全量新状态，缓存裁剪（保留最新 199 帧）入图。等价性依据：ALiBi 偏置对动态缓存为逐行常数平移、softmax 平移不变；Python 对拍官方 Maai 流式参考 eager 2.4e-7 / ORT 1.8e-5（300 步全幅音频），Go ORT golden 对拍 40 帧全绿（容差 1e-3）。**否决官方 continuous-mimi ONNX 路线**（仅覆盖 Mimi encoder，MC-VAP 为 CPC encoder；且需 transformers 5.5.3 环境与双会话 Go 侧复刻流式胶水）。
+3. **推理栈=onnxruntime C 库（MIT）+ github.com/yalue/onnxruntime_go v1.35.0（Apache-2.0）**，go.mod 首个推理依赖（license 台账见 models/manifests/t3-vap-maai.yaml 头注）；T5/T14 后续 ONNX 接入复用同一栈，不再另起。库路径默认 /usr/local/lib/libonnxruntime.so.1.29.0（绑定 v1.35 需 C API v29；与 Python 侧 1.19.2 共存，env T3_VAP_ORT_LIB 可覆盖）。
+4. **包结构守 ADR-0004**：turntaking 包保持零依赖，新增 predict.go 接缝（Prediction/Predictor/PredictLead，路径 C=混合式：VAD 保底挂 G0 + VAP 负延迟提前量，VAPLeadPNow 零值=关闭可独立回滚）；真引擎在子包 turntaking/vap（ORT），包间零 import（结构化对接），门禁测试随引擎放 vap 包（gaterunner 全仓扫 Mark，ID 唯一）。
+5. **门禁面**：T3-G1-01/G1-02 升真实（真模型在环断言：误截断机制面/静音面/端点判定增量 ≤100ms）；G0-02/G1-03/G1-04 维持 debt（≥6h 负样本音景/LLM 对话链/儿童中停顿集+自适应静音机制）。合成语音代理 harness 的诚实性边界写入测试注释与报告。
+备选否决：sherpa-onnx Go 绑定（无 VAP 模型生态、cgo 重、与 T5 ECAPA/T14 需求不重合）；onnxruntime Python 子进程桥（进程边界+时延不可控）；等待官方 mono MIT（发布仓不存在，无时间表）。
+后果：T3 首个真模型资产面落地，`gate T3 all` g0=pass g1=pass（3 debt 均数据面显式可见）；Go 侧 RTF 0.10（10ms/帧，p50）可常驻端侧；延迟预算无变更（检测增量 ≤10ms/帧被 tail_silence 段 600ms 吸收，报告记账）；golden/synth 测试音频均为测试内公式合成（无外部素材入仓）。

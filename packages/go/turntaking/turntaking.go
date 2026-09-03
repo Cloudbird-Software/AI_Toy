@@ -96,11 +96,13 @@ type flatTierPolicy struct{ budgetMs int }
 func (p flatTierPolicy) SilenceBudgetMs(tier int) int { return p.budgetMs }
 
 // Config FSM 配置。三项时间参数均 >0；BargeInWindow ∈ [1,300]ms（打断响应契约
-// 上限，T3-G0-01；链路实测延迟 M2 硬件计时）。
+// 上限，T3-G0-01；链路实测延迟 M2 硬件计时）；VAPLeadPNow ∈ [0,1]（0=关闭预测
+// 提前量，缺省零值安全；>0 时见 predict.go 提前量语义）。
 type Config struct {
 	SilenceMs     int        // Listening 尾静音达到该时长 → 话轮终点
 	MaxTurnMs     int        // Listening 话轮累计达到该时长 → 强制截断（防挂起）
 	BargeInWindow int        // 打断响应窗口（契约上限 300ms）
+	VAPLeadPNow   float32    // 模型提前量门限（PNowSystem ≥ 该值 → 提前收口；0=关闭）
 	Policy        TierPolicy // T14 档位镜像；nil=默认表（M1 预留不接线）
 }
 
@@ -116,7 +118,8 @@ type FSM struct {
 	voiceActive    bool  // 用户语音进行中（EvVoiceStart 后未 EvVoiceEnd）
 
 	policy           TierPolicy
-	bargeInLatencyMs int64 // 最近一次打断的逻辑延迟（noBargeIn=尚未发生）
+	bargeInLatencyMs int64   // 最近一次打断的逻辑延迟（noBargeIn=尚未发生）
+	leadThreshold    float32 // 预测提前量门限（0=关闭，predict.go）
 }
 
 const (
@@ -142,8 +145,12 @@ func NewFSM(cfg Config) (*FSM, error) {
 	if policy == nil {
 		policy = flatTierPolicy{budgetMs: cfg.SilenceMs}
 	}
-	return &FSM{cfg: cfg, state: StIdle, lastMs: math.MinInt64,
-		bargeInLatencyMs: noBargeIn, policy: policy}, nil
+	if cfg.VAPLeadPNow < 0 || cfg.VAPLeadPNow > 1 {
+		return nil, fmt.Errorf("turntaking: VAPLeadPNow 须 ∈[0,1]（预测提前量门限，got %v）", cfg.VAPLeadPNow)
+	}
+	f := &FSM{cfg: cfg, state: StIdle, lastMs: math.MinInt64,
+		bargeInLatencyMs: noBargeIn, policy: policy, leadThreshold: cfg.VAPLeadPNow}
+	return f, nil
 }
 
 // State 返回当前状态。

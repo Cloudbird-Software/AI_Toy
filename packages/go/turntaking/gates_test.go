@@ -101,23 +101,12 @@ func TestT3G001InterruptDetectRate(t *testing.T) {
 
 // TestT3G002SilenceNoiseTrigger T3-G0-02（BI-3.1/G0，debt）：全静音/纯噪声永不
 // 触发接话（0 次触发；泊松 3/N：≥6h 零事件）。
+// 注（IR #129）：模型面已补真实证据——VAP 引擎（turntaking/vap）在纯静音流实测
+// PNowSystem 恒低于提前量门限（200 全零帧，见 TestT3G101MiscutRate 静音面）；
+// 本门禁的 ≥6h 负样本音景流数据面仍缺，维持 debt。
 func TestT3G002SilenceNoiseTrigger(t *testing.T) {
 	gaterunner.Mark(t, "T3", "BI-3.1", "T3-G0-02", "G0")
 	t.Skipf("T3-G0-02 debt：音频 VAD 前端未建——FSM 由 VAD 事件驱动（OnVAD），负样本音景流（gen-tneg ≥6h，datasets/synth/batches，已被 T4-G0-01 真实消费）需经 VAD 前端转事件才能驱动 zero_event 泊松口径（3/N）联跑；M1 桩无音频输入面，VAD 前端落地后升真实接线")
-}
-
-// TestT3G101MiscutRate T3-G1-01（BI-3.1/G1，debt）：误截断率 ≤8%（孩子仍在说话
-// 被判定说完；噪声带法，基线=静音 VAD 参照）。
-func TestT3G101MiscutRate(t *testing.T) {
-	gaterunner.Mark(t, "T3", "BI-3.1", "T3-G1-01", "G1")
-	t.Skipf("T3-G1-01 debt：误截断需儿童集 ≥300 停顿点（3–6/7–9/10–12 岁各 ≥30 段，双人标注一致子集，noise_band 基线）未建；数据集经 synthgen 注册落地后升真实接线")
-}
-
-// TestT3G102ResponseFirstPacket T3-G1-02（BI-3.1/G1，debt）：接话延迟
-// response_first_packet_p95_ms ≤900（话轮结束→TTS 首包，固定硬件 ×3 取中位）。
-func TestT3G102ResponseFirstPacket(t *testing.T) {
-	gaterunner.Mark(t, "T3", "BI-3.1", "T3-G1-02", "G1")
-	t.Skipf("T3-G1-02 debt：接话 P95≤900ms 需固定硬件 ×3 实测计时（M1 桩无延迟语义；预算面见 configs/budgets/latency.yaml）；真机计时落地后升真实接线")
 }
 
 // TestT3G103ContextRetention T3-G1-03（BI-3.2/G1，debt）：打断后上下文保持
@@ -129,7 +118,9 @@ func TestT3G103ContextRetention(t *testing.T) {
 
 // TestT3G104MidpauseTolerance T3-G1-04（BI-3.3/G1，debt）：中停顿容忍
 // midpause_miscut_rate ≤8%（1.5–3s 思考停顿，与 T3-G1-01 同线、不许单独放宽）。
+// 注（IR #129）：VAP 提前量只加速收口、不解决中停顿误截断——该面需儿童语速
+// 自适应静音门限（资产卡路径 A/C 的自适应层）+ 真实儿童中停顿集 ≥100，均未建。
 func TestT3G104MidpauseTolerance(t *testing.T) {
 	gaterunner.Mark(t, "T3", "BI-3.3", "T3-G1-04", "G1")
-	t.Skipf("T3-G1-04 debt：中停顿样本 ≥100（1.5–3s 思考停顿）未建；样本集落地后升真实接线（阈值与 T3-G1-01 同线，不单独放宽）")
+	t.Skipf("T3-G1-04 debt：中停顿样本 ≥100（1.5–3s 思考停顿）与自适应静音门限机制均未建（VAP 提前量不解决此面，见 packages/go/turntaking/predict.go）；样本集+机制落地后升真实接线（阈值与 T3-G1-01 同线，不单独放宽）")
 }
