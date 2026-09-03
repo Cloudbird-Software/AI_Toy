@@ -1,10 +1,10 @@
 {
   "asset": "T10",
   "suite": "nightly",
-  "commit": "0b12a379bfe8955b16843bd32b75b545ad6a6925",
+  "commit": "e2731cabf5dc60ea5a14886672421eee13e36cc6",
   "dataset_versions": {},
   "judge_model": null,
-  "timestamp": "2026-09-02T15:46:20Z",
+  "timestamp": "2026-09-03T13:00:14Z",
   "results": [
     {
       "id": "T10-G1-01",

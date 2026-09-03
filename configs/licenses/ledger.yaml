@@ -61,7 +61,7 @@ entries:
     name: bge-small-zh-v1.5
     license: MIT
     source: models/incoming/bge-small-zh-v1.5/model.safetensors
-    usage: packages/go/memory (T10 嵌入检索底座)
+    usage: packages/go/memory (T10 嵌入检索底座；M2 真推理经自导出 ONNX，sha256 325654ed02d07af67219b50dfb680bd848e58595b6d03b4e85709bd4654f75c2；分词器纯 Go 自实现——本资产零新增代码依赖)
     sha256: "354763b9b1357bc9c44f62c6be2276321081ed2567773608c0d0785b61d5a026"
     manifest: models/manifests/bge-small-zh.yaml
 

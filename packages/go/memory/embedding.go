@@ -1,4 +1,5 @@
-// Package memory embedding — T11 向量底座嵌入接口（M1 桩；M2 接 bge-small-zh ONNX）。
+// Package memory embedding — T11 向量底座嵌入接口（M2：真推理见 onnx_embedder.go，
+// StubEmbedder 保留作模型缺失 fallback）。
 //
 // 设计纪律（对齐 memory.go 合同）：
 //   - 纯 Go、无 IO、无随机、无墙钟：StubEmbedder 仅用确定性哈希；
@@ -12,16 +13,18 @@ import (
 	"strings"
 )
 
-// Embedder 文本嵌入注入面（TODO-M2：替换为 bge-small-zh-v1.5 ONNX 真推理）。
+// Embedder 文本嵌入注入面（M2 真实现见 onnx_embedder.go 的 OnnxEmbedder）。
 //
 // 输入表面：node.Subject + " " + node.Pred + " " + node.Text。
-// 维度合同：bge-small-zh-v1.5 = 384 维。
+// 维度合同：bge-small-zh-v1.5 = 512 维（hidden_size；M1 注释「384 维」系
+// bge-small-en 笔误，M2 导出实测 512——同 Store 内向量恒同源同维）。
 type Embedder interface {
 	// Embed 返回 text 的稠密向量；error 非 nil 时调用方视为本次预计算/检索降级。
 	Embed(text string) ([]float64, error)
 }
 
-// StubEmbedder 确定性桩嵌入器（M1 验收/回放用；M2 废弃）。
+// StubEmbedder 确定性桩嵌入器（模型缺失 fallback：纯 Go 零依赖，验收/回放
+// 与 CI 无模型环境用；语义质量无保证，不用于语义检索口径的断言）。
 //
 // 每个维度 d 由 FNV-1a 64-bit 哈希(text + ":" + strconv.Itoa(d)) 的
 // 低位 53 位映射到 [-1,1]（保留符号位+小数点），保证：

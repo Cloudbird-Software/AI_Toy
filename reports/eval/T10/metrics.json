@@ -1,0 +1,59 @@
+{
+  "asset": "T10",
+  "milestone": "M2",
+  "issue": 134,
+  "date": "2026-09-03",
+  "env": {
+    "host": "4 核 x86_64 Linux（本机）",
+    "onnxruntime": "libonnxruntime.so.1.29.0",
+    "intra_op_threads": 2,
+    "memory_scope": "systemd-run MemoryMax=3G nice=19"
+  },
+  "gate_semantic_recall": {
+    "gate": "T10-G1-01 语义面（新增，真实 embedding，模型缺失 Skip）",
+    "surface": "200 探针事实 + 10 轮热题噪声；查询=Subject+Pred；SearchByEmbedding top5",
+    "threshold": 0.95,
+    "observed": 1.0,
+    "hits": 200,
+    "n": 200
+  },
+  "gate_keyword_recall_unchanged": {
+    "gate": "T10-G1-01 关键词面（不改动）",
+    "observed": {"10轮": 1.0, "50轮": 1.0, "200轮": 0.9},
+    "thresholds": {"10轮": 0.95, "50轮": 0.9, "200轮": 0.8}
+  },
+  "semantic_latency_full_store": {
+    "gate": "T10-G1-04 语义面（新增，真实 embedding 全链，模型缺失 Skip）",
+    "surface": "满载 400 节点库（200 探针+200 噪声预计算嵌入），200 探针查询，分词+推理+余弦 top5 全链",
+    "budget_ms": 150,
+    "p50_ms": 4.086,
+    "p95_ms": 6.532,
+    "rtf_p50_vs_budget": 0.0272,
+    "verdict": "pass（P95 6.532 ≤ 150）"
+  },
+  "query_latency_repeat": {
+    "test": "TestOnnxEmbedderQueryLatency（非门禁，同口径复测）",
+    "n": 200,
+    "p50_ms": 4.338,
+    "p95_ms": 8.004,
+    "max_ms": 16.829,
+    "rtf_p50_vs_budget": 0.0289
+  },
+  "chinese_retrieval_sanity": {
+    "test": "TestOnnxEmbedderChineseRetrievalSanity（10 条记忆+3 查询）",
+    "dinosaur_query": {
+      "query": "恐龙玩具",
+      "cos_child_likes_dinosaur": 0.7637,
+      "cos_weather": 0.2304,
+      "cos_icecream": 0.3494,
+      "top5_ids": ["m00", "m03", "m04", "m06", "m08"],
+      "assert": "恐龙条目压过天气/零食，且 cos 序成立"
+    },
+    "name_query": {
+      "query": "外婆叫什么名字",
+      "top1": "外婆的名字叫桂花（m02）",
+      "python_crosscheck_cos": 0.7304
+    },
+    "python_prevalidation_match": "Go cos 0.7637/0.3494 与 Python ORT 预验证逐位一致（小数点后 4 位）"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "asset": "T10",
+  "milestone": "M2",
+  "issue": 134,
+  "date": "2026-09-03",
+  "model": "bge-small-zh-v1.5 (MIT, BAAI)",
+  "export": {
+    "opset": 17,
+    "dtype": "float32",
+    "inputs": {"input_ids": "[B,T] int64", "attention_mask": "[B,T] int64"},
+    "outputs": {"last_hidden_state": "[B,T,512]", "sentence_embedding": "[B,512]"},
+    "pooling": "CLS + L2 normalize 入图（1_Pooling/config.json: cls_token=true；BGE 官方口径，非 mean pooling）",
+    "sha256": "325654ed02d07af67219b50dfb680bd848e58595b6d03b4e85709bd4654f75c2",
+    "size_bytes": 94863227,
+    "script": "code/export_bge_onnx.py"
+  },
+  "parity_python_eager_vs_ort119": {
+    "cases": 16,
+    "last_hidden_state_max_abs": 3.815e-06,
+    "sentence_embedding_max_abs": 2.086e-07,
+    "tolerance": 1e-4,
+    "pass": true,
+    "script": "code/parity_bge.py"
+  },
+  "parity_go_full_chain_vs_hf_golden": {
+    "chain": "Go WordPiece（纯 Go 自实现）→ Go ORT 1.29.0 → sentence_embedding",
+    "golden": "packages/go/memory/testdata/golden_bge.json（HF BertTokenizer+HF eager 生成）",
+    "cases": 16,
+    "token_id_mismatches": 0,
+    "embedding_max_abs": 2.81e-07,
+    "tolerance": 1e-4,
+    "pass": true,
+    "note": "首轮 1.09e-01 红根因=Go 侧 attention_mask 全零（make 零值），修复后 2.8e-07——对拍面真实有效"
+  },
+  "tokenizer": {
+    "impl": "packages/go/memory/wordpiece.go（纯 Go 自实现，零新依赖）",
+    "config_source": "tokenizer_config.json: do_lower_case=false, strip_accents=null→false, tokenize_chinese_chars=true, model_max_length=512",
+    "golden_cases": 16,
+    "golden_cover": "门禁探针形中文/中英混排/标点/数字/英文大小写/秘密 token 形"
+  }
+}

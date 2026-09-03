@@ -1,4 +1,6 @@
 # 模型权重清单（spec §9.2）：bge-small-zh-v1.5 嵌入模型（T10/T11 向量底座）。
+# M2（issue #134）：导出 ONNX（opset 17，CLS 池化+L2 归一化入图，512 维）为
+# Go 侧真推理面（packages/go/memory/onnx_embedder.go）；对拍见 reports/eval/T10/。
 - name: bge-small-zh-v1.5
   task: embedding
   license: MIT
@@ -9,3 +11,13 @@
   id: bge-small-zh-v1.5
   source: models/incoming/bge-small-zh-v1.5/model.safetensors
   dest: bge-small-zh-v1.5/model.safetensors
+- name: bge-small-zh-v1.5-onnx
+  task: embedding
+  license: MIT
+  sha256: "325654ed02d07af67219b50dfb680bd848e58595b6d03b4e85709bd4654f75c2"
+  size: 94863227
+  fetch_url: file:///root/workspace/datasets/models/bge-small-zh-v1.5/onnx/model.onnx
+  tier_usage: L2 推理（CPU 友好，中文嵌入检索；opset 17，输入 input_ids/attention_mask，输出 sentence_embedding）
+  id: bge-small-zh-v1.5-onnx
+  source: models/incoming/bge-small-zh-v1.5/onnx/model.onnx
+  dest: bge-small-zh-v1.5/onnx/model.onnx
