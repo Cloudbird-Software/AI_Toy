@@ -1,42 +1,51 @@
 {
   "domain": "T16",
   "rubric": "16a",
-  "generated_at": "2026-09-03T17:44:14Z",
+  "generated_at": "2026-09-03T17:56:28Z",
   "generator": {
     "api": "stepfun",
     "model": "step-3.7-flash",
-    "vote_temperature": "0.0 (cold-context, round 2)",
+    "vote_temperature": "0.0 (cold-context, round 3)",
     "vote_n": "10",
     "judge_temperature": 0.0
   },
   "seed": 42,
   "consensus_threshold": 8,
-  "round2": {
-    "disputed_count": 51,
-    "updated_count": 42,
-    "removed_count": 9
+  "round3": {
+    "tie_removed_count": 8,
+    "tie_removed_ids": [
+      "t16-gold-0060",
+      "t16-gold-0081",
+      "t16-gold-0098",
+      "t16-gold-0105",
+      "t16-gold-0107",
+      "t16-gold-0108",
+      "t16-gold-0110",
+      "t16-gold-0112"
+    ],
+    "tie_updated_count": 1,
+    "no_cell_capping": true
   },
-  "balanced_n": 129,
+  "balanced_n": 147,
   "cells": {
-    "1_1": 20,
-    "1_3": 1,
+    "1_1": 21,
+    "2_2": 23,
+    "2_3": 24,
+    "3_3": 37,
     "2_1": 20,
-    "2_2": 20,
-    "2_3": 20,
-    "3_1": 13,
-    "3_2": 15,
-    "3_3": 20
+    "3_1": 7,
+    "3_2": 15
   },
   "age_distribution": {
     "1": 21,
-    "2": 60,
-    "3": 48
+    "2": 67,
+    "3": 59
   },
   "affinity_distribution": {
-    "1": 53,
-    "3": 41,
-    "2": 35
+    "1": 48,
+    "2": 38,
+    "3": 61
   },
   "golden_file": "golden/16a.jsonl",
-  "golden_rows": 258
+  "golden_rows": 294
 }
