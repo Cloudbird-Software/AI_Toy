@@ -6,7 +6,8 @@
 # T3 话轮预测（W3 接入 IR #129）：MaAI MC-VAP 中文 Kyoto 版（噪声鲁双，10hz/20s 上下文）
 # 融合流式 ONNX 导出（CPC encoder×2 + VAP GPT 主干 + 输出头，单文件 24.6MB，opset 17）。
 # 导出与对拍：reports/eval/T3/（Python ORT 对拍官方 Maai 流式参考 1.8e-5 <1e-3；
-# Go ORT golden 对拍 40 帧全绿；eager 2.4e-7）。上游权重不入仓（仅本融合导出物入 models/incoming）。
+# Go ORT golden 对拍 40 帧全绿；eager 2.4e-7）。上游权重不入仓（仅本融合导出物上传 COS，
+# .gitignore models/**/*.onnx 禁止二进制权重入仓）。
 #
 # license 台账（AGENTS.md：无 license 台账的新依赖=G0 红线）：
 # - 权重：maai-kyoto/vap_mc_ch_kyoto（HuggingFace）license=MIT，可商用；上游训练语料=
@@ -28,5 +29,5 @@
   fetch_url: https://hf-mirror.com/maai-kyoto/vap_mc_ch_kyoto/resolve/main/vap_mc_state_dict_ch_kyoto_10hz_20000msec.pt
   tier_usage: L0-L3 全档（端侧话轮预测，CPU 实时 RTF≈0.10；与 T4 唤醒、T13 TTS 共用会话音频）
   id: t3-vap-maai-ch-kyoto-mc
-  source: models/incoming/vap_maai_ch_kyoto_mc_10hz.onnx
+  source: cos://everything-1476163454/ai-toy/models/t3-vap-maai-ch-kyoto-mc.onnx
   dest: vap_maai_ch_kyoto_mc_10hz.onnx
