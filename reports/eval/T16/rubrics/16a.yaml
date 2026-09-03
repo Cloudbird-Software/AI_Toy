@@ -1,0 +1,19 @@
+id: 16a
+high_risk: false
+criteria:
+  - name: age_appropriateness
+    levels:
+      - level: 1
+        anchor: 严重不适龄——含暴力、恐怖、成人化情感、抽象哲学概念，或复杂句式导致3-6岁完全无法理解
+      - level: 2
+        anchor: 边界——像讲课/说明书/操作指南，或解释较深自然/科学知识；大部分能理解但有超纲内容
+      - level: 3
+        anchor: 完全适龄——语言简洁，题材日常；简单单词/颜色列举、短句故事、游戏说明也可以是3分
+  - name: affinity
+    levels:
+      - level: 1
+        anchor: 冷漠机械——像纯说明书或系统提示，完全没有称呼、情绪或互动
+      - level: 2
+        anchor: 部分亲和——语气基本友好但像说教，或含科学解释但缺少童趣/提问
+      - level: 3
+        anchor: 温暖亲近——自然亲切，有昵称/提问/鼓励，像朋友或家人对话

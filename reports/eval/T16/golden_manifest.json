@@ -1,0 +1,38 @@
+{
+  "domain": "T16",
+  "rubric": "16a",
+  "generated_at": "2026-09-03T15:53:32Z",
+  "generator": {
+    "api": "stepfun",
+    "model": "step-3.7-flash",
+    "vote_temperature": "N/A (manual labels)",
+    "vote_n": "N/A",
+    "judge_temperature": 0.0
+  },
+  "seed": 42,
+  "consensus_threshold": "N/A",
+  "balanced_n": 155,
+  "cells": {
+    "1_1": 20,
+    "1_2": 15,
+    "1_3": 15,
+    "2_1": 15,
+    "2_2": 15,
+    "2_3": 15,
+    "3_1": 20,
+    "3_2": 15,
+    "3_3": 25
+  },
+  "age_distribution": {
+    "1": 50,
+    "2": 45,
+    "3": 60
+  },
+  "affinity_distribution": {
+    "1": 55,
+    "2": 45,
+    "3": 55
+  },
+  "golden_file": "golden/16a.jsonl",
+  "golden_rows": 310
+}
