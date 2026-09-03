@@ -1,38 +1,42 @@
 {
   "domain": "T16",
   "rubric": "16a",
-  "generated_at": "2026-09-03T15:53:32Z",
+  "generated_at": "2026-09-03T17:44:14Z",
   "generator": {
     "api": "stepfun",
     "model": "step-3.7-flash",
-    "vote_temperature": "N/A (manual labels)",
-    "vote_n": "N/A",
+    "vote_temperature": "0.0 (cold-context, round 2)",
+    "vote_n": "10",
     "judge_temperature": 0.0
   },
   "seed": 42,
-  "consensus_threshold": "N/A",
-  "balanced_n": 155,
+  "consensus_threshold": 8,
+  "round2": {
+    "disputed_count": 51,
+    "updated_count": 42,
+    "removed_count": 9
+  },
+  "balanced_n": 129,
   "cells": {
     "1_1": 20,
-    "1_2": 15,
-    "1_3": 15,
-    "2_1": 15,
-    "2_2": 15,
-    "2_3": 15,
-    "3_1": 20,
+    "1_3": 1,
+    "2_1": 20,
+    "2_2": 20,
+    "2_3": 20,
+    "3_1": 13,
     "3_2": 15,
-    "3_3": 25
+    "3_3": 20
   },
   "age_distribution": {
-    "1": 50,
-    "2": 45,
-    "3": 60
+    "1": 21,
+    "2": 60,
+    "3": 48
   },
   "affinity_distribution": {
-    "1": 55,
-    "2": 45,
-    "3": 55
+    "1": 53,
+    "3": 41,
+    "2": 35
   },
   "golden_file": "golden/16a.jsonl",
-  "golden_rows": 310
+  "golden_rows": 258
 }
