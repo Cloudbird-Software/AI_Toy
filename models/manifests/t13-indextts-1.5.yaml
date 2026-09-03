@@ -1,0 +1,26 @@
+# 模型权重清单（spec §9.2）：每条 {name, task, license, sha256, size, fetch_url, tier_usage}。
+# repoctl fetch-models（spec §3.8 桩）读取本目录 *.yaml 列表，契约字段 {id, sha256, source,
+# dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
+# 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
+#
+# T13 云端高质量 TTS（issue #132 / W3-3，ADR-0008）：IndexTeam/IndexTTS-1.5 最小可用档。
+# 清单条目取 gpt.pth（主档）；同伴文件 sha256/size（受控存储 /root/workspace/datasets/models/indextts-1.5/）：
+#   dvae.pth               sha256=69e841bf8cd97a32806ea8a439c50017c991ac9e8bb795db89ec47828cae4d5d  size=243316270
+#   bigvgan_generator.pth  sha256=a2458834d8277e76eb8614c9751b5e8eaa0474eab706f0ecfafcb600023133ed  size=536176992
+#   bpe.model              sha256=b2a5ce8090d32da3642cc4f81fdc996376bc6dd3f4cd5e3d165f71120d9f2bc8  size=475997
+#   unigram_12000.vocab    sha256=ef28cd7df6490fa782fabbca4e9106cd0517ca7c57a057f978de27b2885a5d1b  size=94747
+#   config.yaml            sha256=864280aeb82a722ce561078c7f7f16a63b0c6cb270e9b9566a8ce5bffef38954  size=2494
+# （bigvgan_discriminator.pth 仅训练用未取，同上游 LICENSE-LEDGER W3-3 口径。）
+# 部署形态：云端自部署服务（Go 客户端 packages/go/tts.IndexTTSClient，wire 契约见
+# ADR-0008）；本清单为权重溯源/fetch 目标，非端侧下发物。禁克隆真实儿童声音——仅
+# 官方/自备音色白名单，voice 引用面服务端裁决。
+- name: t13-indextts-1.5
+  task: tts
+  license: Apache-2.0
+  sha256: "44460b820a8afd58f68f3d3e69113e7900c8730bf519ecf158c081f2b8991240"
+  size: 1171228980
+  fetch_url: https://huggingface.co/IndexTeam/IndexTTS-1.5
+  tier_usage: L0-L1 云端高质量档（自部署服务权重；Go 客户端已接入，实服部署 M2+）
+  id: t13-indextts-1.5
+  source: /root/workspace/datasets/models/indextts-1.5/gpt.pth
+  dest: t13_indextts15_gpt.pth
