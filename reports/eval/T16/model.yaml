@@ -1,0 +1,8 @@
+judge_default: { provider: stepfun, model: step-3.7-flash, temperature: 0.0, locked: true }
+judges_high_risk: [step-3.7-flash, gpt-4o]
+policy:
+  pairwise_swap: true
+  tie_on_disagree: true
+  recalibrate: quarterly + on any rubric/judge change
+  kappa_gate: { automation: 0.61, ci_autonomous: 0.80 }
+gold_dir: reports/eval/T16/golden/

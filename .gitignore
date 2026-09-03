@@ -35,3 +35,10 @@ reports/tmp/
 # Python 工具缓存（tools/tts 等）
 __pycache__/
 *.pyc
+
+# T16 judge 本地生成物（不入 PR）
+reports/eval/T16/build_golden.log
+reports/eval/T16/code/build_golden*.py
+reports/eval/T16/code/finalize_golden.py
+reports/eval/T16/golden/16a.jsonl.bak
+reports/eval/T16/golden/checkpoint_voted.jsonl
