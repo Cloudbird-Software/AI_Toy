@@ -3,19 +3,19 @@
 # dest}（多余字段容忍，见 tools/repoctl/internal/repoctl/fetchmodels.go）；桩阶段仅支持
 # 本地路径/file:// 源，sha256 须为 64 位 hex（不接受空串）。
 #
-# T4 自训唤醒词模型（替换 openwakeword 占位）：45k 甜区 step-36118 候选，openWakeWord
+# T4 自训唤醒词模型（替换 openwakeword 占位）：v2-c38486@th0.10 最终候选，openWakeWord
 # 官方管线兼容（冻结特征管线 + auto_train 裁剪版），全合成数据训练。
 #
-# 门禁矩阵（6 门 5 PASS）：G0-01/02、G1-01 近讲、G1-02 公平性、G1-03 RTF 全 PASS；
-# snr5_babble 远场 0.8736（≥0.90 FAIL）——当前合成数据配方能力前沿，非模型选择伪影。
+# 门禁矩阵（6 门 5 PASS 1 FAIL）：G0-01/02、G1-01 近讲、G1-02 公平性、G1-03 RTF 全 PASS；
+# 远场 snr5_babble 0.863（<0.90 FAIL）——当前合成数据配方能力前沿，非模型选择伪影。
 # 数据纪律：训练负样本与冻结批零重叠；eval-only 纪律未削弱。
 - name: t4-wakeword
   task: kws
   license: Proprietary
-  sha256: "1c0e6e79fe869111ead4d19499e4558c6c56bd065793d5a4e4c6267729045fc8"
+  sha256: "e416361c580f5a74051a03f19e1a35475218a32333745563e63115980c27f750"
   size: 857269
-  fetch_url: cos://everything-1476163454/ai-toy/gpu-results/gpu-results-t4-20260901.tar.gz
+  fetch_url: cos://everything-1476163454/ai-toy/models/t4_wakeword_w1a.onnx
   tier_usage: L0-L3 全档（端侧唤醒入口，T4 自训替换 openwakeword 占位模型）
   id: t4-wakeword
-  source: models/incoming/t4_wakeword.onnx
-  dest: t4_wakeword.onnx
+  source: cos://everything-1476163454/ai-toy/models/t4_wakeword_w1a.onnx
+  dest: t4_wakeword_w1a.onnx
