@@ -1,0 +1,14 @@
+# 模型权重清单（spec §9.2）：Qwen3-0.6B GGUF Q4_K_M 量化（llama.cpp 路线）。
+#
+# 许可：Apache 2.0（Qwen 系列官方许可，完全可商用）。
+# 用途：T14 端侧 LLM 对话（L2/L3 离线档）。
+- name: qwen3-0.6b-gguf
+  task: llm
+  license: Apache-2.0
+  sha256: "9acfc1e001311f34b4252001b626f2e466d592a42065f66571bff3790d4e1b14"
+  size: 417291928
+  fetch_url: https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/gptq4-0004-of-00001.bin
+  tier_usage: L2-L3（端侧离线对话；1.7B 为高档硬件备选）
+  id: qwen3-0.6b-gguf
+  source: models/incoming/qwen3-0.6b-gguf/Qwen_Qwen3-0.6B-Q4_K_M.gguf
+  dest: qwen3-0.6b-gguf/Qwen_Qwen3-0.6B-Q4_K_M.gguf

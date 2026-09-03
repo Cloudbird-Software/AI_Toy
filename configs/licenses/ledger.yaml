@@ -1,20 +1,62 @@
 # License 台账（AGENTS.md「无 license 台账的新依赖」执法面；审计项，季度审计）。
 # 建于 W3-T13（issue #132，此前仓库无此文件——首批条目=T13 两个模型权重与
 # tools/tts 导出工具链的 import 时依赖）。
-models:
-  - name: t13-melotts-zh
+# T14 端侧推理桥接包条目已合并入 entries。
+
+entries:
+  - id: t13-melotts-zh
+    name: MeloTTS-Chinese
     license: MIT
     source: https://huggingface.co/myshell-ai/MeloTTS-Chinese
     code: https://github.com/myshell-ai/MeloTTS
     files: checkpoint.pth(207,770,124B) + config.json + melo/ 推理代码 + opencpop-strict.txt
     used_as: T13 端侧离线 TTS（ONNX 导出基座；manifest t13-melotts-zh）
     provenance: datasets/LICENSE-LEDGER.md W3-2
-  - name: t13-indextts-1.5
+
+  - id: t13-indextts-1.5
+    name: IndexTTS-1.5
     license: Apache-2.0
     source: https://huggingface.co/IndexTeam/IndexTTS-1.5
     files: gpt.pth + dvae.pth + bigvgan_generator.pth + bpe.model + unigram_12000.vocab + config.yaml（bigvgan_discriminator.pth 未取）
     used_as: T13 云端高质量 TTS（自部署服务权重；manifest t13-indextts-1.5）
     provenance: datasets/LICENSE-LEDGER.md W3-3
+
+  - id: qwen3-0.6b-gguf
+    name: Qwen3-0.6B GGUF Q4_K_M
+    license: Apache-2.0
+    source: models/qwen3-0.6b-gguf/Qwen_Qwen3-0.6B-Q4_K_M.gguf
+    usage: packages/go/inference (LLM stub, M2 换 sherpa-onnx/llama.cpp)
+    sha256: "9acfc1e001311f34b4252001b626f2e466d592a42065f66571bff3790d4e1b14"
+
+  - id: fireredasr2-sherpa-onnx
+    name: FireRedASR2 sherpa-onnx
+    license: Apache-2.0
+    source: models/fireredasr2-sherpa-onnx/{encoder,decoder}.int8.onnx
+    usage: packages/go/inference (ASR stub, M2 换 sherpa-onnx FireRedASR2)
+    sha256: "54048d66b6e8f3c80ea7ce95efe794587b0fd81d7271651d0decd3803852ae82"
+
+  - id: silero-vad
+    name: Silero VAD
+    license: MIT
+    source: models/silero-vad/silero_vad.onnx
+    usage: packages/go/inference (VAD stub, M2 换 sherpa-onnx Silero VAD)
+    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+    note: sha256 占位（manifest 已有条目，待 fetch-models 回填）
+
+  - id: sherpa-onnx
+    name: sherpa-onnx
+    license: Apache-2.0
+    source: https://github.com/k2-fsa/sherpa-onnx
+    usage: packages/go/inference (统一推理运行时，ASR/TTS/KWS 共用)
+    note: 代码依赖，无权重文件
+
+  - id: llama.cpp
+    name: llama.cpp
+    license: MIT
+    source: https://github.com/ggerganov/llama.cpp
+    usage: packages/go/inference (GGUF 推理后端，M2 接入)
+    note: 代码依赖，无权重文件
+
 # 工具链（仅开发/导出宿主机 import 时依赖，不入产品分发包）：
 # tools/tts/export_melotts_onnx.py 与 gen_melo_phoneme_table.py 运行所需——
 #   torch(BSD-style) torchaudio(BSD-style) onnx(MIT) onnxruntime(MIT)

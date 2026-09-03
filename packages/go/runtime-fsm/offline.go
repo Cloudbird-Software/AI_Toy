@@ -12,6 +12,8 @@ package runtimefsm
 import (
 	"fmt"
 	"strings"
+
+	"github.com/Cloudbird-Software/AI_Toy/packages/go/safety"
 )
 
 // 边界声明话术（诚实拒绝——不编造、不冒充云端能力；儿童亲和口径）。
@@ -29,7 +31,8 @@ const (
 // Offline L2/L3 检索式应答器：本地知识集（规范化问题→答案）+ 档位能力
 // 约束。零值不可用——经 NewOffline 构造。
 type Offline struct {
-	known map[string]string // 规范化问题 → 答案（只读视图）
+	known     map[string]string // 规范化问题 → 答案（只读视图）
+	safetyEng *safety.Engine    // 可选 T9 安全引擎（nil=不启用离线安全词面过滤）
 }
 
 // NewOffline 构造离线应答器（known 为 nil 时=空知识集——全部诚实拒绝）。
@@ -41,6 +44,14 @@ func NewOffline(known map[string]string) *Offline {
 		m[k] = v
 	}
 	return &Offline{known: m}
+}
+
+// NewOfflineWithSafety 构造带 T9 安全联动的离线应答器（T9 模型微调中，当前占位）。
+// safetyEng 为 nil 时等同于 NewOffline，不启用离线词面过滤。
+func NewOfflineWithSafety(known map[string]string, safetyEng *safety.Engine) *Offline {
+	o := NewOffline(known)
+	o.safetyEng = safetyEng
+	return o
 }
 
 // NormalizeQuery 问题规范化：空白折叠（连续空白→单空格）+ 去首尾空白 +
@@ -59,6 +70,14 @@ func (o *Offline) Answer(q string, tier int) (resp string, refused bool) {
 	if ans, ok := o.known[NormalizeQuery(q)]; ok {
 		return ans, false
 	}
+	// TODO T9 离线词面规则接线（T9 模型微调中，接口对齐 packages/go/safety DefaultConfig）。
+	// 占位：当前 o.safetyEng 为 nil 时不进入；T9 微调完成后启用离线词面过滤。
+	// if o.safetyEng != nil {
+	//     d := o.safetyEng.PreSpeak(q)
+	//     if d.Intercepted || d.Sev == safety.Crisis {
+	//         return d.SpokenText, true // 离线档安全拦截（不输出危机/攻击内容）
+	//     }
+	// }
 	boundary := BoundaryL3
 	if tier == 2 {
 		boundary = BoundaryL2
